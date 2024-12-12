@@ -13,7 +13,6 @@ def main():
     # To add a timestamp to the filename
     current_date = datetime.now()
     current_date_string = current_date.strftime(TEXT_DATE_FORMAT) #this format can be used in filenames
-
     
 # Check if the report folder exists, if not, create it
     if not os.path.exists(HTML_REPORT_FOLDER):

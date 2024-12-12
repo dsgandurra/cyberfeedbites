@@ -14,7 +14,7 @@ CyberFeedBites is a lightweight Python script that collects the latest cybersecu
 ## TLDR;
 CyberFeedBites is ready to use once the requirements are installed. It will fetch the latest 24h articles from the sources in the provided `cybersecnews-sources.opml` file and write the summary to an HTML file under `data/html_reports`. Follow these steps:
 
-1. Clone the repository: `git clone https://github.com/[TODO]/cyberfeedbites.git`
+1. Clone the repository: `git clone https://github.com/dsgandurra/cyberfeedbites.git`
 2. Install dependencies: `pip install -r requirements.txt`
 3. (Optional) Configure `config.py`
 4. Run the script: `python src/main.py`
@@ -25,7 +25,7 @@ CyberFeedBites is ready to use once the requirements are installed. It will fetc
 1. Clone this repository:
 
 ```bash
-git clone https://github.com/[TODO]/cyberfeedbites.git
+git clone https://github.com/dsgandurra/cyberfeedbites.git
 cd cyberfeedbites
 ```
 
