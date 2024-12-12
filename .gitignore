@@ -1,0 +1,12 @@
+# Ignore everything in html_reports folder
+data/html_reports/
+
+# Ignore Python bytecode files
+*.pyc
+__pycache__/
+
+# Ignore virtual environment
+venv/
+
+# Ignore any other unnecessary files
+.DS_Store
