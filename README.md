@@ -1,4 +1,3 @@
-
 # CyberFeedBites: A Quick Cybersecurity RSS Feed Reader
 
 CyberFeedBites is a lightweight Python script that collects the latest cybersecurity news from RSS feeds specified in an OPML file and generates an HTML table with titles, brief descriptions, and links to articles, sorted by date, for a quick overview of the latest cybersecurity news. The script is customisable to include different feed sources and fetch news from the past 'X' days (configurable). The generated HTML file is saved with a timestamp for easy reference.
