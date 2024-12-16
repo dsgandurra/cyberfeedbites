@@ -3,7 +3,7 @@ from datetime import datetime, timedelta
 from bs4 import BeautifulSoup
 from urllib.parse import urlparse
 
-from config import MAX_LENGTH_DESCRIPTION, FEED_SEPARATOR
+from config import MAX_LENGTH_DESCRIPTION, FEED_SEPARATOR, SUMMARY_KEY, DESCRIPTION_KEY
 
 def html_to_plain_text(html_str):
     """Converts HTML to plain text using BeautifulSoup."""
@@ -15,7 +15,7 @@ def html_to_plain_text(html_str):
         return ""
 
 def truncate_string(text, max_length):
-    """Truncates the string to a maximum length with ellipsis if necessary, preserving word boundaries."""
+    """Truncates the string to a maximum length."""
     if len(text) > max_length:
         return text[:max_length].rsplit(' ', 1)[0] + "..."
     return text
@@ -30,10 +30,10 @@ def get_last_time(max_days):
 
 def format_description(entry):
     """Formats the description of the RSS entry."""
-    description = entry.get('description')
+    description = entry.get(DESCRIPTION_KEY)
     
     if not description:
-        description = entry.get('summary', 'No description')
+        description = entry.get(SUMMARY_KEY, DESCRIPTION_KEY)
         truncated_plain_text_description = ""
            
     if description:

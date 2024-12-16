@@ -6,7 +6,7 @@ from utils import sanitize_text, get_website_name
 def write_all_rss_to_html(posts_to_print, outfilename, current_date, earliest_time):
     """Writes all RSS feed entries to an HTML file."""
     
-    sorted_posts = sorted(posts_to_print, key=lambda post: post['published_date'])
+    sorted_posts = sorted(posts_to_print, key=lambda post: post[PUBLISHED_DATE_KEY])
     total_posts = len(sorted_posts)
     
     # Use list for efficient string concatenation

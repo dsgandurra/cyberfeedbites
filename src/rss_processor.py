@@ -11,14 +11,6 @@ def process_rss_feed(opml_filename, max_days):
     all_entries = []
     all_entries_queue = queue.Queue()
     lock = threading.Lock()
-
-    if not isinstance(max_days, int):
-        max_days = round(max_days)
-    
-    if max_days < 1:
-        max_days = 1
-    elif max_days > MAX_DAYS_BACK:
-        max_days = MAX_DAYS_BACK
     
     # Get the earliest time to look back in the feeds
     earliest_time = get_last_time(max_days)

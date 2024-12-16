@@ -1,20 +1,28 @@
 import ssl
 import xml.etree.ElementTree as ET
+import os
 from datetime import datetime
 import feedparser
 import threading
 
 from utils import format_description, print_article, print_feed_details
-from config import FEED_URL_KEY, TITLE_KEY, LINK_KEY, DESCRIPTION_KEY, PUBLISHED_DATE_KEY
+from config import XMLURL_KEY, PUBLISHED_PARSED_KEY, UPDATED_PARSED_KEY, FEED_URL_KEY, TITLE_KEY, LINK_KEY, DESCRIPTION_KEY, PUBLISHED_DATE_KEY
 
 # Read OPML and extract feed URLs
 def read_opml(file_path):
     """Reads OPML file and extracts feed URLs."""
+    # Check if the file exists
+    if not os.path.exists(file_path):
+        raise FileNotFoundError(f"The OPML file at {file_path} does not exist.")
+    
+    # Parse the OPML file
     tree = ET.parse(file_path)
     root = tree.getroot()
+    
     feeds = []
     for outline in root.findall('.//outline[@xmlUrl]'):
-        feeds.append((outline.attrib['title'], outline.attrib['xmlUrl']))
+        feeds.append((outline.attrib[TITLE_KEY], outline.attrib[XMLURL_KEY]))
+    
     return feeds
 
 # Fetch articles from RSS feed
@@ -27,7 +35,7 @@ def fetch_recent_articles(feed_url, earliest_time):
     recent_articles = []
 
     for entry in feed.entries:
-        published = entry.get('published_parsed') or entry.get('updated_parsed')
+        published = entry.get(PUBLISHED_PARSED_KEY) or entry.get(UPDATED_PARSED_KEY)
 
         if published:
             published_date = datetime(*published[:6])

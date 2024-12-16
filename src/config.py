@@ -18,7 +18,11 @@ MAX_DAYS_BACK = 7 #limits how many days back to search
 FEED_SEPARATOR = "-" * 40
 
 # Keys used in RSS feed entries
+SUMMARY_KEY = "summary"
+PUBLISHED_PARSED_KEY = "published_parsed"
+UPDATED_PARSED_KEY = "updated_parsed"
 FEED_URL_KEY = "feed_url"
+XMLURL_KEY = "xmlUrl"
 TITLE_KEY = "title"
 LINK_KEY = "link"
 DESCRIPTION_KEY = "description"

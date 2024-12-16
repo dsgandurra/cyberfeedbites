@@ -1,23 +1,21 @@
 # CyberFeedBites: A Quick Cybersecurity RSS Feed Reader
 
-CyberFeedBites is a lightweight Python script that collects the latest cybersecurity news from RSS feeds specified in an OPML file and generates an HTML table with titles, brief descriptions, and links to articles, sorted by date, for a quick overview of the latest cybersecurity news. The script is customisable to include different feed sources and fetch news from the past 'X' days (configurable). The generated HTML file is saved with a timestamp for easy reference.
+CyberFeedBites is a lightweight Python script that collects the latest cybersecurity news from RSS feeds specified in an OPML file and generates an HTML file with titles, brief descriptions, and links to articles, sorted by date, providing a quick overview of the latest cybersecurity news. CyberFeedBites is customisable to include different feed sources and fetch news from the past 'X' days.
 
 ## Features
 
-- Collects and processes cybersecurity news from various RSS feeds (list included and expandable).
-- Fetches cybersecurity news from the past 'X' days (configurable).
-- Generates an HTML table with titles, brief descriptions, and links to articles, sorted by date, for a quick overview of the latest cybersecurity news.
-- Saves the generated HTML file with a timestamp for easy reference.
+- Collects and processes cybersecurity news from various RSS feeds (list included).
+- Fetches cybersecurity news from the past 'X' days
+- Generates an HTML file with titles, brief descriptions, and links to articles, sorted by date, for a quick overview of the latest cybersecurity news.
 - Includes a sample OPML file with a list of notable cybersecurity RSS sources.
 
 ## TLDR;
-CyberFeedBites is ready to use once the requirements are installed. It will fetch the latest 24h articles from the sources in the provided `cybersecnews-sources.opml` file and write the summary to an HTML file under `data/html_reports`. Follow these steps:
+CyberFeedBites is ready to use once the requirements are installed. To run it as is, follow these steps to fetch the latest 24-hour articles from the sources in the provided `cybersecnews-sources.opml` file and generate a summary in an HTML file saved in the `data/html_reports/` directory.
 
 1. Clone the repository: `git clone https://github.com/dsgandurra/cyberfeedbites.git`
 2. Install dependencies: `pip install -r requirements.txt`
-3. (Optional) Configure `config.py`
-4. Run the script: `python src/main.py`
-5. Check the generated HTML file in `data/html_reports`
+3. Run CyberFeedBites: `python src/main.py`
+4. Check the generated HTML file in the `data/html_reports/` directory
 
 ## Installation and Usage Overview
 
@@ -27,16 +25,15 @@ CyberFeedBites is ready to use once the requirements are installed. It will fetc
 git clone https://github.com/dsgandurra/cyberfeedbites.git
 cd cyberfeedbites
 ```
-
 2. Install the required Python dependencies (see below Requirements).
 
-3. (Optional) Configure the settings in `config.py` as needed (e.g., changing the number of days for news retrieval or updating the RSS feed sources). If you keep the default values, it will fetch the latest 24h articles from the sources in the provided `cybersecnews-sources.opml` file.
+3. (Optional) Configure the settings in `config.py` as needed (e.g., changing the default number of days for news retrieval or updating the link to the default RSS feed sources file). If you keep the default values, it will fetch the latest 24-hour articles from the sources in the provided `cybersecnews-sources.opml` file. These settings can also be overridden using command-line parameters.
 
-4. Run the program (see below Usage). An output HTML file will be generated with a list of recent cybersecurity news retrieved (see below, Output).
+4. Run the program (see Usage below). An output HTML file will be generated with an ordered list of summaries and links to recent cybersecurity news (see Output below)
 
 ## Requirements
 
-Before running the script, ensure that you have the required dependencies installed. It's recommended to use a virtual environment to keep your project's dependencies isolated.
+Before running CyberFeedBites, ensure that you have the required dependencies installed. It's recommended to use a virtual environment to keep your project's dependencies isolated.
 
 1. Create and activate a virtual environment:
 
@@ -71,13 +68,26 @@ The required packages are:
 cd path/to/cyberfeedbites
 ```
 
-2. Run the script:
+2. Run CyberFeedBites with optional parameters:
 
 ```bash
-python src/main.py
+python src/main.py [--days <days_back>] [--opml <opml_file_path>]
 ```
+- `--days`: Specify the number of days to fetch news from (e.g., `--days 2`). Defaults to the `DAYS_BACK` value set in `config.py`.
+- `--opml`: Provide a custom path to an OPML file (e.g., `--opml data/rss_sources/custom.opml`). Defaults to the OPML file specified by `OPML_FILENAME` in `config.py`.
 
-This will process the RSS feeds specified in the OPML file (`data/rss_sources/cybersecnews-sources.opml`), retrieve news from the past 'X' days (as defined in the config), and generate an HTML file.
+Examples:
+- Fetch news from the last 3 days:
+  ```bash
+  python src/main.py --days 3
+  ```
+- Use a custom OPML file:
+  ```bash
+  python src/main.py --opml data/rss_sources/custom.opml
+  ```
+- Combine both:
+  ```bash
+  python src/main.py --days 5 --opml data/rss_sources/another_file.opml
 
 ## Output
 
@@ -100,9 +110,9 @@ The repository includes a sample OPML file (`data/rss_sources/cybersecnews-sourc
 
 ## Customization
 
-You can modify the number of days of news to retrieve by changing the `DAYS_BACK` parameter in the `config.py` file. Depending on the number of RSS feeds, it is best to keep this number to a minimum (e.g., with the current feeds, around 100-150 entries are generated with the default value of 1 day). The `MAX_DAYS_BACK` parameter in the `config.py` file limits the maximum number of days that can be retrieved (default, 7 days).
-- You can also add or remove RSS feed sources by editing the `cybersecnews-sources.opml` file.
-- The script uses a template for the HTML output, which can be customised by editing the `template.html` file located in the `data/templates` folder, together with a simple `style.css` file.
+- You can modify the default number of days for news retrieval by changing the `DAYS_BACK` parameter in the `config.py` file. Depending on the number of RSS feeds, it is best to keep this number small to make the output manageable (e.g., with the current feeds, around 100-150 entries are generated with the default value of 1 day). The `MAX_DAYS_BACK` parameter in the `config.py` file limits the maximum number of days that can be retrieved (default is 7 days). You can edit this variable in `config.py` if you want to increase this limit.
+- You can also add or remove RSS feed sources by editing directly the `cybersecnews-sources.opml` file.
+- CyberFeedBites uses a template for the HTML output, which can be customised by editing the `template.html` file located in the `data/templates` folder, along with a simple `style.css` file. Note that if you choose a different directory to store the report, make sure to reference the css.
 
 ## License
 
@@ -110,5 +120,5 @@ This project is licensed under the GPL-3.0 License - see the [LICENSE](LICENSE) 
 
 ## Acknowledgements
 
-- This script uses the `feedparser` library for parsing RSS feeds.
+- CyberFeedBites uses the `feedparser` library for parsing RSS feeds.
 - The `beautifulsoup4` library is used for HTML parsing and sanitising descriptions.
