@@ -1,6 +1,6 @@
-# CyberFeedBites: A Quick Cybersecurity RSS Feed Reader
+# CyberFeedBites: A Lightweight Cybersecurity RSS Feed Reader
 
-CyberFeedBites is a lightweight Python script that collects the latest cybersecurity news from RSS feeds specified in an OPML file and generates an HTML file with titles, brief descriptions, and links to articles, sorted by date, providing a quick overview of the latest cybersecurity news. CyberFeedBites is customisable to include different feed sources and fetch news from the past 'X' days.
+CyberFeedBites is a lightweight Python tool that collects the latest cybersecurity news from RSS feeds specified in an OPML file and generates an HTML file with titles, brief descriptions, and links to articles, sorted by date, providing a quick overview of the latest cybersecurity news. CyberFeedBites is customisable to include different feed sources and fetch news from the past 'X' days.
 
 ## Features
 
@@ -10,14 +10,15 @@ CyberFeedBites is a lightweight Python script that collects the latest cybersecu
 - Includes a sample OPML file with a list of notable cybersecurity RSS sources.
 
 ## TLDR;
-CyberFeedBites is ready to use once the requirements are installed. To run it as is, follow these steps to fetch the latest 24-hour articles from the sources in the provided `cybersecnews-sources.opml` file and generate a summary in an HTML file saved in the `data/html_reports/` directory.
+CyberFeedBites is ready to use once the dependencies are installed. To run it as is, follow these steps to fetch the latest 24-hour articles from the sources in the provided `cybersecnews-sources.opml` file and generate a summary in an HTML file saved in the `data/html_reports/` directory.
 
 1. Clone the repository: `git clone https://github.com/dsgandurra/cyberfeedbites.git`
-2. Install dependencies: `pip install -r requirements.txt`
-3. Run CyberFeedBites: `python src/main.py`
-4. Check the generated HTML file in the `data/html_reports/` directory
+2. Move to the root folder: `cd cyberfeedbites`
+3. Install dependencies: `pip install -r requirements.txt`
+4. Run CyberFeedBites: `python src/main.py`
+5. Check the generated HTML file in the `data/html_reports/` directory
 
-## Installation and Usage Overview
+## Installation
 
 1. Clone this repository:
 
@@ -25,17 +26,7 @@ CyberFeedBites is ready to use once the requirements are installed. To run it as
 git clone https://github.com/dsgandurra/cyberfeedbites.git
 cd cyberfeedbites
 ```
-2. Install the required Python dependencies (see below Requirements).
-
-3. (Optional) Configure the settings in `config.py` as needed (e.g., changing the default number of days for news retrieval or updating the link to the default RSS feed sources file). If you keep the default values, it will fetch the latest 24-hour articles from the sources in the provided `cybersecnews-sources.opml` file. These settings can also be overridden using command-line parameters.
-
-4. Run the program (see Usage below). An output HTML file will be generated with an ordered list of summaries and links to recent cybersecurity news (see Output below)
-
-## Requirements
-
-Before running CyberFeedBites, ensure that you have the required dependencies installed. It's recommended to use a virtual environment to keep your project's dependencies isolated.
-
-1. Create and activate a virtual environment:
+2. Before running CyberFeedBites, it's recommended to use a virtual environment to keep your project's dependencies isolated. To do so, create and activate a virtual environment:
 
    On **Linux/macOS**:
    ```bash
@@ -48,8 +39,7 @@ Before running CyberFeedBites, ensure that you have the required dependencies in
    python -m venv myenv
    .\myenv\Scripts\activate
    ```
-
-2. Install the required dependencies:
+3. Install the required dependencies:
 
    ```bash
    pip install -r requirements.txt
