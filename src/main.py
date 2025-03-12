@@ -16,7 +16,6 @@ def validate_days(value):
     return value
 
 def parse_arguments():
-
     description = (
         "Cyberfeedbites collects and summarises the latest cybersecurity news from "
         "RSS feeds listed in an OPML file, generating an HTML report."
@@ -63,6 +62,7 @@ def main():
     end_time = time.time()
 
     # Print execution details
+    print(f"\n{FEED_SEPARATOR}")
     print(f"Summary")
     print(f"{FEED_SEPARATOR}")
     print(f"Days back: {days_back}")

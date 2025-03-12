@@ -7,7 +7,7 @@ from utils import get_last_time
 from config import MAX_THREAD_WORKERS, MAX_DAYS_BACK
 
 def process_rss_feed(opml_filename, max_days):
-    """Handles the RSS feed processing, including reading feeds and writing results to files."""
+    """Handles the RSS feed processing."""
     all_entries = []
     all_entries_queue = queue.Queue()
     lock = threading.Lock()

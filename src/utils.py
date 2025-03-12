@@ -4,6 +4,7 @@ from bs4 import BeautifulSoup
 from urllib.parse import urlparse
 
 from config import MAX_LENGTH_DESCRIPTION, FEED_SEPARATOR, SUMMARY_KEY, DESCRIPTION_KEY
+from config import XMLURL_KEY, PUBLISHED_PARSED_KEY, UPDATED_PARSED_KEY, FEED_URL_KEY, TITLE_KEY, LINK_KEY, DESCRIPTION_KEY, PUBLISHED_DATE_KEY
 
 def html_to_plain_text(html_str):
     """Converts HTML to plain text using BeautifulSoup."""
@@ -63,14 +64,17 @@ def get_website_name(url):
         print(f"Error parsing URL {url}: {e}")
         return "Unknown"
 
-def print_feed_details(feedtitle, feed_url, lock):
+def print_feed_details(feedtitle, feed_url, recent_articles, lock):
     """Helper function to print feed details."""
     with lock:
         print(f"\n{FEED_SEPARATOR}")
         print(f"[{feedtitle}] [{feed_url}]")
+        if recent_articles:
+            print(f"{FEED_SEPARATOR}")
+            for article in recent_articles:
+                print_article(article)
         print(f"{FEED_SEPARATOR}")
 
-def print_article(title, description, link, published_date, lock):
+def print_article(entry):
     """Helper function to print article details."""
-    with lock:
-        print(f"\t[{title}] [{description}] {link} [{published_date}]")
+    print(f"\t[{entry[TITLE_KEY]}] [{entry[DESCRIPTION_KEY]}] [{entry[LINK_KEY]}] [{entry[PUBLISHED_DATE_KEY]}]")

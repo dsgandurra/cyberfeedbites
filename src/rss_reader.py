@@ -43,11 +43,6 @@ def fetch_recent_articles(feed_url, earliest_time):
                 truncated_plain_text_description = format_description(entry)
                 recent_articles.append((entry.title, entry.link, truncated_plain_text_description, published_date))
 
-    return recent_articles
-
-# Filter and process articles to match time range
-def check_recent_articles(feed_url, recent_articles, earliest_time, lock):
-    """Filters and checks if articles are within the allowed time range."""
     entries = []
 
     for title, link, description, published_date in recent_articles:
@@ -58,26 +53,22 @@ def check_recent_articles(feed_url, recent_articles, earliest_time, lock):
             DESCRIPTION_KEY: description,
             PUBLISHED_DATE_KEY: published_date
         }
-
-        if earliest_time < published_date:
-            print_article(title, description, link, published_date, lock)
         entries.append(entry)
-
+        
     return entries
 
-# Process individual RSS feed
+# Process individual RSS feed sources
 def process_feed(feedtitle, feed_url, earliest_time, lock, all_entries_queue):
-    """Processes a single feed, fetches and checks recent articles."""
+    """Processes a feed source, and fetches and checks all its recent articles."""
     try:
         recent_articles = fetch_recent_articles(feed_url, earliest_time)
         if recent_articles:
-            print_feed_details(feedtitle, feed_url, lock)
-            entries = check_recent_articles(feed_url, recent_articles, earliest_time, lock)
-            for entry in entries:
+            print_feed_details(feedtitle, feed_url, recent_articles, lock)
+            for entry in recent_articles:
                 all_entries_queue.put(entry)
-            return entries
+            return recent_articles
         else:
-            print_feed_details(feedtitle, feed_url, lock)
+            print_feed_details(feedtitle, feed_url, recent_articles, lock)
             return []
     except Exception as e:
         print(f"Failed to fetch feed: {e}, {feed_url}")

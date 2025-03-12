@@ -74,10 +74,10 @@
 			<outline type="rss" title="Trustwave" xmlUrl="https://www.trustwave.com/en-us/rss/spiderlabs-blog/" htmlUrl="https://www.trustwave.com/en-us/" />
 			<outline type="rss" title="Varonis Blog" xmlUrl="http://feeds.feedburner.com/metadata-era-varonis" htmlUrl="https://www.varonis.com/blog" />
             <outline type="rss" title="Veracode" xmlUrl="http://www.veracode.com/blog/feed/" htmlUrl="https://www.veracode.com/" />
-            <outline type="rss" title="Veracode" xmlUrl="http://www.veracode.com/blog/feed/" htmlUrl="https://www.veracode.com/blog" />
 			<outline type="rss" title="VirusTotal" xmlUrl="https://blog.virustotal.com/feeds/posts/default" htmlUrl="http://blog.virustotal.com/" />
 			<outline type="rss" title="WeLiveSecurity" xmlUrl="http://feeds.feedburner.com/eset/blog" htmlUrl="https://www.welivesecurity.com" />
             <outline type="rss" title="Wired" xmlUrl="https://www.wired.com/feed/category/security/latest/rss" htmlUrl="https://www.wired.com" />
+			<outline type="rss" title="Wiz Blog" xmlUrl="https://www.wiz.io/feed/rss.xml" htmlUrl="https://www.wiz.io" />
             <outline type="rss" title="ZoneAlarm" xmlUrl="https://blog.zonealarm.com/rss" htmlUrl="https://blog.zonealarm.com/" />
             </outline>
     </body>
