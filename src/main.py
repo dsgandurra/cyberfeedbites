@@ -63,7 +63,7 @@ def main():
 
     # Print execution details
     print(f"\n{FEED_SEPARATOR}")
-    print(f"Summary")
+    print("Summary")
     print(f"{FEED_SEPARATOR}")
     print(f"Days back: {days_back}")
     print(f"Time range: {earliest_time_string} to {current_date_string}")

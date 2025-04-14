@@ -27,12 +27,12 @@
 			<outline type="rss" title="EFF" xmlUrl="http://www.eff.org/rss/updates.xml" htmlUrl="https://www.eff.org/rss/updates.xml" />
             <outline type="rss" title="Elastic Security" xmlUrl="https://www.elastic.co/security-labs/rss/feed.xml" htmlUrl="https://www.elastic.co/security-labs" />
 			<outline type="rss" title="Emsisoft" xmlUrl="http://blog.emsisoft.com/feed/" htmlUrl="https://www.emsisoft.com/en/blog/" />
-            <outline type="rss" title="GBHackers" xmlUrl="https://gbhackers.com/feed/" htmlUrl="https://gbhackers.com" />
+            <!-- <outline type="rss" title="GBHackers" xmlUrl="https://gbhackers.com/feed/" htmlUrl="https://gbhackers.com" /> -->
 			<outline type="rss" title="Google Online Security" xmlUrl="http://googleonlinesecurity.blogspot.com/atom.xml" htmlUrl="http://security.googleblog.com/" />
             <outline type="rss" title="Graham Cluley" xmlUrl="http://feeds.feedburner.com/GrahamCluleysBlog" htmlUrl="https://grahamcluley.com" />
-            <outline type="rss" title="Hacker Noon" xmlUrl="https://hackernoon.com/tagged/cybersecurity/feed" />
+            <!-- <outline type="rss" title="Hacker Noon" xmlUrl="https://hackernoon.com/tagged/cybersecurity/feed" /> -->
 			<outline type="rss" title="HACKMAGEDDON" xmlUrl="https://www.hackmageddon.com/feed/" htmlUrl="http://www.hackmageddon.com/" />
-			<outline type="rss" title="Hackread" xmlUrl="http://feeds.feedburner.com/hackread" htmlUrl="https://hackread.com" />
+			<!-- <outline type="rss" title="Hackread" xmlUrl="http://feeds.feedburner.com/hackread" htmlUrl="https://hackread.com" /> -->
             <outline type="rss" title="Heimdal Security" xmlUrl="https://heimdalsecurity.com/blog/feed/" htmlUrl="https://heimdalsecurity.com/blog/" />
 			<outline type="rss" title="Help Net Security" xmlUrl="http://feeds2.feedburner.com/HelpNetSecurity" htmlUrl="https://www.helpnetsecurity.com/" />
             <outline type="rss" title="HITBSecNews" xmlUrl="http://www.hackinthebox.org/backend.php" htmlUrl="https://news.hitb.org/" />
@@ -41,14 +41,14 @@
 			<outline type="rss" title="Imperva" xmlUrl="https://www.imperva.com/blog/rss" htmlUrl="https://www.imperva.com/blog" />
             <outline type="rss" title="Infosecurity Magazine" xmlUrl="http://www.infosecurity-magazine.com/rss/news/" htmlUrl="https://www.infosecurity-magazine.com/news/" />
             <outline type="rss" title="Intezer" xmlUrl="https://www.intezer.com/blog/feed/" htmlUrl="https://www.intezer.com/blog/" />
-			<outline type="rss" title="IT Security Guru " xmlUrl="http://itsecurityguru.org/feed/" htmlUrl="https://www.itsecurityguru.org/" />
+			<!-- <outline type="rss" title="IT Security Guru " xmlUrl="http://itsecurityguru.org/feed/" htmlUrl="https://www.itsecurityguru.org/" /> -->
             <outline type="rss" title="Kaspersky" xmlUrl="http://blog.kaspersky.com/feed/" htmlUrl="https://www.kaspersky.com/blog" />
             <outline type="rss" title="Krebs on Security" xmlUrl="http://krebsonsecurity.com/feed/" htmlUrl="https://krebsonsecurity.com" />
             <outline type="rss" title="Malware Traffic Analysis" xmlUrl="http://www.malware-traffic-analysis.net/blog-entries.rss" htmlUrl="https://www.malware-traffic-analysis.net/index.html" />
 			<outline type="rss" title="Malwarebytes" xmlUrl="https://www.malwarebytes.com/blog/feed/index.xml" htmlUrl="https://www.malwarebytes.com/" />
             <outline type="rss" title="Microsoft Security" xmlUrl="https://www.microsoft.com/en-us/security/blog/feed" htmlUrl="https://www.microsoft.com/en-us/security/blog/" />
 			<outline type="rss" title="Microsoft Security Response Center" xmlUrl="https://msrc-blog.microsoft.com/feed/" htmlUrl="https://msrc-blog.microsoft.com/" />
-			<outline type="rss" title="NCSC" xmlUrl="https://www.ncsc.gov.uk/api/1/services/v1/all-rss-feed.xml" />
+			<!-- <outline type="rss" title="NCSC" xmlUrl="https://www.ncsc.gov.uk/api/1/services/v1/all-rss-feed.xml" /> -->
 			<outline type="rss" title="NIST" xmlUrl="https://www.nist.gov/blogs/cybersecurity-insights/rss.xml" />
 			<outline type="rss" title="Palo Alto Networks" xmlUrl="http://researchcenter.paloaltonetworks.com/feed/" htmlUrl="https://www.paloaltonetworks.com/blog/" />
             <outline type="rss" title="Project Zero" xmlUrl="http://googleprojectzero.blogspot.com/feeds/posts/default" htmlUrl="https://googleprojectzero.blogspot.com/" />
