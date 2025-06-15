@@ -32,7 +32,7 @@ def read_opml(file_path):
     return feeds, icon_map
 
 # Fetch articles from RSS feed
-def fetch_recent_articles(feed_url, earliest_time):
+def fetch_recent_articles(feed_url, earliest_date):
     """Fetches articles from an RSS feed."""
     if hasattr(ssl, '_create_unverified_context'):
         ssl._create_default_https_context = ssl._create_unverified_context
@@ -42,7 +42,7 @@ def fetch_recent_articles(feed_url, earliest_time):
     channel_updated = feed.feed.get("updated_parsed")
     if channel_updated:
         channel_updated_date = datetime(*channel_updated[:6], tzinfo=timezone.utc)
-        if channel_updated_date <= earliest_time:
+        if channel_updated_date <= earliest_date:
             return []
     
     image_info = feed.feed.get('image') or feed.feed.get('icon') or feed.feed.get('logo') or {}
@@ -60,7 +60,7 @@ def fetch_recent_articles(feed_url, earliest_time):
 
         if published:
             published_date = datetime(*published[:6], tzinfo=timezone.utc)
-            if earliest_time < published_date:
+            if earliest_date < published_date:
                 truncated_plain_text_description = format_description(entry)
                 recent_articles.append((entry.title, entry.link, truncated_plain_text_description, published_date))
 
@@ -80,10 +80,10 @@ def fetch_recent_articles(feed_url, earliest_time):
     return entries
 
 # Process individual RSS feed sources
-def process_feed(feedtitle, feed_url, earliest_time, lock, all_entries_queue):
+def process_feed(feedtitle, feed_url, earliest_date, lock, all_entries_queue):
     """Processes a feed source, and fetches and checks all its recent articles."""
     try:
-        recent_articles = fetch_recent_articles(feed_url, earliest_time)
+        recent_articles = fetch_recent_articles(feed_url, earliest_date)
         if recent_articles:
             print_feed_details(feedtitle, feed_url, recent_articles, lock)
             for entry in recent_articles:
