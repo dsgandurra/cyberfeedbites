@@ -16,7 +16,7 @@ def process_rss_feed(opml_filename, max_days):
     earliest_time = get_last_time(max_days)
     
     # Read and sort the RSS feed URLs from the OPML file
-    feeds = read_opml(opml_filename)
+    feeds, icon_map = read_opml(opml_filename)
     sorted_feeds = sorted(feeds, key=lambda feed: feed[0])
 
     # Using ThreadPoolExecutor to process feeds concurrently
@@ -30,7 +30,7 @@ def process_rss_feed(opml_filename, max_days):
         for future in concurrent.futures.as_completed(future_to_feed):
             feedtitle, feed_url = future_to_feed[future]
             try:
-                future.result()  # Ensure any exceptions are raised
+                future.result()
             except Exception as e:
                 print(f"Error processing {feedtitle} ({feed_url}): {e}")
     
@@ -39,4 +39,4 @@ def process_rss_feed(opml_filename, max_days):
     while not all_entries_queue.empty():
         all_entries.append(all_entries_queue.get())
 
-    return all_entries, earliest_time
+    return all_entries, earliest_time, icon_map

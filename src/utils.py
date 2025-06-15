@@ -1,5 +1,5 @@
 import html
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from bs4 import BeautifulSoup
 from urllib.parse import urlparse
 
@@ -22,11 +22,11 @@ def truncate_string(text, max_length):
     return text
 
 def get_last_time(max_days):
-    """Gets the earliest time based on the maximum number of days to look back."""
+    """Gets the earliest UTC time based on the maximum number of days to look back."""
     max_look_back_period = timedelta(days=max_days)
-    now = datetime.now()           
+    now = datetime.now(timezone.utc)
     earliest_time = now - max_look_back_period
-    
+
     return earliest_time
 
 def format_description(entry):

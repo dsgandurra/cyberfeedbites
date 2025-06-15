@@ -43,9 +43,9 @@ def main():
     
     # To add a timestamp to the filename
     current_date = datetime.now()
-    current_date_string = current_date.strftime(TEXT_DATE_FORMAT) #this format can be used in filenames
+    current_date_string = current_date.strftime(TEXT_DATE_FORMAT)
     
-# Check if the report folder exists, if not, create it
+    # Check if the report folder exists, if not, create it
     if not os.path.exists(HTML_REPORT_FOLDER):
         os.makedirs(HTML_REPORT_FOLDER)
         print(f"Created the folder: {HTML_REPORT_FOLDER}")
@@ -55,10 +55,10 @@ def main():
 
     start_time = time.time()
     # Run the main processing function
-    all_entries, earliest_time = process_rss_feed(opml_filename, days_back)
+    all_entries, earliest_time, icon_map = process_rss_feed(opml_filename, days_back)
     earliest_time_string = earliest_time.strftime(TEXT_DATE_FORMAT)
     # Write the output to HTML
-    write_all_rss_to_html(all_entries, html_outfilename, current_date_string, earliest_time_string)
+    write_all_rss_to_html(all_entries, html_outfilename, current_date_string, earliest_time_string, icon_map)
     end_time = time.time()
 
     # Print execution details

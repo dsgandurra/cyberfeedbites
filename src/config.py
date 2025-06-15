@@ -24,9 +24,12 @@ UPDATED_PARSED_KEY = "updated_parsed"
 FEED_URL_KEY = "feed_url"
 XMLURL_KEY = "xmlUrl"
 TITLE_KEY = "title"
+FEED_TITLE_KEY = "feed_title"
+ICON_URL_KEY = "iconUrl"
 LINK_KEY = "link"
 DESCRIPTION_KEY = "description"
 PUBLISHED_DATE_KEY = "published_date"
+CHANNEL_IMAGE_KEY = "channel_image"
 
 # Maximum length for RSS feed description
 MAX_LENGTH_DESCRIPTION = 200
