@@ -1,16 +1,16 @@
 # CyberFeedBites: A Lightweight Cybersecurity RSS Feed Reader
 
-CyberFeedBites is a lightweight Python tool that collects the latest cybersecurity news from RSS feeds specified in an OPML file and generates an HTML file with titles, brief descriptions, and links to articles, sorted by date, providing a quick overview of the latest cybersecurity news. CyberFeedBites is customisable to include different feed sources and fetch news from the past 'X' days.
+CyberFeedBites is a lightweight Python tool that provides an overview of recent cybersecurity news from the past X days by aggregating multiple RSS feeds. It includes a curated, customisable OPML file of cybersecurity news sources.
 
 ## Features
 
-- Collects and processes cybersecurity news from various RSS feeds (list included).
-- Fetches cybersecurity news from the past 'X' days
-- Generates an HTML file with titles, brief descriptions, and links to articles, sorted by date, for a quick overview of the latest cybersecurity news.
-- Includes a sample OPML file with a list of notable cybersecurity RSS sources.
+- Collects and processes cybersecurity news from various RSS feeds (curated list included in an OPML file).  
+- Fetches cybersecurity news from the past 'X' days.  
+- Generates an HTML file with news titles, brief descriptions, and links to articles, sorted by date, providing an overview of the latest cybersecurity news.  
+- Includes a customisable OPML file with a list of notable cybersecurity RSS sources.
 
 ## TLDR;
-CyberFeedBites is ready to use once the dependencies are installed. To run it as is, follow these steps to fetch the latest 24-hour articles from the sources in the provided `cybersecnews-sources.opml` file and generate a summary in an HTML file saved in the `data/html_reports/` directory.
+CyberFeedBites is ready to use once dependencies are installed. To run it as is, follow these steps to fetch the latest 24-hour articles from the sources listed in the provided `cybersecnews-sources.opml` file and generate a summary as an HTML file saved in the `data/html_reports/` directory:
 
 1. Clone the repository: `git clone https://github.com/dsgandurra/cyberfeedbites.git`
 2. Move to the root folder: `cd cyberfeedbites`
@@ -67,6 +67,10 @@ python src/main.py [--days <days_back>] [--opml <opml_file_path>]
 - `--opml`: Provide a custom path to an OPML file (e.g., `--opml data/rss_sources/custom.opml`). Defaults to the OPML file specified by `OPML_FILENAME` in `config.py`.
 
 Examples:
+- Fetch news from the last 24 hours (default value of `DAYS_BACK`, if no `--days` is specified):  
+  ```bash
+  python src/main.py
+  ```
 - Fetch news from the last 3 days:
   ```bash
   python src/main.py --days 3
@@ -81,22 +85,23 @@ Examples:
 
 ## Output
 
-The resulting HTML file, which lists the news from the past few days, will be saved in the `data/html_reports` folder. The filename will be in the following format:
+The resulting HTML file, which lists the news from the past 'X' days, will be saved in the `data/html_reports` folder. The filename will be in the following format:
 
 `securitynews_YYYY-MM-DD_HH-MM-SS.html`
 
 Each HTML file contains a table with the following columns:
 
-- **ID**: The article's position in the list.
-- **Date**: The date the article was published.
-- **Website**: The name of the website from the link.
-- **Title**: The title of the article.
-- **Description**: A brief description of the article.
-- **Link**: The URL to the full article.
+- **ID**: The article's position in the list.  
+- **Date**: The date the article was published.  
+- **Website**: The name of the website.  
+- **Logo**: Logo of the RSS channel (if available or stored in the OPML file).  
+- **Title**: The title of the article.  
+- **Description**: A brief description of the article.  
+- **Link**: The URL to the full article.  
 
 ## Sample OPML File
 
-The repository includes a sample OPML file (`data/rss_sources/cybersecnews-sources.opml`) with a curated list of relevant RSS sources. You can edit this file to add or remove feed URLs according to your preferences.
+The repository includes a sample OPML file (`data/rss_sources/cybersecnews-sources.opml`) containing a curated list of relevant RSS sources. You can edit this file to add or remove feed URLs according to your preferences, or alternatively, use a different OPML file by passing it with the `--opml` option.
 
 ## Customization
 
