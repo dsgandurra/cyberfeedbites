@@ -1,24 +1,24 @@
 <?xml version='1.0' encoding='utf-8'?>
 <opml version="1.0">
     <head>
-        <title>Security Feeds</title>
+        <title>Cybersecurity News Feeds</title>
     </head>
     <body>
-        <outline text="Security" title="Security">
-			<outline type="rss" title="Akamai" xmlUrl="https://feeds.feedburner.com/akamai/blog" iconUrl="https://www.akamai.com/site/favicon/apple-touch-icon-57x57.png"/>
+        <outline text="Cybersecurity News" title="Cybersecurity News Feeds">
+			<outline type="rss" title="Akamai" xmlUrl="https://feeds.feedburner.com/akamai/blog" htmlUrl="https://www.akamai.com/blog" iconUrl="https://www.akamai.com/site/favicon/apple-touch-icon-57x57.png"/>
 			<outline type="rss" title="Ars Technica - Technology" xmlUrl="https://feeds.arstechnica.com/arstechnica/technology-lab" htmlUrl="https://arstechnica.com" />
             <outline type="rss" title="ATT Cybersecurity" xmlUrl="https://cybersecurity.att.com/site/blog-all-rss" htmlUrl="https://cybersecurity.att.com/blogs/" />
 			<outline type="rss" title="Avast" xmlUrl="https://blog.avast.com/rss.xml" htmlUrl="https://blog.avast.com" />
-            <outline type="rss" title="AWS" xmlUrl="https://aws.amazon.com/blogs/security/feed/" iconUrl="https://a0.awsstatic.com/main/images/site/fav/favicon.ico"/>
+            <outline type="rss" title="AWS" xmlUrl="https://aws.amazon.com/blogs/security/feed/" htmlUrl="https://aws.amazon.com/blogs/security/" iconUrl="https://a0.awsstatic.com/main/images/site/fav/favicon.ico"/>
 			<outline type="rss" title="Bellingcat" xmlUrl="https://www.bellingcat.com/feed/" htmlUrl="https://www.bellingcat.com/" iconUrl= "https://www.bellingcat.com/app/themes/bellingcat/assets/icons/favicons/apple-touch-icon-57x57.png"/>
 			<outline type="rss" title="BleepingComputer" xmlUrl="http://www.bleepingcomputer.com/feed/" htmlUrl="https://www.bleepingcomputer.com/" iconUrl="https://www.bleepstatic.com/favicon/bleeping.ico"/>
 			<outline type="rss" title="Center for Internet Security" xmlUrl="https://www.cisecurity.org/feed/advisories" htmlUrl="https://www.cisecurity.org/resources/?type=advisory" />
 			<outline type="rss" title="Cisco Security" xmlUrl="https://blogs.cisco.com/security/feed" htmlUrl="https://blogs.cisco.com/security/" />
 			<outline type="rss" title="Cisco Talos" xmlUrl="https://blog.talosintelligence.com/rss/" htmlUrl="https://blog.talosintelligence.com/" />
-            <outline type="rss" title="Cloudflare" xmlUrl="https://blog.cloudflare.com/rss" />
+            <outline type="rss" title="Cloudflare" xmlUrl="https://blog.cloudflare.com/rss" htmlUrl="https://blog.cloudflare.com/"/>
 			<outline type="rss" title="Cofense Intelligence" xmlUrl="https://cofense.com/feed/" htmlUrl="https://cofense.com/blog/" />
-			<outline type="rss" title="CSA" xmlUrl="https://cloudsecurityalliance.org/blog/feed/" />
-			<outline type="rss" title="Cyber Security Ventures" xmlUrl="https://cybersecurityventures.com/feed/" iconUrl="https://cybersecurityventures.com/wp-content/uploads/2018/02/favicon.png"/>
+			<outline type="rss" title="CSA" xmlUrl="https://cloudsecurityalliance.org/blog/feed/" htmlUrl="https://cloudsecurityalliance.org/blog/" />
+			<outline type="rss" title="Cyber Security Ventures" xmlUrl="https://cybersecurityventures.com/feed/" htmlUrl="https://cybersecurityventures.com/" iconUrl="https://cybersecurityventures.com/wp-content/uploads/2018/02/favicon.png"/>
             <outline type="rss" title="Dark Reading" xmlUrl="https://www.darkreading.com/rss.xml" htmlUrl="https://www.darkreading.com" iconUrl="https://www.darkreading.com/assets/darkreading.ico"/>
 			<outline type="rss" title="EclecticIQ" xmlUrl="https://blog.eclecticiq.com/rss.xml" htmlUrl="https://blog.eclecticiq.com/" />
 			<outline type="rss" title="EFF" xmlUrl="http://www.eff.org/rss/updates.xml" htmlUrl="https://www.eff.org/rss/updates.xml" iconUrl="https://www.eff.org/sites/all/themes/frontier/favicon.ico"/>
@@ -40,13 +40,13 @@
 			<outline type="rss" title="Malwarebytes" xmlUrl="https://www.malwarebytes.com/blog/feed/index.xml" htmlUrl="https://www.malwarebytes.com/" iconUrl="https://www.malwarebytes.com/wp-content/uploads/sites/2/2025/01/malwarebytes-favicon-apple-touch-icon.png"/>
             <outline type="rss" title="Microsoft Security" xmlUrl="https://www.microsoft.com/en-us/security/blog/feed" htmlUrl="https://www.microsoft.com/en-us/security/blog/" iconUrl="https://uhf.microsoft.com/images/microsoft/RE1Mu3b.png"/>
 			<outline type="rss" title="Microsoft Security Response Center" xmlUrl="https://msrc-blog.microsoft.com/feed/" htmlUrl="https://msrc-blog.microsoft.com/" />
-			<outline type="rss" title="NIST" xmlUrl="https://www.nist.gov/blogs/cybersecurity-insights/rss.xml" />
+			<outline type="rss" title="NIST" xmlUrl="https://www.nist.gov/blogs/cybersecurity-insights/rss.xml" htmlUrl="https://www.nist.gov/blogs/cybersecurity-insights"/>
 			<outline type="rss" title="Palo Alto Networks" xmlUrl="http://researchcenter.paloaltonetworks.com/feed/" htmlUrl="https://www.paloaltonetworks.com/blog/" iconUrl="https://www.paloaltonetworks.com/blog/wp-content/themes/panwblog2023/assets/images/icons/favicon.ico"/>
             <outline type="rss" title="Project Zero" xmlUrl="http://googleprojectzero.blogspot.com/feeds/posts/default" htmlUrl="https://googleprojectzero.blogspot.com/" />
             <outline type="rss" title="Proofpoint Threat Insight" xmlUrl="https://www.proofpoint.com/us/threat-insight-blog.xml" htmlUrl="https://www.proofpoint.com/us/blog" />
 			<outline type="rss" title="Qualys Blog" xmlUrl="https://blog.qualys.com/feed" htmlUrl="https://blog.qualys.com/" />
 			<outline type="rss" title="Red Hat Security" xmlUrl="http://securityblog.redhat.com/feed/" htmlUrl="https://www.redhat.com/en/rss/blog/channel/security" />
-            <outline type="rss" title="SANS" xmlUrl="https://www.sans.org/blog/feed.xml" />
+            <outline type="rss" title="SANS" xmlUrl="https://www.sans.org/blog/feed.xml" htmlUrl="https://www.sans.org/blog/"/>
 			<outline type="rss" title="SANS Internet Storm Center" xmlUrl="https://isc.sans.edu/rssfeed.xml" htmlUrl="https://isc.sans.edu" />
             <outline type="rss" title="Schneier on Security" xmlUrl="http://www.schneier.com/blog/index.rdf" htmlUrl="https://www.schneier.com" />
             <outline type="rss" title="SearchSecurity" xmlUrl="http://searchsecurity.techtarget.com/rss/Security-Wire-Daily-News.xml" htmlUrl="https://www.techtarget.com/searchsecurity" iconUrl="https://www.techtarget.com/favicon.ico"/>
@@ -61,7 +61,7 @@
             <outline type="rss" title="Trend Micro Research" xmlUrl="http://feeds.trendmicro.com/TrendMicroSimplySecurity" htmlUrl="http://feed.informer.com/digests/G5HRN3DTV4/feeder" />
             <outline type="rss" title="Tripwire" xmlUrl="http://feeds.feedburner.com/tripwire-state-of-security" htmlUrl="https://www.tripwire.com/" iconUrl="https://www.tripwire.com/themes/custom/tripwire/favicon.ico"/>
             <outline type="rss" title="Troy Hunt" xmlUrl="http://feeds.feedburner.com/TroyHunt" htmlUrl="https://www.troyhunt.com/" />
-            <outline type="rss" title="TrustWave" xmlUrl="https://www.trustwave.com/en-us/resources/blogs/spiderlabs-blog/rss.xml" />
+            <outline type="rss" title="TrustWave" xmlUrl="https://www.trustwave.com/en-us/resources/blogs/spiderlabs-blog/rss.xml" htmlUrl="https://www.trustwave.com/en-us/resources/blogs/spiderlabs-blog"/>
 			<outline type="rss" title="Varonis Blog" xmlUrl="http://feeds.feedburner.com/metadata-era-varonis" htmlUrl="https://www.varonis.com/blog" iconUrl="https://www.varonis.com/hubfs/Varonis_favicon.ico"/>
             <outline type="rss" title="Veracode" xmlUrl="http://www.veracode.com/blog/feed/" htmlUrl="https://www.veracode.com/" />
 			<outline type="rss" title="VirusTotal" xmlUrl="https://blog.virustotal.com/feeds/posts/default" htmlUrl="http://blog.virustotal.com/" />
@@ -69,6 +69,6 @@
             <outline type="rss" title="Wired" xmlUrl="https://www.wired.com/feed/category/security/latest/rss" htmlUrl="https://www.wired.com" iconUrl="https://www.wired.com/verso/static/wired-us/assets/favicon.ico"/>
 			<outline type="rss" title="Wiz Blog" xmlUrl="https://www.wiz.io/feed/rss.xml" htmlUrl="https://www.wiz.io" />
             <outline type="rss" title="ZoneAlarm" xmlUrl="https://blog.zonealarm.com/rss" htmlUrl="https://blog.zonealarm.com/" />
-            </outline>
+        </outline>
     </body>
 </opml>

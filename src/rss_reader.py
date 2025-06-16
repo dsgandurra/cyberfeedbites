@@ -6,7 +6,7 @@ import feedparser
 import threading
 
 from utils import format_description, print_article, print_feed_details
-from config import XMLURL_KEY, PUBLISHED_PARSED_KEY, UPDATED_PARSED_KEY, FEED_URL_KEY, TITLE_KEY, LINK_KEY, DESCRIPTION_KEY, PUBLISHED_DATE_KEY, CHANNEL_IMAGE_KEY, ICON_URL_KEY, FEED_TITLE_KEY
+from config import XMLURL_KEY, PUBLISHED_PARSED_KEY, UPDATED_PARSED_KEY, FEED_URL_KEY, BODY_KEY, OUTLINE_KEY, TEXT_KEY, TITLE_KEY, LINK_KEY, DESCRIPTION_KEY, PUBLISHED_DATE_KEY, CHANNEL_IMAGE_KEY, ICON_URL_KEY, FEED_TITLE_KEY
 
 # Read OPML and extract feed URLs
 def read_opml(file_path):
@@ -16,6 +16,11 @@ def read_opml(file_path):
     
     tree = ET.parse(file_path)
     root = tree.getroot()
+
+    body = root.find(BODY_KEY)
+    top_outline = body.find(OUTLINE_KEY) if body is not None else None
+    top_text = top_outline.attrib.get(TEXT_KEY) if top_outline is not None else None
+    top_title = top_outline.attrib.get(TITLE_KEY) if top_outline is not None else None
     
     feeds = []
     icon_map = {}
@@ -29,7 +34,7 @@ def read_opml(file_path):
         if title and icon:
             icon_map[title] = icon
     
-    return feeds, icon_map
+    return feeds, icon_map, top_text, top_title
 
 # Fetch articles from RSS feed
 def fetch_recent_articles(feed_url, earliest_date):
@@ -39,7 +44,7 @@ def fetch_recent_articles(feed_url, earliest_date):
 
     feed = feedparser.parse(feed_url)
 
-    channel_updated = feed.feed.get("updated_parsed")
+    channel_updated = feed.feed.get(UPDATED_PARSED_KEY)
     if channel_updated:
         channel_updated_date = datetime(*channel_updated[:6], tzinfo=timezone.utc)
         if channel_updated_date <= earliest_date:

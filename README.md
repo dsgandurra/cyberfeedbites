@@ -89,7 +89,9 @@ Examples:
 
 The resulting HTML file, which lists the news from the past 'X' days, will be saved in the `data/html_reports` folder. The filename will be in the following format:
 
-`securitynews_YYYY-MM-DD_HH-MM-SS.html`
+`<prefix>_YYYY-MM-DD_HH-MM-SS.html`
+
+Where `<prefix>` is derived from the `text` attribute of the top-level `<outline>` element in the OPML file (with special characters removed and all letters converted to lowercase). If that attribute is missing, a default prefix (`cybersecuritynews`) will be used. In the provided OPML file, the top-level `<outline>` element contains `text="Cybersecurity News"`, so the resulting filename will also begin with `cybersecuritynews`.
 
 Each HTML file contains a table with the following columns:
 
@@ -105,11 +107,13 @@ Each HTML file contains a table with the following columns:
 
 The repository includes a sample OPML file (`data/rss_sources/cybersecnews-sources.opml`) containing a curated list of relevant RSS sources. You can edit this file to add or remove feed URLs according to your preferences, or alternatively, use a different OPML file by passing it with the `--opml` option.
 
-## Customization
+## Customisation
 
-- You can modify the default number of days for news retrieval by changing the `DAYS_BACK` parameter in the `config.py` file. Depending on the number of RSS feeds, it is best to keep this number small to make the output manageable (e.g., with the current feeds, around 100-150 entries are generated with the default value of 1 day). The `MAX_DAYS_BACK` parameter in the `config.py` file limits the maximum number of days that can be retrieved (default is 7 days). You can edit this variable in `config.py` if you want to increase this limit.
-- You can also add or remove RSS feed sources by editing directly the `cybersecnews-sources.opml` file.
-- CyberFeedBites uses a template for the HTML output, which can be customised by editing the `template.html` file located in the `data/templates` folder, along with a simple `style.css` file. Note that if you choose a different directory to store the report, make sure to reference the css.
+- You can modify the default number of days for news retrieval by changing the `DAYS_BACK` parameter in the `config.py` file. Depending on the number of RSS feeds, it is best to keep this number small to make the output manageable (e.g., with the current feeds, around 100–150 entries are generated with the default value of 1 day). The `MAX_DAYS_BACK` parameter in the `config.py` file limits the maximum number of days that can be retrieved (default is 7 days). You can edit this variable in `config.py` if you want to increase this limit.
+- You can also add or remove RSS feed sources by editing the `cybersecnews-sources.opml` file.
+- Alternatively, you can use a different OPML file by providing its path when running the script, allowing multiple feed sets to be maintained separately.
+- CyberFeedBites uses a template for the HTML output, which can be customised by editing the `template.html` file located in the `data/templates` folder, along with a simple `style.css` file. Note that if you choose a different directory to store the report, make sure to reference the CSS.
+
 
 ## License
 

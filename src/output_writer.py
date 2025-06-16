@@ -3,7 +3,7 @@ import os
 from config import TEMPLATE_HTML_FILE, TITLE_KEY, LINK_KEY, DESCRIPTION_KEY, PUBLISHED_DATE_KEY, CHANNEL_IMAGE_KEY, FEED_TITLE_KEY, TEXT_DATE_FORMAT_PRINT, TIMEZONE_PRINT
 from utils import sanitize_text, get_website_name
 
-def write_all_rss_to_html(posts_to_print, outfilename, current_date, earliest_date, icon_map):
+def write_all_rss_to_html(posts_to_print, outfilename, current_date, earliest_date, icon_map, top_text, top_title):
     """Writes all RSS feed entries to an HTML file."""
     
     sorted_posts = sorted(posts_to_print, key=lambda post: post[PUBLISHED_DATE_KEY])
@@ -15,10 +15,10 @@ def write_all_rss_to_html(posts_to_print, outfilename, current_date, earliest_da
         channel_image_url = post.get(CHANNEL_IMAGE_KEY)
         if channel_image_url:
             safe_url = sanitize_text(channel_image_url)
-            image_html = f"<img src='{channel_image_url}' alt='Channel Image' class='channel-image'>"
+            image_html = f"<img src='{channel_image_url}' alt='' class='channel-image'>"
         elif icon_map:
             channel_image_url = icon_map.get(post[FEED_TITLE_KEY])
-            image_html = f"<img src='{channel_image_url}' alt='Channel Image' class='channel-image'>" if channel_image_url else ""
+            image_html = f"<img src='{channel_image_url}' alt='' class='channel-image'>" if channel_image_url else ""
         else:
             image_html = ""
         published_date_string_print = post[PUBLISHED_DATE_KEY].strftime(TEXT_DATE_FORMAT_PRINT)
@@ -40,7 +40,7 @@ def write_all_rss_to_html(posts_to_print, outfilename, current_date, earliest_da
     try:
         with open(TEMPLATE_HTML_FILE) as file:
             template = file.read()
-        html_output = template.format(earliest_date=earliest_date,current_date=current_date, timezone_print=TIMEZONE_PRINT, rows=table_rows)
+        html_output = template.format(earliest_date=earliest_date, current_date=current_date, timezone_print=TIMEZONE_PRINT, rows=table_rows, top_text=top_text, top_title=top_title)
     except FileNotFoundError:
         print(f"Template file {TEMPLATE_HTML_FILE} not found.")
         return

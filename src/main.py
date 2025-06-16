@@ -2,6 +2,7 @@ import sys
 import time
 import os
 import argparse
+import re
 from datetime import datetime, timezone
 
 from rss_processor import process_rss_feed
@@ -51,15 +52,18 @@ def main():
         os.makedirs(HTML_REPORT_FOLDER)
         print(f"Created the folder: {HTML_REPORT_FOLDER}")
 
-    html_outfilename = os.path.join(HTML_REPORT_FOLDER, f"{HTML_OUT_FILENAME_PREFIX}_{current_date_string_file}.html")
     all_entries = []
 
     start_time = time.time()
     # Run the main processing function
-    all_entries, earliest_date, icon_map = process_rss_feed(opml_filename, days_back)
+    all_entries, earliest_date, icon_map, top_text, top_title = process_rss_feed(opml_filename, days_back)
     earliest_date_string_print = earliest_date.strftime(TEXT_DATE_FORMAT_PRINT)
     # Write the output to HTML
-    write_all_rss_to_html(all_entries, html_outfilename, current_date_string_print, earliest_date_string_print, icon_map)
+    html_out_filename_prefix = re.sub(r'[^a-zA-Z0-9]', '', (top_text or "").lower())
+    if not html_out_filename_prefix:
+        html_out_filename_prefix = HTML_OUT_FILENAME_PREFIX
+    html_outfilename = os.path.join(HTML_REPORT_FOLDER, f"{html_out_filename_prefix}_{current_date_string_file}.html")
+    write_all_rss_to_html(all_entries, html_outfilename, current_date_string_print, earliest_date_string_print, icon_map, top_text, top_title)
     end_time = time.time()
 
     # Print execution details
