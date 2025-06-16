@@ -10,7 +10,7 @@
             <outline type="rss" title="ATT Cybersecurity" xmlUrl="https://cybersecurity.att.com/site/blog-all-rss" htmlUrl="https://cybersecurity.att.com/blogs/" />
 			<outline type="rss" title="Avast" xmlUrl="https://blog.avast.com/rss.xml" htmlUrl="https://blog.avast.com" />
             <outline type="rss" title="AWS" xmlUrl="https://aws.amazon.com/blogs/security/feed/" iconUrl="https://a0.awsstatic.com/main/images/site/fav/favicon.ico"/>
-			<outline type="rss" title="Bellingcat" xmlUrl="https://www.bellingcat.com/feed/" htmlUrl="https://www.bellingcat.com/" />
+			<outline type="rss" title="Bellingcat" xmlUrl="https://www.bellingcat.com/feed/" htmlUrl="https://www.bellingcat.com/" iconUrl= "https://www.bellingcat.com/app/themes/bellingcat/assets/icons/favicons/apple-touch-icon-57x57.png"/>
 			<outline type="rss" title="BleepingComputer" xmlUrl="http://www.bleepingcomputer.com/feed/" htmlUrl="https://www.bleepingcomputer.com/" iconUrl="https://www.bleepstatic.com/favicon/bleeping.ico"/>
 			<outline type="rss" title="Center for Internet Security" xmlUrl="https://www.cisecurity.org/feed/advisories" htmlUrl="https://www.cisecurity.org/resources/?type=advisory" />
 			<outline type="rss" title="Cisco Security" xmlUrl="https://blogs.cisco.com/security/feed" htmlUrl="https://blogs.cisco.com/security/" />

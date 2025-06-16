@@ -6,7 +6,7 @@ from datetime import datetime, timezone
 
 from rss_processor import process_rss_feed
 from output_writer import write_all_rss_to_html
-from config import MAX_DAYS_BACK, OPML_FILENAME, HTML_REPORT_FOLDER, HTML_OUT_FILENAME_PREFIX, DAYS_BACK, TEXT_DATE_FORMAT_FILE, TEXT_DATE_FORMAT_PRINT, FEED_SEPARATOR
+from config import MAX_DAYS_BACK, OPML_FILENAME, HTML_REPORT_FOLDER, HTML_OUT_FILENAME_PREFIX, DAYS_BACK, TEXT_DATE_FORMAT_FILE, TEXT_DATE_FORMAT_PRINT, FEED_SEPARATOR, TIMEZONE_PRINT
 
 def validate_days(value):
     """Ensure that the number of days is less than or equal to MAX_DAYS_BACK to limit output."""
@@ -67,7 +67,7 @@ def main():
     print("Summary")
     print(f"{FEED_SEPARATOR}")
     print(f"Days back: {days_back}")
-    print(f"Time range: {earliest_date_string_print} to {current_date_string_print}")
+    print(f"Time range: {earliest_date_string_print} {TIMEZONE_PRINT} to {current_date_string_print} {TIMEZONE_PRINT}")
     print(f"OPML file: {opml_filename}")
     print(f"Total entries: {len(all_entries)}")
     print(f"News written to file: {html_outfilename}")

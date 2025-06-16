@@ -34,6 +34,9 @@ CHANNEL_IMAGE_KEY = "channel_image"
 # Maximum length for RSS feed description
 MAX_LENGTH_DESCRIPTION = 200
 
+# Timezone
+TIMEZONE_PRINT = "UTC"
+
 # Format of the date for filename or used as text
 TEXT_DATE_FORMAT_FILE = "%Y-%m-%d_%H-%M-%S"
 TEXT_DATE_FORMAT_PRINT = "%A, %d %B %Y %H:%M"
