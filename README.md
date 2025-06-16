@@ -2,6 +2,8 @@
 
 CyberFeedBites is a lightweight Python tool that provides an overview of recent cybersecurity news from the past 'X' days by aggregating multiple RSS feeds. It includes a curated, customisable OPML file of cybersecurity news sources.
 
+![CyberFeedBites Demo](data/assets/demo-cyberfeedbites.png)
+
 ## Features
 
 - Collects and processes cybersecurity news from various RSS feeds (curated list included in an OPML file).  
