@@ -97,8 +97,7 @@ Each HTML file contains a table with the following columns:
 
 - **ID**: The article's position in the list.  
 - **Date**: The date the article was published.  
-- **Website**: The name of the website.  
-- **Logo**: Logo of the RSS channel (if available or stored in the OPML file).  
+- **Website**: The name of the website and logo of the channel (if available or if stored in the OPML file).  
 - **Title**: The title of the article.  
 - **Description**: A brief description of the article.  
 - **Link**: The URL to the full article.  
