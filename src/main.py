@@ -74,11 +74,11 @@ def prepare_output_folder(folder_path):
 
 def run_processing(opml_filename, days_back):
     """Processes the RSS feed and returns the results needed for output."""
-    all_entries, earliest_date, icon_map, top_text, top_title = process_rss_feed(opml_filename, days_back)
+    all_entries, earliest_date, icon_map, top_text, top_title, errors = process_rss_feed(opml_filename, days_back)
     earliest_date_string_print = earliest_date.strftime(TEXT_DATE_FORMAT_PRINT)
-    return all_entries, earliest_date_string_print, icon_map, top_text, top_title
+    return all_entries, earliest_date_string_print, icon_map, top_text, top_title, errors
 
-def print_summary(days_back, earliest_date_string_print, current_date_string_print, opml_filename, total_entries, html_outfilename):
+def print_summary(days_back, earliest_date_string_print, current_date_string_print, opml_filename, total_entries, html_outfilename, errors):
     """Prints a summary of the run."""
     print(f"\n{FEED_SEPARATOR}")
     print("Summary")
@@ -88,6 +88,13 @@ def print_summary(days_back, earliest_date_string_print, current_date_string_pri
     print(f"OPML file: {opml_filename}")
     print(f"Total entries: {total_entries}")
     print(f"News written to file: {html_outfilename}")
+
+    if errors:
+        print(f"\n{FEED_SEPARATOR}")
+        print("Feeds that failed to fetch (check individual entries log for more info):")
+        for feedtitle, feed_url in errors:
+            print(f"- {feedtitle}: {feed_url}")
+        print(f"{FEED_SEPARATOR}")
 
 def main():
     days_back, opml_filename = parse_args()
@@ -99,7 +106,7 @@ def main():
     prepare_output_folder(HTML_REPORT_FOLDER)
 
     start_time = time.time()
-    all_entries, earliest_date_string_print, icon_map, top_text, top_title = run_processing(opml_filename, days_back)
+    all_entries, earliest_date_string_print, icon_map, top_text, top_title, errors = run_processing(opml_filename, days_back)
     
     html_out_filename_prefix = re.sub(r'[^a-zA-Z0-9_]', '', (top_text or "").lower())
     html_outfilename = os.path.join(HTML_REPORT_FOLDER, f"{html_out_filename_prefix}_{current_date_string_file}.html")
@@ -112,7 +119,7 @@ def main():
         icon_map,
         top_text,
         top_title
-    )
+    )   
     end_time = time.time()
 
     print_summary(
@@ -121,7 +128,8 @@ def main():
         current_date_string_print,
         opml_filename,
         len(all_entries),
-        html_outfilename
+        html_outfilename,
+        errors
     )
 
 if __name__ == "__main__":

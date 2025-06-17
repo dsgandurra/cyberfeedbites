@@ -51,6 +51,11 @@ LINK_KEY = "link"
 DESCRIPTION_KEY = "description"
 PUBLISHED_DATE_KEY = "published_date"
 CHANNEL_IMAGE_KEY = "channel_image"
+IMAGE_KEY = "image"
+ICON_KEY = "icon"
+LOGO_KEY = "logo"
+HREF_KEY = "href"
+URL_KEY = "url"
 
 # Maximum length for RSS feed description
 MAX_LENGTH_DESCRIPTION = 200

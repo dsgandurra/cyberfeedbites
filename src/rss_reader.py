@@ -21,13 +21,14 @@ import xml.etree.ElementTree as ET
 import os
 from datetime import datetime, timezone
 import feedparser
-import threading
+import traceback
 
 from utils import format_description, print_article, print_feed_details
 from config import (
     XMLURL_KEY, PUBLISHED_PARSED_KEY, UPDATED_PARSED_KEY, FEED_URL_KEY,
     BODY_KEY, OUTLINE_KEY, TEXT_KEY, TITLE_KEY, LINK_KEY, DESCRIPTION_KEY,
-    PUBLISHED_DATE_KEY, CHANNEL_IMAGE_KEY, ICON_URL_KEY, FEED_TITLE_KEY
+    PUBLISHED_DATE_KEY, CHANNEL_IMAGE_KEY, ICON_URL_KEY, FEED_TITLE_KEY, 
+    IMAGE_KEY, ICON_KEY, LOGO_KEY, HREF_KEY, URL_KEY
 )
 
 def read_opml(file_path):
@@ -47,31 +48,50 @@ def read_opml(file_path):
     icon_map = {}
     
     for outline in root.findall('.//outline[@xmlUrl]'):
-        title = outline.attrib.get(TITLE_KEY)
+        text = outline.attrib.get(TEXT_KEY)
         url = outline.attrib.get(XMLURL_KEY)
         icon = outline.attrib.get(ICON_URL_KEY)
-        feeds.append((title, url))
+        feeds.append((text, url))
         
-        if title and icon:
-            icon_map[title] = icon
+        if text and icon:
+            icon_map[text] = icon
     
     return feeds, icon_map, top_text, top_title
 
-def fetch_recent_articles(feed_url, earliest_date):
-    """Fetches articles from an RSS feed."""
-    feed = feedparser.parse(feed_url)
 
+def fetch_recent_articles(feed_url, earliest_date):
+    """Fetches articles from an RSS feed from the earliest date."""
+    try:
+        feed = feedparser.parse(feed_url)
+        # 'bozo' is True if the feed is malformed or could not be parsed correctly (e.g., network or XML errors)
+        if feed.bozo:
+            raise RuntimeError(f"Feed parsing error: {feed.bozo_exception}")
+    except ssl.SSLError as e:
+        if feed_url.startswith("https://"):
+            fallback_url = "http://" + feed_url[len("https://"):]
+            try:
+                feed = feedparser.parse(fallback_url)
+                if feed.bozo:
+                    raise RuntimeError(f"Fallback feed parsing error: {feed.bozo_exception}")
+                feed_url = fallback_url
+            except Exception:
+                raise RuntimeError(f"SSL error on {feed_url} and fallback to {fallback_url} also failed: {e}")
+        else:
+            raise RuntimeError(f"SSL error while accessing {feed_url}: {e}")
+    except Exception as e:
+        raise RuntimeError(f"Failed to fetch feed {feed_url}: {e}")
+    
     channel_updated = feed.feed.get(UPDATED_PARSED_KEY)
     if channel_updated:
         channel_updated_date = datetime(*channel_updated[:6], tzinfo=timezone.utc)
         if channel_updated_date <= earliest_date:
             return []
     
-    image_info = feed.feed.get('image') or feed.feed.get('icon') or feed.feed.get('logo') or {}
+    image_info = feed.feed.get(IMAGE_KEY) or feed.feed.get(ICON_KEY) or feed.feed.get(LOGO_KEY) or {}
     channel_image = None
 
     if isinstance(image_info, dict):
-        channel_image = image_info.get('href') or image_info.get('url')
+        channel_image = image_info.get(HREF_KEY) or image_info.get(URL_KEY)
     elif isinstance(image_info, str):
         channel_image = image_info
 
@@ -111,7 +131,10 @@ def process_feed(feedtitle, feed_url, earliest_date, lock, all_entries_queue):
             for entry in recent_articles:
                 entry[FEED_TITLE_KEY] = feedtitle 
                 all_entries_queue.put(entry)
-        return recent_articles or []
-    except Exception as e:
-        print(f"Failed to fetch feed: {e}, {feed_url}")
-        return []
+        return recent_articles or [], None
+    except Exception:
+        print_feed_details(feedtitle, feed_url, [], lock)  # lock acquired internally
+        with lock:
+            print(f"\nFailed to fetch feed: {feedtitle} ({feed_url})")
+            traceback.print_exc()
+        return [], (feedtitle, feed_url)
