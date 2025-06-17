@@ -106,6 +106,16 @@ Each HTML file contains a table with the following columns:
 
 The repository includes a sample OPML file (`data/rss_sources/cybersecnews-sources.opml`) containing a curated list of relevant RSS sources. You can edit this file to add or remove feed URLs according to your preferences, or alternatively, use a different OPML file by passing it with the `--opml` option.
 
+## OPML File Structure
+
+Currently, CyberFeedBites expects **each OPML file to contain only one top-level `<outline>` element** (i.e., one section or feed group, e.g., `<outline text="Cybersecurity News" title="Cybersecurity News Feeds">`). This is important because:
+
+- The program generates a single HTML report file per OPML input, using the top-level outline's `text` attribute as the filename prefix.
+- If multiple top-level outlines are present in one OPML file, only the first outline will be processed; others will be ignored.
+- To organise feeds into multiple categories or sections, create separate OPML files—one per category—and run CyberFeedBites separately for each.
+
+This design choice keeps the program simple and avoids complexity in handling multiple output files or combined reports, as well as allowing different look-back periods for different sections/feed groups (useful if some sections are more verbose).
+
 ## Customisation
 
 - You can modify the default number of days for news retrieval by changing the `DAYS_BACK` parameter in the `config.py` file. Depending on the number of RSS feeds, it is best to keep this number small to make the output manageable (e.g., with the current feeds, around 100–150 entries are generated with the default value of 1 day). The `MAX_DAYS_BACK` parameter in the `config.py` file limits the maximum number of days that can be retrieved (default is 7 days). You can edit this variable in `config.py` if you want to increase this limit.

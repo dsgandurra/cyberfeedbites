@@ -18,8 +18,11 @@
 
 import os
 
-from config import TEMPLATE_HTML_FILE, TITLE_KEY, LINK_KEY, DESCRIPTION_KEY, PUBLISHED_DATE_KEY, CHANNEL_IMAGE_KEY, FEED_TITLE_KEY, TEXT_DATE_FORMAT_PRINT, TIMEZONE_PRINT
-from utils import sanitize_text, get_website_name
+from config import (
+    TEMPLATE_HTML_FILE, TITLE_KEY, LINK_KEY, DESCRIPTION_KEY, PUBLISHED_DATE_KEY,
+    CHANNEL_IMAGE_KEY, FEED_TITLE_KEY, TEXT_DATE_FORMAT_PRINT, TIMEZONE_PRINT
+)
+from utils import sanitize_for_html, get_website_name
 
 def write_all_rss_to_html(posts_to_print, outfilename, current_date, earliest_date, icon_map, top_text, top_title):
     """Writes all RSS feed entries to an HTML file."""
@@ -30,18 +33,16 @@ def write_all_rss_to_html(posts_to_print, outfilename, current_date, earliest_da
     table_rows = []
     for id_post, post in enumerate(sorted_posts, start=1):
         website_name = get_website_name(post[LINK_KEY])
-        channel_image_url = post.get(CHANNEL_IMAGE_KEY)
-        if channel_image_url:
-            safe_url = sanitize_text(channel_image_url)
-            image_html = f"<img src='{channel_image_url}' alt='' class='channel-image'>"
-        elif icon_map:
-            channel_image_url = icon_map.get(post[FEED_TITLE_KEY])
-            image_html = f"<img src='{channel_image_url}' alt='' class='channel-image'>" if channel_image_url else ""
-        else:
-            image_html = ""
+        
+        # Resolve image URL safely
+        image_url = post.get(CHANNEL_IMAGE_KEY) or (icon_map.get(post[FEED_TITLE_KEY]) if icon_map else "")
+        image_html = f"<img src='{sanitize_for_html(image_url)}' alt='' class='channel-image'>" if image_url else ""
+
         published_date_string_print = post[PUBLISHED_DATE_KEY].strftime(TEXT_DATE_FORMAT_PRINT)
-        title_row = sanitize_text(post[TITLE_KEY]).strip('"')
-        description_row = sanitize_text(post[DESCRIPTION_KEY]).strip('"')
+        title_row = sanitize_for_html(post[TITLE_KEY]).strip('"')
+        description_row = sanitize_for_html(post[DESCRIPTION_KEY]).strip('"')
+        safe_post_link = sanitize_for_html(post[LINK_KEY])
+
         row_td = (
             f"<td>{id_post}/{total_posts}</td>"
             f"<td>{published_date_string_print}</td>"
@@ -49,16 +50,21 @@ def write_all_rss_to_html(posts_to_print, outfilename, current_date, earliest_da
             f"<td>{image_html}</td>"
             f"<td>{title_row}</td>"
             f"<td class='italic-cell'>{description_row}</td>"
-            f"<td><a href='{post[LINK_KEY]}' target='_blank'>{post[LINK_KEY]}</a></td>"
+            f"<td><a href='{safe_post_link}' target='_blank'>{safe_post_link}</a></td>"
         )
         table_rows.append(f"<tr>{row_td}</tr>\n")
-
-    table_rows = "".join(table_rows)
 
     try:
         with open(TEMPLATE_HTML_FILE) as file:
             template = file.read()
-        html_output = template.format(earliest_date=earliest_date, current_date=current_date, timezone_print=TIMEZONE_PRINT, rows=table_rows, top_text=top_text, top_title=top_title)
+        html_output = template.format(
+            earliest_date=earliest_date,
+            current_date=current_date,
+            timezone_print=TIMEZONE_PRINT,
+            rows="".join(table_rows),
+            top_text=top_text,
+            top_title=top_title
+        )
     except FileNotFoundError:
         print(f"Template file {TEMPLATE_HTML_FILE} not found.")
         return

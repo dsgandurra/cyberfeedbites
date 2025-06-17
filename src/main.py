@@ -16,16 +16,24 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-import sys
-import time
 import os
-import argparse
 import re
+import time
 from datetime import datetime, timezone
+import argparse
 
 from rss_processor import process_rss_feed
 from output_writer import write_all_rss_to_html
-from config import MAX_DAYS_BACK, OPML_FILENAME, HTML_REPORT_FOLDER, HTML_OUT_FILENAME_PREFIX, DAYS_BACK, TEXT_DATE_FORMAT_FILE, TEXT_DATE_FORMAT_PRINT, FEED_SEPARATOR, TIMEZONE_PRINT
+from config import (
+    MAX_DAYS_BACK,
+    OPML_FILENAME,
+    HTML_REPORT_FOLDER,
+    DAYS_BACK,
+    TEXT_DATE_FORMAT_FILE,
+    TEXT_DATE_FORMAT_PRINT,
+    FEED_SEPARATOR,
+    TIMEZONE_PRINT
+)
 
 def validate_days(value):
     """Ensure that the number of days is less than or equal to MAX_DAYS_BACK to limit output."""
@@ -55,45 +63,66 @@ def parse_arguments():
     )
     return parser.parse_args()
 
-def main():
+def parse_args():
+    """Returns parsed command-line arguments as simple values."""
     args = parse_arguments()
-    days_back = args.days
-    opml_filename = args.opml
-    
-    # To add a timestamp to the filename
-    current_date = datetime.now(timezone.utc)
-    current_date_string_file = current_date.strftime(TEXT_DATE_FORMAT_FILE)
-    current_date_string_print = current_date.strftime(TEXT_DATE_FORMAT_PRINT)
-    
-    # Check if the report folder exists, if not, create it
-    if not os.path.exists(HTML_REPORT_FOLDER):
-        os.makedirs(HTML_REPORT_FOLDER)
-        print(f"Created the folder: {HTML_REPORT_FOLDER}")
+    return args.days, args.opml
 
-    all_entries = []
+def prepare_output_folder(folder_path):
+    """Creates the output folder if it does not exist."""
+    os.makedirs(folder_path, exist_ok=True)
 
-    start_time = time.time()
-    # Run the main processing function
+def run_processing(opml_filename, days_back):
+    """Processes the RSS feed and returns the results needed for output."""
     all_entries, earliest_date, icon_map, top_text, top_title = process_rss_feed(opml_filename, days_back)
     earliest_date_string_print = earliest_date.strftime(TEXT_DATE_FORMAT_PRINT)
-    # Write the output to HTML
-    html_out_filename_prefix = re.sub(r'[^a-zA-Z0-9]', '', (top_text or "").lower())
-    if not html_out_filename_prefix:
-        html_out_filename_prefix = HTML_OUT_FILENAME_PREFIX
-    html_outfilename = os.path.join(HTML_REPORT_FOLDER, f"{html_out_filename_prefix}_{current_date_string_file}.html")
-    write_all_rss_to_html(all_entries, html_outfilename, current_date_string_print, earliest_date_string_print, icon_map, top_text, top_title)
-    end_time = time.time()
+    return all_entries, earliest_date_string_print, icon_map, top_text, top_title
 
-    # Print execution details
+def print_summary(days_back, earliest_date_string_print, current_date_string_print, opml_filename, total_entries, html_outfilename):
+    """Prints a summary of the run."""
     print(f"\n{FEED_SEPARATOR}")
     print("Summary")
     print(f"{FEED_SEPARATOR}")
     print(f"Days back: {days_back}")
     print(f"Time range: {earliest_date_string_print} {TIMEZONE_PRINT} to {current_date_string_print} {TIMEZONE_PRINT}")
     print(f"OPML file: {opml_filename}")
-    print(f"Total entries: {len(all_entries)}")
+    print(f"Total entries: {total_entries}")
     print(f"News written to file: {html_outfilename}")
-    print(f"Total execution time: {end_time - start_time:.4f} seconds")
+
+def main():
+    days_back, opml_filename = parse_args()
+
+    current_date = datetime.now(timezone.utc)
+    current_date_string_file = current_date.strftime(TEXT_DATE_FORMAT_FILE)
+    current_date_string_print = current_date.strftime(TEXT_DATE_FORMAT_PRINT)
+
+    prepare_output_folder(HTML_REPORT_FOLDER)
+
+    start_time = time.time()
+    all_entries, earliest_date_string_print, icon_map, top_text, top_title = run_processing(opml_filename, days_back)
+    
+    html_out_filename_prefix = re.sub(r'[^a-zA-Z0-9_]', '', (top_text or "").lower())
+    html_outfilename = os.path.join(HTML_REPORT_FOLDER, f"{html_out_filename_prefix}_{current_date_string_file}.html")
+    
+    write_all_rss_to_html(
+        all_entries,
+        html_outfilename,
+        current_date_string_print,
+        earliest_date_string_print,
+        icon_map,
+        top_text,
+        top_title
+    )
+    end_time = time.time()
+
+    print_summary(
+        days_back,
+        earliest_date_string_print,
+        current_date_string_print,
+        opml_filename,
+        len(all_entries),
+        html_outfilename
+    )
 
 if __name__ == "__main__":
     main()

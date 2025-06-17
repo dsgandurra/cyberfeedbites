@@ -21,8 +21,11 @@ from datetime import datetime, timedelta, timezone
 from bs4 import BeautifulSoup
 from urllib.parse import urlparse
 
-from config import MAX_LENGTH_DESCRIPTION, FEED_SEPARATOR, SUMMARY_KEY, DESCRIPTION_KEY
-from config import XMLURL_KEY, PUBLISHED_PARSED_KEY, UPDATED_PARSED_KEY, FEED_URL_KEY, TITLE_KEY, LINK_KEY, DESCRIPTION_KEY, PUBLISHED_DATE_KEY
+from config import (
+    MAX_LENGTH_DESCRIPTION, FEED_SEPARATOR, SUMMARY_KEY,
+    XMLURL_KEY, PUBLISHED_PARSED_KEY, UPDATED_PARSED_KEY,
+    FEED_URL_KEY, TITLE_KEY, LINK_KEY, DESCRIPTION_KEY, PUBLISHED_DATE_KEY
+)
 
 def html_to_plain_text(html_str):
     """Converts HTML to plain text using BeautifulSoup."""
@@ -49,11 +52,11 @@ def get_last_time(max_days):
 
 def format_description(entry):
     """Formats the description of the RSS entry."""
+    truncated_plain_text_description = ""
     description = entry.get(DESCRIPTION_KEY)
     
     if not description:
-        description = entry.get(SUMMARY_KEY, DESCRIPTION_KEY)
-        truncated_plain_text_description = ""
+        description = entry.get(SUMMARY_KEY, "")
            
     if description:
         plain_text_description = html_to_plain_text(description).strip().replace('\n', ' ')
@@ -61,14 +64,14 @@ def format_description(entry):
         
     return truncated_plain_text_description
 
-def sanitize_text(text):
-    """Sanitises the text output."""
+def sanitize_for_html(text):
+    """Escapes text for safe HTML display and preserves line breaks."""
     text = html.escape(text)
-    
-    # Replace newlines with <br> to preserve the breaks, and carriage returns with an empty string
     text = text.replace('\n', '<br>').replace('\r', '')
-    
-    # If the text contains commas, double quotes, or newlines, enclose it in double quotes
+    return text
+
+def sanitize_for_csv(text):
+    """Escapes text for CSV output by enclosing in quotes if needed."""
     if any(char in text for char in [',', '"', '\n']):
         text = '"' + text.replace('"', '""') + '"'
     return text
