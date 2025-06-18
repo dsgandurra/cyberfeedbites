@@ -78,7 +78,7 @@ def run_processing(opml_filename, days_back):
     earliest_date_string_print = earliest_date.strftime(TEXT_DATE_FORMAT_PRINT)
     return all_entries, earliest_date_string_print, icon_map, top_text, top_title, errors
 
-def print_summary(days_back, earliest_date_string_print, current_date_string_print, opml_filename, total_entries, html_outfilename, errors):
+def print_summary(days_back, earliest_date_string_print, current_date_string_print, opml_filename, total_entries, html_outfilename, errors, start_time, end_time):
     """Prints a summary of the run."""
     print(f"\n{FEED_SEPARATOR}")
     print("Summary")
@@ -90,11 +90,12 @@ def print_summary(days_back, earliest_date_string_print, current_date_string_pri
     print(f"News written to file: {html_outfilename}")
 
     if errors:
-        print(f"\n{FEED_SEPARATOR}")
         print("Feeds that failed to fetch (check individual entries log for more info):")
         for feedtitle, feed_url in errors:
             print(f"- {feedtitle}: {feed_url}")
-        print(f"{FEED_SEPARATOR}")
+
+    print(f"Total execution time: {end_time - start_time:.4f} seconds")
+    print(f"{FEED_SEPARATOR}")
 
 def main():
     days_back, opml_filename = parse_args()
@@ -129,7 +130,9 @@ def main():
         opml_filename,
         len(all_entries),
         html_outfilename,
-        errors
+        errors,
+        start_time,
+        end_time
     )
 
 if __name__ == "__main__":

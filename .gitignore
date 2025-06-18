@@ -13,3 +13,6 @@ venv/
 
 # Ignore any other unnecessary files
 .DS_Store
+
+# Ignore GitHub config folder
+.github/
