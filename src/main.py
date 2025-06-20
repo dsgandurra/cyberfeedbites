@@ -92,7 +92,7 @@ def print_summary(days_back, earliest_date_string_print, current_date_string_pri
     if errors:
         print("Feeds that failed to fetch (check individual entries log for more info):")
         for feedtitle, feed_url in errors:
-            print(f"- {feedtitle}: {feed_url}")
+            print(f"\t- {feedtitle}: {feed_url}")
 
     print(f"Total execution time: {end_time - start_time:.4f} seconds")
     print(f"{FEED_SEPARATOR}")
