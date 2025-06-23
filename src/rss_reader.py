@@ -132,9 +132,9 @@ def process_feed(feedtitle, feed_url, earliest_date, lock, all_entries_queue):
                 entry[FEED_TITLE_KEY] = feedtitle 
                 all_entries_queue.put(entry)
         return recent_articles or [], None
-    except Exception:
+    except Exception as e:
         print_feed_details(feedtitle, feed_url, [], lock)  # lock acquired internally
         with lock:
             print(f"\nFailed to fetch feed: {feedtitle} ({feed_url})")
-            traceback.print_exc()
+            print(f"Error: {e}")
         return [], (feedtitle, feed_url)

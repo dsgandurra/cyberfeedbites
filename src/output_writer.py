@@ -17,6 +17,7 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 import os
+import csv
 
 from config import (
     TEMPLATE_HTML_FILE, TITLE_KEY, LINK_KEY, DESCRIPTION_KEY, PUBLISHED_DATE_KEY,
@@ -52,7 +53,7 @@ def write_all_rss_to_html(posts_to_print, outfilename, current_date, earliest_da
             f"<td class='italic-cell'>{description_row}</td>"
             f"<td><a href='{safe_post_link}' target='_blank'>{safe_post_link}</a></td>"
         )
-        table_rows.append(f"<tr>{row_td}</tr>\n")
+        table_rows.append(f"<tr>{row_td}</tr>")
 
     try:
         with open(TEMPLATE_HTML_FILE) as file:
@@ -77,3 +78,52 @@ def write_all_rss_to_html(posts_to_print, outfilename, current_date, earliest_da
             file.write(html_output)
     except Exception as e:
         print(f"Error writing output file: {e}")
+
+import csv
+
+def write_all_rss_to_csv(posts_to_print, outfilename, current_date, earliest_date, top_text, top_title):
+    """Writes all RSS feed entries to a CSV file."""
+    
+    # Sort posts by published date
+    sorted_posts = sorted(posts_to_print, key=lambda post: post[PUBLISHED_DATE_KEY])
+
+    # Prepare CSV header
+    csv_header = [
+        'Date (UTC)', 'Website', 'Title', 'Description', 'Link'
+    ]
+
+    # Prepare the CSV content
+    csv_rows = []
+    for post in sorted_posts:
+        website_name = get_website_name(post[LINK_KEY])
+
+        published_date_string_print = post[PUBLISHED_DATE_KEY].strftime(TEXT_DATE_FORMAT_PRINT)
+        title_row = sanitize_for_html(post[TITLE_KEY]).strip()  # Strip leading/trailing spaces
+        description_row = sanitize_for_html(post[DESCRIPTION_KEY]).strip()  # Strip leading/trailing spaces
+        safe_post_link = sanitize_for_html(post[LINK_KEY]).strip()  # Strip leading/trailing spaces
+
+        # Add row for CSV
+        csv_rows.append([
+            published_date_string_print,
+            website_name,
+            title_row,
+            description_row,
+            safe_post_link
+        ])
+
+    try:
+        # Write to CSV file
+        with open(outfilename, 'w', encoding='utf-8', newline='') as file:
+            writer = csv.writer(file)
+            
+            # Write metadata
+            writer.writerow([f"Time range: {earliest_date} to {current_date}"])
+            writer.writerow([f"Report Title: {top_title}"])
+            writer.writerow([f"Report Description: {top_text}"])
+            
+            # Write the header for the CSV data
+            writer.writerow([])  # Blank line before header
+            writer.writerow(csv_header)  # Write header
+            writer.writerows(csv_rows)   # Write all rows
+    except Exception as e:
+        print(f"Error writing CSV output file: {e}")

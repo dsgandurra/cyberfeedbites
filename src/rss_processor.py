@@ -19,6 +19,7 @@
 import queue
 import threading
 import concurrent.futures
+import xml.etree.ElementTree as ET
 
 from rss_reader import process_feed, read_opml
 from utils import get_last_time
@@ -29,7 +30,16 @@ def process_rss_feed(opml_filename, max_days):
     all_entries_queue = queue.Queue()
     lock = threading.Lock()
     earliest_date = get_last_time(max_days)
-    feeds, icon_map, top_text, top_title = read_opml(opml_filename)
+    try:
+        feeds, icon_map, top_text, top_title = read_opml(opml_filename)
+    except FileNotFoundError as e:
+        raise FileNotFoundError(f"The OPML file '{opml_filename}' does not exist.") from e
+    except ET.ParseError as e:
+        msg = f"The OPML file '{opml_filename}' is not well-formed XML: {e}"
+        raise ET.ParseError(msg) from e
+    except Exception as e:
+        raise RuntimeError(f"Error reading OPML file '{opml_filename}': {e}") from e
+
     sorted_feeds = sorted(feeds, key=lambda feed: feed[0])
 
     errors = []

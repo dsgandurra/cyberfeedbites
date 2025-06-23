@@ -12,6 +12,7 @@
 			<outline type="rss" text="AWS" xmlUrl="https://aws.amazon.com/blogs/security/feed/" htmlUrl="https://aws.amazon.com/blogs/security/" iconUrl="https://a0.awsstatic.com/main/images/site/fav/favicon.ico"/>
 			<outline type="rss" text="Bellingcat" xmlUrl="https://www.bellingcat.com/feed/" htmlUrl="https://www.bellingcat.com/" iconUrl= "https://www.bellingcat.com/app/themes/bellingcat/assets/icons/favicons/apple-touch-icon-57x57.png"/>
 			<outline type="rss" text="BleepingComputer" xmlUrl="http://www.bleepingcomputer.com/feed/" htmlUrl="https://www.bleepingcomputer.com/" iconUrl="https://www.bleepstatic.com/favicon/bleeping.ico"/>
+			<outline type="rss" text="Check Point Research" xmlUrl="https://research.checkpoint.com/feed/" htmlUrl="https://research.checkpoint.com/" />
 			<outline type="rss" text="Cisco Security" xmlUrl="https://blogs.cisco.com/security/feed" htmlUrl="https://blogs.cisco.com/security/" />
 			<outline type="rss" text="Cisco Talos" xmlUrl="https://blog.talosintelligence.com/rss/" htmlUrl="https://blog.talosintelligence.com/" />
 			<outline type="rss" text="Cloudflare" xmlUrl="https://blog.cloudflare.com/rss" htmlUrl="https://blog.cloudflare.com/"/>
@@ -22,6 +23,7 @@
 			<outline type="rss" text="EclecticIQ" xmlUrl="https://blog.eclecticiq.com/rss.xml" htmlUrl="https://blog.eclecticiq.com/" />
 			<outline type="rss" text="EFF" xmlUrl="http://www.eff.org/rss/updates.xml" htmlUrl="https://www.eff.org/rss/updates.xml" iconUrl="https://www.eff.org/sites/all/themes/frontier/favicon.ico"/>
 			<outline type="rss" text="Elastic Security" xmlUrl="https://www.elastic.co/security-labs/rss/feed.xml" htmlUrl="https://www.elastic.co/security-labs" />
+			<outline type="rss" text="Embrace The Red" xmlUrl="https://embracethered.com/blog/index.xml" htmlUrl="https://embracethered.com"/>
 			<outline type="rss" text="Emsisoft" xmlUrl="http://blog.emsisoft.com/feed/" htmlUrl="https://www.emsisoft.com/en/blog/" />
 			<outline type="rss" text="Google Online Security" xmlUrl="http://googleonlinesecurity.blogspot.com/atom.xml" htmlUrl="http://security.googleblog.com/" iconUrl="https://www.gstatic.com/images/branding/googlelogo/2x/googlelogo_color_150x54dp.png"/>
 			<outline type="rss" text="Graham Cluley" xmlUrl="http://feeds.feedburner.com/GrahamCluleysBlog" htmlUrl="https://grahamcluley.com" />
@@ -43,6 +45,7 @@
 			<outline type="rss" text="Project Zero" xmlUrl="http://googleprojectzero.blogspot.com/feeds/posts/default" htmlUrl="https://googleprojectzero.blogspot.com/" />
 			<outline type="rss" text="Proofpoint Threat Insight" xmlUrl="https://www.proofpoint.com/us/threat-insight-blog.xml" htmlUrl="https://www.proofpoint.com/us/blog" />
 			<outline type="rss" text="Qualys Blog" xmlUrl="https://blog.qualys.com/feed" htmlUrl="https://blog.qualys.com/" />
+			<outline type="rss" text="Rapid7 Blog" xmlUrl="https://blog.rapid7.com/rss/" htmlUrl="https://www.rapid7.com/blog/" />
 			<outline type="rss" text="Red Hat Security" xmlUrl="http://securityblog.redhat.com/feed/" htmlUrl="https://www.redhat.com/en/rss/blog/channel/security" />
 			<outline type="rss" text="SANS" xmlUrl="https://www.sans.org/blog/feed.xml" htmlUrl="https://www.sans.org/blog/"/>
 			<outline type="rss" text="SANS Internet Storm Center" xmlUrl="https://isc.sans.edu/rssfeed.xml" htmlUrl="https://isc.sans.edu" />
@@ -52,6 +55,7 @@
 			<outline type="rss" text="Security | TechRepublic" xmlUrl="http://www.techrepublic.com/rssfeeds/topic/security/" htmlUrl="https://www.techrepublic.com/topic/security/" iconUrl="https://www.techrepublic.com/wp-content/themes/techrepublic-theme/inc/images/app-icons/favicon.ico"/>
 			<outline type="rss" text="SecurityWeek" xmlUrl="http://feeds.feedburner.com/Securityweek" htmlUrl="https://www.securityweek.com/" />
 			<outline type="rss" text="Shostack" xmlUrl="https://shostack.org/feed.xml" htmlUrl="https://shostack.org/" />
+			<outline type="rss" text="Synacktiv Publications" xmlUrl="http://little-canada.org/feeds/output/synacktiv-publications.rss" htmlUrl="http://little-canada.org/"/>
 			<outline type="rss" text="TaoSecurity Blog" xmlUrl="http://taosecurity.blogspot.com/atom.xml" htmlUrl="https://taosecurity.blogspot.com/" />
 			<outline type="rss" text="The Hacker News" xmlUrl="http://thehackernews.com/feeds/posts/default" htmlUrl="https://thehackernews.com" iconUrl="https://thehackernews.com/downloads/favicon.ico"/>
 			<outline type="rss" text="The Record from Recorded Future News" xmlUrl="https://therecord.media/feed/" htmlUrl="https://therecord.media/feed" iconUrl="https://therecord.media/favicon.ico"/>
@@ -63,10 +67,12 @@
 			<outline type="rss" text="Varonis Blog" xmlUrl="http://feeds.feedburner.com/metadata-era-varonis" htmlUrl="https://www.varonis.com/blog" iconUrl="https://www.varonis.com/hubfs/Varonis_favicon.ico"/>
 			<outline type="rss" text="Veracode" xmlUrl="http://www.veracode.com/blog/feed/" htmlUrl="https://www.veracode.com/" />
 			<outline type="rss" text="VirusTotal" xmlUrl="https://blog.virustotal.com/feeds/posts/default" htmlUrl="http://blog.virustotal.com/" />
+			<outline type="rss" text="watchTowr Labs" xmlUrl="https://labs.watchtowr.com/rss/" htmlUrl="https://labs.watchtowr.com"/>
 			<outline type="rss" text="WeLiveSecurity" xmlUrl="http://feeds.feedburner.com/eset/blog" htmlUrl="https://www.welivesecurity.com" />
 			<outline type="rss" text="Wired" xmlUrl="https://www.wired.com/feed/category/security/latest/rss" htmlUrl="https://www.wired.com" iconUrl="https://www.wired.com/verso/static/wired-us/assets/favicon.ico"/>
 			<outline type="rss" text="Wiz Blog" xmlUrl="https://www.wiz.io/feed/rss.xml" htmlUrl="https://www.wiz.io" />
-			<outline type="rss" text="ZoneAlarm" xmlUrl="http://blog.zonealarm.com/rss" htmlUrl="https://blog.zonealarm.com/" />
+			<outline type="rss" text="Zero Day Initiative (ZDI)" xmlUrl="https://www.zerodayinitiative.com/blog/?format=rss" htmlUrl="https://www.zerodayinitiative.com/blog/" />
+			
 			<!-- Compliance and Advisories-->
 			<outline type="rss" text="CERT Advisories" xmlUrl="http://seclists.org/rss/cert.rss" htmlUrl="http://seclists.org/"/>
 			<outline type="rss" text="CERT Security Advisories" xmlUrl="https://cert.europa.eu/publications/security-advisories-rss" htmlUrl="https://cert.europa.eu/publications/security-advisories/" iconUrl="https://cert.europa.eu/favicon.ico" />
@@ -80,8 +86,6 @@
 			<outline type="rss" text="NCSC Guidance" xmlUrl="https://www.ncsc.gov.uk/api/1/services/v1/guidance-rss-feed.xml" htmlUrl="https://www.ncsc.gov.uk" iconUrl="https://www.ncsc.gov.uk/files/favicon.ico" />
 			<outline type="rss" text="NCSC News" xmlUrl="https://www.ncsc.gov.uk/api/1/services/v1/news-rss-feed.xml" htmlUrl="https://www.ncsc.gov.uk" iconUrl="https://www.ncsc.gov.uk/files/favicon.ico" />
 			<outline type="rss" text="US-CERT National Cyber Awareness System" xmlUrl="https://us-cert.cisa.gov/ncas/alerts.xml" htmlUrl="https://www.cisa.gov/news-events/cybersecurity-advisories" />
-
-
 		</outline>
 	</body>
 </opml>

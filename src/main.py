@@ -23,11 +23,12 @@ from datetime import datetime, timezone
 import argparse
 
 from rss_processor import process_rss_feed
-from output_writer import write_all_rss_to_html
+from output_writer import write_all_rss_to_html, write_all_rss_to_csv
 from config import (
     MAX_DAYS_BACK,
     OPML_FILENAME,
     HTML_REPORT_FOLDER,
+    CSV_REPORT_FOLDER,
     DAYS_BACK,
     TEXT_DATE_FORMAT_FILE,
     TEXT_DATE_FORMAT_PRINT,
@@ -45,14 +46,14 @@ def validate_days(value):
 def parse_arguments():
     description = (
         "Cyberfeedbites collects and summarises the latest cybersecurity news from "
-        "RSS feeds listed in an OPML file, generating an HTML report."
+        "RSS feeds listed in an OPML file, generating an HTML and CSV reports."
     )
     parser = argparse.ArgumentParser(description=description)
     parser.add_argument(
         "--days", 
         type=validate_days,  # Use the custom validation function
         default=DAYS_BACK, 
-        help=f"Number of days back to look for entries. Default is {DAYS_BACK}."
+        help=f"Number of days to look back for entries in the RSS feeds. Default is {DAYS_BACK}."
     )
         
     parser.add_argument(
@@ -68,9 +69,10 @@ def parse_args():
     args = parse_arguments()
     return args.days, args.opml
 
-def prepare_output_folder(folder_path):
-    """Creates the output folder if it does not exist."""
-    os.makedirs(folder_path, exist_ok=True)
+def prepare_output_folder(html_folder_path, csv_folder_path):
+    """Creates the output folders if they do not exist."""
+    os.makedirs(html_folder_path, exist_ok=True)
+    os.makedirs(csv_folder_path, exist_ok=True)
 
 def run_processing(opml_filename, days_back):
     """Processes the RSS feed and returns the results needed for output."""
@@ -78,7 +80,7 @@ def run_processing(opml_filename, days_back):
     earliest_date_string_print = earliest_date.strftime(TEXT_DATE_FORMAT_PRINT)
     return all_entries, earliest_date_string_print, icon_map, top_text, top_title, errors
 
-def print_summary(days_back, earliest_date_string_print, current_date_string_print, opml_filename, total_entries, html_outfilename, errors, start_time, end_time):
+def print_summary(days_back, earliest_date_string_print, current_date_string_print, opml_filename, total_entries, html_outfilename, csv_outfilename, errors, start_time, end_time):
     """Prints a summary of the run."""
     print(f"\n{FEED_SEPARATOR}")
     print("Summary")
@@ -88,6 +90,7 @@ def print_summary(days_back, earliest_date_string_print, current_date_string_pri
     print(f"OPML file: {opml_filename}")
     print(f"Total entries: {total_entries}")
     print(f"News written to file: {html_outfilename}")
+    print(f"CSV written to file: {csv_outfilename}")
 
     if errors:
         print("Feeds that failed to fetch (check individual entries log for more info):")
@@ -98,42 +101,56 @@ def print_summary(days_back, earliest_date_string_print, current_date_string_pri
     print(f"{FEED_SEPARATOR}")
 
 def main():
-    days_back, opml_filename = parse_args()
+    try:
+        days_back, opml_filename = parse_args()
 
-    current_date = datetime.now(timezone.utc)
-    current_date_string_file = current_date.strftime(TEXT_DATE_FORMAT_FILE)
-    current_date_string_print = current_date.strftime(TEXT_DATE_FORMAT_PRINT)
+        current_date = datetime.now(timezone.utc)
+        current_date_string_file = current_date.strftime(TEXT_DATE_FORMAT_FILE)
+        current_date_string_print = current_date.strftime(TEXT_DATE_FORMAT_PRINT)
+        start_time = time.time()
+        all_entries, earliest_date_string_print, icon_map, top_text, top_title, errors = run_processing(opml_filename, days_back)
+        
+        out_filename_prefix = re.sub(r'[^a-zA-Z0-9_]', '', (top_text or "").lower())
+        prepare_output_folder(HTML_REPORT_FOLDER, CSV_REPORT_FOLDER)
+        html_outfilename = os.path.join(HTML_REPORT_FOLDER, f"{out_filename_prefix}_{current_date_string_file}.html")
+        csv_outfilename = os.path.join(CSV_REPORT_FOLDER, f"{out_filename_prefix}_{current_date_string_file}.csv")
+        
+        write_all_rss_to_html(
+            all_entries,
+            html_outfilename,
+            current_date_string_print,
+            earliest_date_string_print,
+            icon_map,
+            top_text,
+            top_title
+        )
 
-    prepare_output_folder(HTML_REPORT_FOLDER)
-
-    start_time = time.time()
-    all_entries, earliest_date_string_print, icon_map, top_text, top_title, errors = run_processing(opml_filename, days_back)
-    
-    html_out_filename_prefix = re.sub(r'[^a-zA-Z0-9_]', '', (top_text or "").lower())
-    html_outfilename = os.path.join(HTML_REPORT_FOLDER, f"{html_out_filename_prefix}_{current_date_string_file}.html")
-    
-    write_all_rss_to_html(
-        all_entries,
-        html_outfilename,
-        current_date_string_print,
-        earliest_date_string_print,
-        icon_map,
-        top_text,
+        write_all_rss_to_csv(
+        all_entries, 
+        csv_outfilename, 
+        current_date_string_print, 
+        earliest_date_string_print, 
+        top_text, 
         top_title
-    )   
-    end_time = time.time()
+        )
 
-    print_summary(
-        days_back,
-        earliest_date_string_print,
-        current_date_string_print,
-        opml_filename,
-        len(all_entries),
-        html_outfilename,
-        errors,
-        start_time,
-        end_time
-    )
+        end_time = time.time()
+
+        print_summary(
+            days_back,
+            earliest_date_string_print,
+            current_date_string_print,
+            opml_filename,
+            len(all_entries),
+            html_outfilename,
+            csv_outfilename,
+            errors,
+            start_time,
+            end_time
+        )
+    except Exception as e:
+        print(f"Error: {e}")
+        exit(1)
 
 if __name__ == "__main__":
     main()

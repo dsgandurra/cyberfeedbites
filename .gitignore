@@ -1,6 +1,9 @@
 # Ignore everything in html_reports folder
 data/html_reports/
 
+# Ignore everything in csv_reports folder
+data/csv_reports/
+
 # Ignore everything in rss_sources_private folder
 data/rss_sources_private
 

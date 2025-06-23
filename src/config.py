@@ -26,6 +26,7 @@ DATA_FOLDER = "data"
 TEMPLATE_FOLDER = os.path.join(DATA_FOLDER, "templates")
 TEMPLATE_HTML_FILE = os.path.join(TEMPLATE_FOLDER, "template.html")
 HTML_REPORT_FOLDER = os.path.join(DATA_FOLDER, "html_reports")
+CSV_REPORT_FOLDER = os.path.join(DATA_FOLDER, "csv_reports")
 HTML_OUT_FILENAME_PREFIX = "cybersecuritynews"
 RSS_SOURCES = os.path.join(DATA_FOLDER, "rss_sources")
 OPML_FILENAME = os.path.join(RSS_SOURCES, "cybersecnews-sources.opml")
