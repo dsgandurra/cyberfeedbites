@@ -21,7 +21,7 @@ import csv
 
 from config import (
     TEMPLATE_HTML_FILE, TITLE_KEY, LINK_KEY, DESCRIPTION_KEY, PUBLISHED_DATE_KEY,
-    CHANNEL_IMAGE_KEY, FEED_TITLE_KEY, TEXT_DATE_FORMAT_PRINT, TIMEZONE_PRINT
+    CHANNEL_IMAGE_KEY, FEED_TITLE_KEY, TEXT_DATE_FORMAT_SHORT, TIMEZONE_PRINT
 )
 from utils import sanitize_for_html, get_website_name
 
@@ -29,31 +29,28 @@ def write_all_rss_to_html(posts_to_print, outfilename, current_date, earliest_da
     """Writes all RSS feed entries to an HTML file."""
     
     sorted_posts = sorted(posts_to_print, key=lambda post: post[PUBLISHED_DATE_KEY])
-    total_posts = len(sorted_posts)
     
     table_rows = []
     for id_post, post in enumerate(sorted_posts, start=1):
-        website_name = get_website_name(post[LINK_KEY])
+        website_name = sanitize_for_html(get_website_name(post[LINK_KEY]))
         
         # Resolve image URL safely
         image_url = post.get(CHANNEL_IMAGE_KEY) or (icon_map.get(post[FEED_TITLE_KEY]) if icon_map else "")
-        image_html = f"<img src='{sanitize_for_html(image_url)}' alt='' class='channel-image'>" if image_url else ""
+        image_html = f"<img src='{sanitize_for_html(image_url)}' alt='{website_name}' class='channel-image'>" if image_url else ""
 
-        published_date_string_print = post[PUBLISHED_DATE_KEY].strftime(TEXT_DATE_FORMAT_PRINT)
+        published_date_string_print = post[PUBLISHED_DATE_KEY].strftime(TEXT_DATE_FORMAT_SHORT)
         title_row = sanitize_for_html(post[TITLE_KEY]).strip('"')
         description_row = sanitize_for_html(post[DESCRIPTION_KEY]).strip('"')
         safe_post_link = sanitize_for_html(post[LINK_KEY])
 
         row_td = (
-            f"<td>{id_post}/{total_posts}</td>"
             f"<td>{published_date_string_print}</td>"
             f"<td><b>{website_name}</b></td>"
             f"<td>{image_html}</td>"
-            f"<td>{title_row}</td>"
+            f"<td><a href='{safe_post_link}' target='_blank'>{title_row}</a></td>"
             f"<td class='italic-cell'>{description_row}</td>"
-            f"<td><a href='{safe_post_link}' target='_blank'>{safe_post_link}</a></td>"
         )
-        table_rows.append(f"<tr>{row_td}</tr>")
+        table_rows.append(f"<tr>{row_td}</tr>\n")
 
     try:
         with open(TEMPLATE_HTML_FILE) as file:
@@ -97,7 +94,7 @@ def write_all_rss_to_csv(posts_to_print, outfilename, current_date, earliest_dat
     for post in sorted_posts:
         website_name = get_website_name(post[LINK_KEY])
 
-        published_date_string_print = post[PUBLISHED_DATE_KEY].strftime(TEXT_DATE_FORMAT_PRINT)
+        published_date_string_print = post[PUBLISHED_DATE_KEY].strftime(TEXT_DATE_FORMAT_SHORT)
         title_row = sanitize_for_html(post[TITLE_KEY]).strip()  # Strip leading/trailing spaces
         description_row = sanitize_for_html(post[DESCRIPTION_KEY]).strip()  # Strip leading/trailing spaces
         safe_post_link = sanitize_for_html(post[LINK_KEY]).strip()  # Strip leading/trailing spaces

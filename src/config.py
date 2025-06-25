@@ -67,3 +67,4 @@ TIMEZONE_PRINT = "UTC"
 # Format of the date for filename or used as text
 TEXT_DATE_FORMAT_FILE = "%Y-%m-%d_%H-%M-%S"
 TEXT_DATE_FORMAT_PRINT = "%A, %d %B %Y %H:%M"
+TEXT_DATE_FORMAT_SHORT = "%d %b %Y %H:%M"

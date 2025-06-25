@@ -9,16 +9,16 @@
 </head>
 <body>
     <h1>{top_text} from {earliest_date} {timezone_print} to {current_date} {timezone_print}</h1>
-    <table>
-        <tr>
-            <th>ID</th>
-            <th>Date/Time (UTC)</th>
-            <th colspan="2">Website</th>
-            <th>Title</th>
-            <th>Description</th>
-            <th>Link</th>
-        </tr>
-        {rows}
-    </table>
+    <div class="table-wrapper">
+        <table>
+            <tr>
+                <th>Date/Time (UTC)</th>
+                <th colspan="2">Website</th>
+                <th>Title</th>
+                <th>Description</th>
+            </tr>
+            {rows}
+        </table>
+    </div>
 </body>
 </html>

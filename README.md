@@ -24,10 +24,11 @@ CyberFeedBites is ready to use once dependencies are installed. To run it as is,
 
 1. Clone this repository:
 
-```bash
-git clone https://github.com/dsgandurra/cyberfeedbites.git
-cd cyberfeedbites
-```
+    ```bash
+    git clone https://github.com/dsgandurra/cyberfeedbites.git
+    cd cyberfeedbites
+    ```
+
 2. Before running CyberFeedBites, it's recommended to use a virtual environment to keep your project's dependencies isolated. To do so, create and activate a virtual environment:
 
    On **Linux/macOS**:
@@ -41,11 +42,12 @@ cd cyberfeedbites
    python -m venv myenv
    .\myenv\Scripts\activate
    ```
+   
 3. Install the required dependencies:
 
-   ```bash
-   pip install -r requirements.txt
-   ```
+    ```bash
+    pip install -r requirements.txt
+    ```
 
 The required packages are:
 
@@ -56,15 +58,16 @@ The required packages are:
 
 1. Navigate to the root folder of the project:
 
-```bash
-cd path/to/cyberfeedbites
-```
+    ```bash
+    cd path/to/cyberfeedbites
+    ```
 
 2. Run CyberFeedBites with optional parameters:
 
-```bash
-python src/main.py [--days <days_back>] [--opml <opml_file_path>]
-```
+    ```bash
+    python src/main.py [--days <days_back>] [--opml <opml_file_path>]
+    ```
+
 - `--days`: Specify the number of days to fetch news from (e.g., `--days 2`). Defaults to the `DAYS_BACK` value set in `config.py`.
 - `--opml`: Provide a custom path to an OPML file (e.g., `--opml data/rss_sources/custom.opml`). Defaults to the OPML file specified by `OPML_FILENAME` in `config.py`.
 
