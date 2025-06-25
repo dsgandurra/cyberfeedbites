@@ -35,7 +35,8 @@ def write_daily_feed_json(posts, output_path, full_report_url, date):
             {
                 "title": post.get(TITLE_KEY, "").strip('"'),
                 "link": post.get(LINK_KEY, ""),
-                "published": post[PUBLISHED_DATE_KEY].strftime(TEXT_DATE_FORMAT_JSON)
+                "published": post[PUBLISHED_DATE_KEY].strftime(TEXT_DATE_FORMAT_JSON),
+                "source": get_website_name(post[LINK_KEY])
             }
             for post in sorted(posts, key=lambda p: p[PUBLISHED_DATE_KEY], reverse=True)
         ]
@@ -144,13 +145,18 @@ def write_all_rss_to_html(posts_to_print, outfilename, public_outfilename, curre
             print(f"Error writing public output file: {e}")
 
     if public_outfilename:
-        output_folder = os.path.dirname(public_outfilename)
-        template_path = os.path.join(output_folder, PUBLIC_REPORT_INDEX_TEMPLATE)
-        generate_index_html_from_template(
-            output_folder=output_folder,
-            template_path=template_path,
-            title=PUBLIC_REPORT_INDEX_FILE_TITLE
+        link_html = f'<p><a href="{PUBLIC_BASE_URL}" target="_blank" rel="noopener noreferrer">View all daily reports</a></p>'
+        public_html_output = html_output.replace(
+            'href="../templates/style.css"',
+            f'href="{PUBLIC_REPORT_CSS_FILE}"'
         )
+        public_html_output = public_html_output.replace('</body>', f'{link_html}</body>')
+
+        try:
+            with open(public_outfilename, 'w', encoding='utf-8', newline='') as file:
+                file.write(public_html_output)
+        except Exception as e:
+            print(f"Error writing public output file: {e}")
 
     if public_outfilename:
         output_folder = os.path.dirname(public_outfilename)
