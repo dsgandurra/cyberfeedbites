@@ -71,7 +71,7 @@
 			<outline type="rss" text="WeLiveSecurity" xmlUrl="http://feeds.feedburner.com/eset/blog" htmlUrl="https://www.welivesecurity.com" />
 			<outline type="rss" text="Wired" xmlUrl="https://www.wired.com/feed/category/security/latest/rss" htmlUrl="https://www.wired.com" iconUrl="https://www.wired.com/verso/static/wired-us/assets/favicon.ico"/>
 			<outline type="rss" text="Wiz Blog" xmlUrl="https://www.wiz.io/feed/rss.xml" htmlUrl="https://www.wiz.io" />
-			<outline type="rss" text="Zero Day Initiative (ZDI)" xmlUrl="https://www.zerodayinitiative.com/blog/?format=rss" htmlUrl="https://www.zerodayinitiative.com/blog/" />
+			<!-- <outline type="rss" text="Zero Day Initiative (ZDI)" xmlUrl="https://www.zerodayinitiative.com/blog/?format=rss" htmlUrl="https://www.zerodayinitiative.com/blog/" /> -->
 			
 			<!-- Compliance and Advisories-->
 			<outline type="rss" text="CERT Advisories" xmlUrl="http://seclists.org/rss/cert.rss" htmlUrl="http://seclists.org/"/>

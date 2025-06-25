@@ -21,9 +21,40 @@ import csv
 
 from config import (
     TEMPLATE_HTML_FILE, TITLE_KEY, LINK_KEY, DESCRIPTION_KEY, PUBLISHED_DATE_KEY,
-    CHANNEL_IMAGE_KEY, FEED_TITLE_KEY, TEXT_DATE_FORMAT_PRINT_SHORT, TIMEZONE_PRINT
+    CHANNEL_IMAGE_KEY, FEED_TITLE_KEY, TEXT_DATE_FORMAT_PRINT_SHORT, TIMEZONE_PRINT, 
+    PUBLIC_REPORT_INDEX_FILE, HTML_OUT_FILENAME_PREFIX, PUBLIC_REPORT_CSS_FILE,
+    PUBLIC_REPORT_INDEX_TEMPLATE, PUBLIC_REPORT_INDEX_FILE_TITLE
 )
 from utils import sanitize_for_html, get_website_name
+
+def generate_index_html_from_template(output_folder, template_path, title, css_file=PUBLIC_REPORT_CSS_FILE):
+    """Generates index.html from template, linking to all daily report HTML files."""
+    try:
+        with open(template_path, "r", encoding="utf-8") as f:
+            template = f.read()
+    except Exception as e:
+        print(f"Error reading index template: {e}")
+        return
+
+    try:
+        files = sorted([
+            f for f in os.listdir(output_folder)
+            if f.startswith(HTML_OUT_FILENAME_PREFIX) and f.endswith(".html")
+        ], reverse=True)
+
+        list_items = "\n".join(
+            f'<li><a href="{fname}" target="_blank">Cybersecurity News {fname[-15:-5]}</a></li>'
+            for fname in files
+        )
+
+        html = template.format(title=title, css_file=css_file, links=list_items)
+
+        index_path = os.path.join(output_folder, PUBLIC_REPORT_INDEX_FILE)
+        with open(index_path, "w", encoding="utf-8") as f:
+            f.write(html)
+
+    except Exception as e:
+        print(f"Error generating {PUBLIC_REPORT_INDEX_FILE}: {e}")
 
 def write_all_rss_to_html(posts_to_print, outfilename, public_outfilename, current_date, earliest_date, icon_map, top_text, top_title):
     """Writes all RSS feed entries to an HTML file (and optionally a second public version)."""
@@ -79,13 +110,22 @@ def write_all_rss_to_html(posts_to_print, outfilename, public_outfilename, curre
     if public_outfilename:
         public_html_output = html_output.replace(
             'href="../templates/style.css"',
-            'href="style.css"'
+            f'href="{PUBLIC_REPORT_CSS_FILE}"'
         )
         try:
             with open(public_outfilename, 'w', encoding='utf-8', newline='') as file:
                 file.write(public_html_output)
         except Exception as e:
             print(f"Error writing public output file: {e}")
+
+    if public_outfilename:
+        output_folder = os.path.dirname(public_outfilename)
+        template_path = os.path.join(output_folder, PUBLIC_REPORT_INDEX_TEMPLATE)
+        generate_index_html_from_template(
+            output_folder=output_folder,
+            template_path=template_path,
+            title=PUBLIC_REPORT_INDEX_FILE_TITLE
+        )
 
 def write_all_rss_to_csv(posts_to_print, outfilename, current_date, earliest_date, top_text, top_title):
     """Writes all RSS feed entries to a CSV file."""
