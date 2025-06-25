@@ -27,6 +27,7 @@ TEMPLATE_FOLDER = os.path.join(DATA_FOLDER, "templates")
 TEMPLATE_HTML_FILE = os.path.join(TEMPLATE_FOLDER, "template.html")
 HTML_REPORT_FOLDER = os.path.join(DATA_FOLDER, "html_reports")
 CSV_REPORT_FOLDER = os.path.join(DATA_FOLDER, "csv_reports")
+PUBLIC_REPORT_FOLDER = "docs"
 HTML_OUT_FILENAME_PREFIX = "cybersecuritynews"
 RSS_SOURCES = os.path.join(DATA_FOLDER, "rss_sources")
 OPML_FILENAME = os.path.join(RSS_SOURCES, "cybersecnews-sources.opml")
@@ -66,5 +67,6 @@ TIMEZONE_PRINT = "UTC"
 
 # Format of the date for filename or used as text
 TEXT_DATE_FORMAT_FILE = "%Y-%m-%d_%H-%M-%S"
+TEXT_DATE_FORMAT_FILE_SHORT = "%Y-%m-%d"
 TEXT_DATE_FORMAT_PRINT = "%A, %d %B %Y %H:%M"
-TEXT_DATE_FORMAT_SHORT = "%d %b %Y %H:%M"
+TEXT_DATE_FORMAT_PRINT_SHORT = "%d %b %Y %H:%M"

@@ -29,8 +29,10 @@ from config import (
     OPML_FILENAME,
     HTML_REPORT_FOLDER,
     CSV_REPORT_FOLDER,
+    PUBLIC_REPORT_FOLDER,
     DAYS_BACK,
     TEXT_DATE_FORMAT_FILE,
+    TEXT_DATE_FORMAT_FILE_SHORT,
     TEXT_DATE_FORMAT_PRINT,
     FEED_SEPARATOR,
     TIMEZONE_PRINT
@@ -62,12 +64,17 @@ def parse_arguments():
         default=OPML_FILENAME, 
         help=f"Path to the OPML file. Default is '{OPML_FILENAME}'."
     )
+
+    parser.add_argument(
+    "--export-public",
+    action="store_true",
+    help="Also export a public HTML version into the docs/ folder."
+    )
     return parser.parse_args()
 
 def parse_args():
     """Returns parsed command-line arguments as simple values."""
-    args = parse_arguments()
-    return args.days, args.opml
+    return parse_arguments()
 
 def prepare_output_folder(html_folder_path, csv_folder_path):
     """Creates the output folders if they do not exist."""
@@ -80,7 +87,7 @@ def run_processing(opml_filename, days_back):
     earliest_date_string_print = earliest_date.strftime(TEXT_DATE_FORMAT_PRINT)
     return all_entries, earliest_date_string_print, icon_map, top_text, top_title, errors
 
-def print_summary(days_back, earliest_date_string_print, current_date_string_print, opml_filename, total_entries, html_outfilename, csv_outfilename, errors, start_time, end_time):
+def print_summary(days_back, earliest_date_string_print, current_date_string_print, opml_filename, total_entries, html_outfilename, html_public_outfilename, csv_outfilename, errors, start_time, end_time):
     """Prints a summary of the run."""
     print(f"\n{FEED_SEPARATOR}")
     print("Summary")
@@ -90,6 +97,8 @@ def print_summary(days_back, earliest_date_string_print, current_date_string_pri
     print(f"OPML file: {opml_filename}")
     print(f"Total entries: {total_entries}")
     print(f"News written to file: {html_outfilename}")
+    if html_public_outfilename:
+        print(f"News written to public file: {html_public_outfilename}")
     print(f"CSV written to file: {csv_outfilename}")
 
     if errors:
@@ -102,10 +111,13 @@ def print_summary(days_back, earliest_date_string_print, current_date_string_pri
 
 def main():
     try:
-        days_back, opml_filename = parse_args()
+        args = parse_args()
+        days_back = args.days
+        opml_filename = args.opml
 
         current_date = datetime.now(timezone.utc)
         current_date_string_file = current_date.strftime(TEXT_DATE_FORMAT_FILE)
+        current_date_string_file_public = current_date.strftime(TEXT_DATE_FORMAT_FILE_SHORT)
         current_date_string_print = current_date.strftime(TEXT_DATE_FORMAT_PRINT)
         start_time = time.time()
         all_entries, earliest_date_string_print, icon_map, top_text, top_title, errors = run_processing(opml_filename, days_back)
@@ -113,16 +125,18 @@ def main():
         out_filename_prefix = re.sub(r'[^a-zA-Z0-9_]', '', (top_text or "").lower())
         prepare_output_folder(HTML_REPORT_FOLDER, CSV_REPORT_FOLDER)
         html_outfilename = os.path.join(HTML_REPORT_FOLDER, f"{out_filename_prefix}_{current_date_string_file}.html")
+        html_public_outfilename = os.path.join(PUBLIC_REPORT_FOLDER, f"{out_filename_prefix}_{current_date_string_file_public}.html") if args.export_public else None
         csv_outfilename = os.path.join(CSV_REPORT_FOLDER, f"{out_filename_prefix}_{current_date_string_file}.csv")
         
         write_all_rss_to_html(
             all_entries,
             html_outfilename,
+            html_public_outfilename,
             current_date_string_print,
             earliest_date_string_print,
             icon_map,
             top_text,
-            top_title
+            top_title,
         )
 
         write_all_rss_to_csv(
@@ -143,6 +157,7 @@ def main():
             opml_filename,
             len(all_entries),
             html_outfilename,
+            html_public_outfilename,
             csv_outfilename,
             errors,
             start_time,

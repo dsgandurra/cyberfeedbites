@@ -21,12 +21,12 @@ import csv
 
 from config import (
     TEMPLATE_HTML_FILE, TITLE_KEY, LINK_KEY, DESCRIPTION_KEY, PUBLISHED_DATE_KEY,
-    CHANNEL_IMAGE_KEY, FEED_TITLE_KEY, TEXT_DATE_FORMAT_SHORT, TIMEZONE_PRINT
+    CHANNEL_IMAGE_KEY, FEED_TITLE_KEY, TEXT_DATE_FORMAT_PRINT_SHORT, TIMEZONE_PRINT
 )
 from utils import sanitize_for_html, get_website_name
 
-def write_all_rss_to_html(posts_to_print, outfilename, current_date, earliest_date, icon_map, top_text, top_title):
-    """Writes all RSS feed entries to an HTML file."""
+def write_all_rss_to_html(posts_to_print, outfilename, public_outfilename, current_date, earliest_date, icon_map, top_text, top_title):
+    """Writes all RSS feed entries to an HTML file (and optionally a second public version)."""
     
     sorted_posts = sorted(posts_to_print, key=lambda post: post[PUBLISHED_DATE_KEY])
     
@@ -38,7 +38,7 @@ def write_all_rss_to_html(posts_to_print, outfilename, current_date, earliest_da
         image_url = post.get(CHANNEL_IMAGE_KEY) or (icon_map.get(post[FEED_TITLE_KEY]) if icon_map else "")
         image_html = f"<img src='{sanitize_for_html(image_url)}' alt='{website_name}' class='channel-image'>" if image_url else ""
 
-        published_date_string_print = post[PUBLISHED_DATE_KEY].strftime(TEXT_DATE_FORMAT_SHORT)
+        published_date_string_print = post[PUBLISHED_DATE_KEY].strftime(TEXT_DATE_FORMAT_PRINT_SHORT)
         title_row = sanitize_for_html(post[TITLE_KEY]).strip('"')
         description_row = sanitize_for_html(post[DESCRIPTION_KEY]).strip('"')
         safe_post_link = sanitize_for_html(post[LINK_KEY])
@@ -76,7 +76,16 @@ def write_all_rss_to_html(posts_to_print, outfilename, current_date, earliest_da
     except Exception as e:
         print(f"Error writing output file: {e}")
 
-import csv
+    if public_outfilename:
+        public_html_output = html_output.replace(
+            'href="../templates/style.css"',
+            'href="style.css"'
+        )
+        try:
+            with open(public_outfilename, 'w', encoding='utf-8', newline='') as file:
+                file.write(public_html_output)
+        except Exception as e:
+            print(f"Error writing public output file: {e}")
 
 def write_all_rss_to_csv(posts_to_print, outfilename, current_date, earliest_date, top_text, top_title):
     """Writes all RSS feed entries to a CSV file."""
@@ -94,7 +103,7 @@ def write_all_rss_to_csv(posts_to_print, outfilename, current_date, earliest_dat
     for post in sorted_posts:
         website_name = get_website_name(post[LINK_KEY])
 
-        published_date_string_print = post[PUBLISHED_DATE_KEY].strftime(TEXT_DATE_FORMAT_SHORT)
+        published_date_string_print = post[PUBLISHED_DATE_KEY].strftime(TEXT_DATE_FORMAT_PRINT_SHORT)
         title_row = sanitize_for_html(post[TITLE_KEY]).strip()  # Strip leading/trailing spaces
         description_row = sanitize_for_html(post[DESCRIPTION_KEY]).strip()  # Strip leading/trailing spaces
         safe_post_link = sanitize_for_html(post[LINK_KEY]).strip()  # Strip leading/trailing spaces
