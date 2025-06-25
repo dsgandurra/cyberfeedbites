@@ -30,7 +30,9 @@ CSV_REPORT_FOLDER = os.path.join(DATA_FOLDER, "csv_reports")
 PUBLIC_REPORT_FOLDER = "docs"
 PUBLIC_REPORT_INDEX_FILE = "index.html"
 PUBLIC_REPORT_CSS_FILE = "style.css"
-PUBLIC_REPORT_INDEX_FILE_TITLE = "CyberFeedBites: Daily Cybersecurity News Reports"
+PUBLIC_DAILY_JSON_FILE = "daily-feed.json"
+PUBLIC_BASE_URL = "https://dsgandurra.github.io/cyberfeedbites/"
+PUBLIC_REPORT_INDEX_FILE_TITLE = "CyberSecBrief: Daily Cybersecurity News Reports"
 PUBLIC_REPORT_INDEX_TEMPLATE="index_template.html"
 HTML_OUT_FILENAME_PREFIX = "cybersecuritynews"
 RSS_SOURCES = os.path.join(DATA_FOLDER, "rss_sources")
@@ -71,6 +73,7 @@ TIMEZONE_PRINT = "UTC"
 
 # Format of the date for filename or used as text
 TEXT_DATE_FORMAT_FILE = "%Y-%m-%d_%H-%M-%S"
+TEXT_DATE_FORMAT_JSON = "%Y-%m-%d %H:%M:%S"
 TEXT_DATE_FORMAT_FILE_SHORT = "%Y-%m-%d"
 TEXT_DATE_FORMAT_PRINT = "%A, %d %B %Y %H:%M"
 TEXT_DATE_FORMAT_PRINT_SHORT = "%d %b %Y %H:%M"

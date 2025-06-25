@@ -18,14 +18,39 @@
 
 import os
 import csv
+import json
 
 from config import (
     TEMPLATE_HTML_FILE, TITLE_KEY, LINK_KEY, DESCRIPTION_KEY, PUBLISHED_DATE_KEY,
     CHANNEL_IMAGE_KEY, FEED_TITLE_KEY, TEXT_DATE_FORMAT_PRINT_SHORT, TIMEZONE_PRINT, 
     PUBLIC_REPORT_INDEX_FILE, HTML_OUT_FILENAME_PREFIX, PUBLIC_REPORT_CSS_FILE,
-    PUBLIC_REPORT_INDEX_TEMPLATE, PUBLIC_REPORT_INDEX_FILE_TITLE
+    PUBLIC_REPORT_INDEX_TEMPLATE, PUBLIC_REPORT_INDEX_FILE_TITLE, 
+    TEXT_DATE_FORMAT_JSON, PUBLIC_DAILY_JSON_FILE, PUBLIC_BASE_URL
 )
 from utils import sanitize_for_html, get_website_name
+
+def write_daily_feed_json(posts, output_path, full_report_url, date):
+    try:
+        json_items = [
+            {
+                "title": post.get(TITLE_KEY, "").strip('"'),
+                "link": post.get(LINK_KEY, ""),
+                "published": post[PUBLISHED_DATE_KEY].strftime(TEXT_DATE_FORMAT_JSON)
+            }
+            for post in sorted(posts, key=lambda p: p[PUBLISHED_DATE_KEY], reverse=True)
+        ]
+
+        data = {
+            "date": date,
+            "full_report": full_report_url,
+            "items": json_items
+        }
+
+        with open(output_path, "w", encoding="utf-8") as f:
+            json.dump(data, f, indent=2, ensure_ascii=False)
+
+    except Exception as e:
+        print(f"Error writing {output_path}: {e}")
 
 def generate_index_html_from_template(output_folder, template_path, title, css_file=PUBLIC_REPORT_CSS_FILE):
     """Generates index.html from template, linking to all daily report HTML files."""
@@ -56,7 +81,7 @@ def generate_index_html_from_template(output_folder, template_path, title, css_f
     except Exception as e:
         print(f"Error generating {PUBLIC_REPORT_INDEX_FILE}: {e}")
 
-def write_all_rss_to_html(posts_to_print, outfilename, public_outfilename, current_date, earliest_date, icon_map, top_text, top_title):
+def write_all_rss_to_html(posts_to_print, outfilename, public_outfilename, current_date, earliest_date, icon_map, top_text, top_title, public_date):
     """Writes all RSS feed entries to an HTML file (and optionally a second public version)."""
     
     sorted_posts = sorted(posts_to_print, key=lambda post: post[PUBLISHED_DATE_KEY])
@@ -126,6 +151,14 @@ def write_all_rss_to_html(posts_to_print, outfilename, public_outfilename, curre
             template_path=template_path,
             title=PUBLIC_REPORT_INDEX_FILE_TITLE
         )
+
+    if public_outfilename:
+        output_folder = os.path.dirname(public_outfilename)
+        json_output_path = os.path.join(output_folder, PUBLIC_DAILY_JSON_FILE)
+        report_filename = os.path.basename(public_outfilename)
+        full_report_url = PUBLIC_BASE_URL + report_filename
+
+        write_daily_feed_json(sorted_posts, json_output_path, full_report_url, public_date)
 
 def write_all_rss_to_csv(posts_to_print, outfilename, current_date, earliest_date, top_text, top_title):
     """Writes all RSS feed entries to a CSV file."""

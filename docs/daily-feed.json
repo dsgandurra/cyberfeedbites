@@ -1,0 +1,426 @@
+{
+  "date": "2025-06-25",
+  "full_report": "https://dsgandurra.github.io/cyberfeedbites/cybersecuritynews_2025-06-25.html",
+  "items": [
+    {
+      "title": "SonicWall Warns of Trojanized NetExtender Stealing User Information",
+      "link": "https://www.securityweek.com/sonicwall-warns-of-trojanized-netextender-stealing-user-information/",
+      "published": "2025-06-25 11:30:05"
+    },
+    {
+      "title": "New Vulnerabilities Expose Millions of Brother Printers to Hacking",
+      "link": "https://www.securityweek.com/new-vulnerabilities-expose-millions-of-brother-printers-to-hacking/",
+      "published": "2025-06-25 11:11:11"
+    },
+    {
+      "title": "What LLMs Know About Their Users",
+      "link": "https://www.schneier.com/blog/archives/2025/06/what-llms-know-about-their-users.html",
+      "published": "2025-06-25 11:04:09"
+    },
+    {
+      "title": "Ransomware Attacks Dip in May Despite Persistent Retail Targeting",
+      "link": "https://www.infosecurity-magazine.com/news/ransomware-dip-may-retail-targeting/",
+      "published": "2025-06-25 11:00:00"
+    },
+    {
+      "title": "Why Sincerity Is a Strategic Asset in Cybersecurity",
+      "link": "https://www.securityweek.com/why-sincerity-is-a-strategic-asset-in-cybersecurity/",
+      "published": "2025-06-25 11:00:00"
+    },
+    {
+      "title": "Pro-Iranian Hacktivist Group Leaks Personal Records from the 2024 Saudi Games",
+      "link": "https://thehackernews.com/2025/06/pro-iranian-hacktivist-group-leaks.html",
+      "published": "2025-06-25 11:00:00"
+    },
+    {
+      "title": "Code Execution Vulnerability Patched in GitHub Enterprise Server",
+      "link": "https://www.securityweek.com/code-execution-vulnerability-patched-in-github-enterprise-server/",
+      "published": "2025-06-25 10:42:32"
+    },
+    {
+      "title": "Mastercard adds secure on-chain access to crypto",
+      "link": "https://www.helpnetsecurity.com/2025/06/25/mastercard-chainlink-crypto-payments/",
+      "published": "2025-06-25 10:41:09"
+    },
+    {
+      "title": "Beware the Hidden Risk in Your Entra Environment",
+      "link": "https://thehackernews.com/2025/06/beware-hidden-risk-in-your-entra.html",
+      "published": "2025-06-25 10:30:00"
+    },
+    {
+      "title": "Chrome 138, Firefox 140 Patch Multiple Vulnerabilities",
+      "link": "https://www.securityweek.com/chrome-138-firefox-140-patch-multiple-vulnerabilities/",
+      "published": "2025-06-25 10:02:35"
+    },
+    {
+      "title": "AI and collaboration tools: how cyberattackers are targeting SMBs in 2025",
+      "link": "https://securelist.com/smb-threat-report-2025/116830/",
+      "published": "2025-06-25 10:00:12"
+    },
+    {
+      "title": "Cybercriminal abuse of large language models",
+      "link": "https://blog.talosintelligence.com/cybercriminal-abuse-of-large-language-models/",
+      "published": "2025-06-25 10:00:00"
+    },
+    {
+      "title": "XBOW’s AI reached the top ranks on HackerOne, and now it has $75M to scale up",
+      "link": "https://www.helpnetsecurity.com/2025/06/25/xbow-ai-funding/",
+      "published": "2025-06-25 09:45:23"
+    },
+    {
+      "title": "UK Ransom Payments Double as Victims Fall Behind Global Peers",
+      "link": "https://www.infosecurity-magazine.com/news/uk-ransom-payments-double-victims/",
+      "published": "2025-06-25 09:45:00"
+    },
+    {
+      "title": "Sextortion email scammers increase their &#8220;Hello pervert&#8221; money demands",
+      "link": "https://www.malwarebytes.com/blog/news/2025/06/sextortion-email-scammers-increase-their-hello-pervert-money-demands",
+      "published": "2025-06-25 09:41:57"
+    },
+    {
+      "title": "UK govt dept website that campaigns against encryption hijacked to advertise ... payday loans",
+      "link": "https://go.theregister.com/feed/www.theregister.com/2025/06/25/home_office_antiencryption_campaign_website/",
+      "published": "2025-06-25 09:26:17"
+    },
+    {
+      "title": "Cybercrime is surging across Africa",
+      "link": "https://www.bitdefender.com/en-us/blog/hotforsecurity/cybercrime-surging-across-africa",
+      "published": "2025-06-25 09:22:59"
+    },
+    {
+      "title": "Common Good Cyber Fund Launched to Support Non-Profit Security Efforts",
+      "link": "https://www.infosecurity-magazine.com/news/common-good-cyber-non-profit/",
+      "published": "2025-06-25 09:15:00"
+    },
+    {
+      "title": "Mainline Health, Select Medical Each Disclose Data Breaches Impacting 100,000 People",
+      "link": "https://www.securityweek.com/mainline-health-select-medical-each-disclose-data-breaches-impacting-100000-people/",
+      "published": "2025-06-25 09:06:30"
+    },
+    {
+      "title": "Half of Customer Signups Are Now Fraudulent",
+      "link": "https://www.infosecurity-magazine.com/news/half-customer-signups-now/",
+      "published": "2025-06-25 08:45:00"
+    },
+    {
+      "title": "SonicWall NetExtender Trojan and ConnectWise Exploits Used in Remote Access Attacks",
+      "link": "https://thehackernews.com/2025/06/sonicwall-netextender-trojan-and.html",
+      "published": "2025-06-25 08:45:00"
+    },
+    {
+      "title": "North Korea-linked Supply Chain Attack Targets Developers with 35 Malicious npm Packages",
+      "link": "https://thehackernews.com/2025/06/north-korea-linked-supply-chain-attack.html",
+      "published": "2025-06-25 08:12:00"
+    },
+    {
+      "title": "Securing Our Water: Understanding the Water Cybersecurity Enhancement Act of 2025",
+      "link": "https://www.tripwire.com/state-of-security/securing-our-water-understanding-water-cybersecurity-enhancement-act-2025",
+      "published": "2025-06-25 08:09:04"
+    },
+    {
+      "title": "Russian APT Hits Ukrainian Government With New Malware via Signal",
+      "link": "https://www.securityweek.com/russian-apt-hits-ukrainian-government-with-new-malware-via-signal/",
+      "published": "2025-06-25 07:08:08"
+    },
+    {
+      "title": "BackBox 8.0 empowers organizations to strengthen their cyber resilience strategy",
+      "link": "https://www.helpnetsecurity.com/2025/06/25/backbox-8-0/",
+      "published": "2025-06-25 06:30:42"
+    },
+    {
+      "title": "The tiny amplifier that could supercharge quantum computing",
+      "link": "https://www.helpnetsecurity.com/2025/06/25/quantum-amplifier-breakthrough/",
+      "published": "2025-06-25 06:22:25"
+    },
+    {
+      "title": "Abstract Security unveils cloud-native cold storage for security telemetry",
+      "link": "https://www.helpnetsecurity.com/2025/06/25/abstract-security-lakevilla/",
+      "published": "2025-06-25 06:18:37"
+    },
+    {
+      "title": "Why the SOC needs its “Moneyball” moment",
+      "link": "https://www.helpnetsecurity.com/2025/06/25/soc-ai-powered-graphs/",
+      "published": "2025-06-25 06:00:45"
+    },
+    {
+      "title": "Africa Sees Surge in Cybercrime as Law Enforcement Struggles",
+      "link": "https://www.darkreading.com/cyber-risk/africa-surge-cybercrime-law-enforcement-struggles",
+      "published": "2025-06-25 06:00:00"
+    },
+    {
+      "title": "From posture to prioritization: The shift toward unified runtime platforms",
+      "link": "https://www.helpnetsecurity.com/2025/06/25/rinki-sethi-upwind-security-unified-runtime-platforms/",
+      "published": "2025-06-25 05:30:49"
+    },
+    {
+      "title": "Microsoft Extends Windows 10 Security Updates for One Year with New Enrollment Options",
+      "link": "https://thehackernews.com/2025/06/microsoft-extends-windows-10-security.html",
+      "published": "2025-06-25 05:10:00"
+    },
+    {
+      "title": "Why should companies or organizations convert to FIDO security keys?",
+      "link": "https://www.helpnetsecurity.com/2025/06/25/alexander-summerer-swissbit-fido-security-keys/",
+      "published": "2025-06-25 05:00:58"
+    },
+    {
+      "title": "Companies negotiate their way to lower ransom payments",
+      "link": "https://www.helpnetsecurity.com/2025/06/25/ransom-demand-payment/",
+      "published": "2025-06-25 04:30:07"
+    },
+    {
+      "title": "Users lack control as major AI platforms share personal info with third parties",
+      "link": "https://www.helpnetsecurity.com/2025/06/25/ai-platforms-data-sharing/",
+      "published": "2025-06-25 04:00:36"
+    },
+    {
+      "title": "ISC Stormcast For Wednesday, June 25th, 2025 https://isc.sans.edu/podcastdetail/9504, (Wed, Jun 25th)",
+      "link": "https://isc.sans.edu/diary/rss/32070",
+      "published": "2025-06-25 02:00:03"
+    },
+    {
+      "title": "North Korean Hackers Try to Steal Crypto Via Deepfake Zoom Call",
+      "link": "https://www.techrepublic.com/article/news-north-korea-deepfake-zoom-crypto-attack/",
+      "published": "2025-06-25 01:01:53"
+    },
+    {
+      "title": "Security Advisory: Anthropic's Slack MCP Server Vulnerable to Data Exfiltration",
+      "link": "https://embracethered.com/blog/posts/2025/security-advisory-anthropic-slack-mcp-server-data-leakage/",
+      "published": "2025-06-24 23:00:46"
+    },
+    {
+      "title": "The Week in Breach News: 06/18/25 – 06/24/25",
+      "link": "https://www.idagent.com/blog/the-week-in-breach-news-06-18-25-06-24-25/",
+      "published": "2025-06-24 22:56:07"
+    },
+    {
+      "title": "Google rolls out text-to-image model Imagen 4 for free",
+      "link": "https://www.bleepingcomputer.com/news/artificial-intelligence/google-rolls-out-text-to-image-model-imagen-4-for-free/",
+      "published": "2025-06-24 22:36:21"
+    },
+    {
+      "title": "Threat Actor Trojanizes Copy of SonicWall NetExtender VPN App",
+      "link": "https://www.darkreading.com/identity-access-management-security/threat-actor-trojanizes-sonicwall-netextender-vpn",
+      "published": "2025-06-24 21:59:56"
+    },
+    {
+      "title": "Dire Wolf Strikes: New Ransomware Group Targeting Global Sectors",
+      "link": "https://www.trustwave.com/en-us/resources/blogs/spiderlabs-blog/dire-wolf-strikes-new-ransomware-group-targeting-global-sectors/",
+      "published": "2025-06-24 21:59:23"
+    },
+    {
+      "title": "Claude catches up to ChatGPT with built-in memory support",
+      "link": "https://www.bleepingcomputer.com/news/artificial-intelligence/claude-catches-up-to-chatgpt-with-built-in-memory-support/",
+      "published": "2025-06-24 21:52:15"
+    },
+    {
+      "title": "AI Security Turning Point: Echo Chamber Jailbreak Exposes Dangerous Blind Spot",
+      "link": "https://www.techrepublic.com/article/news-echo-chamber-jailbreak-manipulates-llms/",
+      "published": "2025-06-24 21:42:10"
+    },
+    {
+      "title": "Google Cloud donates A2A AI protocol to the Linux Foundation",
+      "link": "https://www.bleepingcomputer.com/news/artificial-intelligence/google-cloud-donates-a2a-ai-protocol-to-the-linux-foundation/",
+      "published": "2025-06-24 21:34:38"
+    },
+    {
+      "title": "Don't panic, but it's only a matter of time before critical 'CitrixBleed 2' is under attack",
+      "link": "https://go.theregister.com/feed/www.theregister.com/2025/06/24/critical_citrix_bug_citrixbleed/",
+      "published": "2025-06-24 21:01:12"
+    },
+    {
+      "title": "Thousands of private camera feeds found online. Make sure yours isn&#8217;t one of them",
+      "link": "https://www.malwarebytes.com/blog/news/2025/06/thousands-of-private-camera-feeds-found-online-make-sure-yours-isnt-one-of-them",
+      "published": "2025-06-24 20:37:45"
+    },
+    {
+      "title": "SonicWall warns of trojanized NetExtender stealing VPN logins",
+      "link": "https://www.bleepingcomputer.com/news/security/sonicwall-warns-of-trojanized-netextender-stealing-vpn-logins/",
+      "published": "2025-06-24 20:36:19"
+    },
+    {
+      "title": "China-Nexus 'LapDogs' Network Thrives on Backdoored SOHO Devices",
+      "link": "https://www.darkreading.com/threat-intelligence/china-lapdogs-network-backdoored-soho-devices",
+      "published": "2025-06-24 20:12:59"
+    },
+    {
+      "title": "Multiple vulnerabilities in Sitecore CMS | Kaspersky official blog",
+      "link": "https://www.kaspersky.com/blog/vulnerabilities-sitecore-experience-platform/53683/",
+      "published": "2025-06-24 20:04:12"
+    },
+    {
+      "title": "New U.S. Visa Rule Requires Applicants to Set Social Media Account Privacy to Public",
+      "link": "https://thehackernews.com/2025/06/new-us-visa-rule-requires-applicants-to.html",
+      "published": "2025-06-24 18:47:00"
+    },
+    {
+      "title": "Quick Password Brute Forcing Evolution Statistics, (Tue, Jun 24th)",
+      "link": "https://isc.sans.edu/diary/rss/32068",
+      "published": "2025-06-24 18:36:36"
+    },
+    {
+      "title": "Windows 10 KB5061087 update released with 13 changes and fixes",
+      "link": "https://www.bleepingcomputer.com/news/microsoft/windows-10-kb5061087-update-released-with-13-changes-and-fixes/",
+      "published": "2025-06-24 18:07:43"
+    },
+    {
+      "title": "Why Are Hundreds of Data Brokers Not Registering with States?",
+      "link": "https://www.eff.org/deeplinks/2025/06/why-are-hundreds-data-brokers-not-registering-states",
+      "published": "2025-06-24 17:58:01"
+    },
+    {
+      "title": "The résumé is dying, and AI is holding the smoking gun",
+      "link": "https://arstechnica.com/ai/2025/06/the-resume-is-dying-and-ai-is-holding-the-smoking-gun/",
+      "published": "2025-06-24 17:25:41"
+    },
+    {
+      "title": "Beware of fake SonicWall VPN app that steals users' credentials",
+      "link": "https://go.theregister.com/feed/www.theregister.com/2025/06/24/unknown_crims_using_hacked_sonicwall/",
+      "published": "2025-06-24 17:22:32"
+    },
+    {
+      "title": "Microsoft fixes known issue that breaks Windows 11 updates",
+      "link": "https://www.bleepingcomputer.com/news/microsoft/microsoft-fixes-known-issue-that-breaks-windows-11-updates/",
+      "published": "2025-06-24 17:13:30"
+    },
+    {
+      "title": "Windows 10 users can get extended security updates using Microsoft points",
+      "link": "https://www.bleepingcomputer.com/news/microsoft/microsoft-windows-10-extended-security-updates-available-using-reward-points/",
+      "published": "2025-06-24 17:00:00"
+    },
+    {
+      "title": "Trezor’s support platform abused in crypto theft phishing attacks",
+      "link": "https://www.bleepingcomputer.com/news/security/trezors-support-platform-abused-in-crypto-theft-phishing-attacks/",
+      "published": "2025-06-24 16:54:16"
+    },
+    {
+      "title": "Lessons from Helsinki: NCSC-FI's Role in Mitigating a Major Data Breach",
+      "link": "https://www.infosecurity-magazine.com/news/helsinki-ncscfi-major-data-breach/",
+      "published": "2025-06-24 16:15:00"
+    },
+    {
+      "title": "Steel Giant Nucor Confirms Data Stolen in Cyberattack",
+      "link": "https://www.darkreading.com/cyberattacks-data-breaches/steel-giant-nucor-data-stolen-cyberattack",
+      "published": "2025-06-24 16:00:48"
+    },
+    {
+      "title": "Containers are available in public beta for simple, global, and programmable compute",
+      "link": "https://blog.cloudflare.com/containers-are-available-in-public-beta-for-simple-global-and-programmable/",
+      "published": "2025-06-24 16:00:22"
+    },
+    {
+      "title": "Microsoft is named a Leader in The Forrester Wave™: Security Analytics Platforms, 2025​​",
+      "link": "https://www.microsoft.com/en-us/security/blog/2025/06/24/microsoft-is-named-a-leader-in-the-forrester-wave-security-analytics-platforms-2025/",
+      "published": "2025-06-24 16:00:00"
+    },
+    {
+      "title": "Malware Campaign Uses Rogue WordPress Plugin to Skim Credit Cards",
+      "link": "https://www.infosecurity-magazine.com/news/rogue-wordpress-plugin-skim-credit/",
+      "published": "2025-06-24 15:45:00"
+    },
+    {
+      "title": "Major Setback for Intermediary Liability in Brazil: Risks and Blind Spots",
+      "link": "https://www.eff.org/deeplinks/2025/06/major-setback-intermediary-liability-brazil-risks-and-blind-spots",
+      "published": "2025-06-24 15:33:19"
+    },
+    {
+      "title": "Major Setback for Intermediary Liability in Brazil: How Did We Get Here?",
+      "link": "https://www.eff.org/deeplinks/2025/06/major-setback-intermediary-liability-brazil-how-did-we-get-here",
+      "published": "2025-06-24 15:13:58"
+    },
+    {
+      "title": "The vulnerability management gap no one talks about",
+      "link": "https://go.theregister.com/feed/www.theregister.com/2025/06/24/vulnerability_management_gap_noone_talks/",
+      "published": "2025-06-24 15:01:42"
+    },
+    {
+      "title": "New FileFix attack weaponizes Windows File Explorer for stealthy commands",
+      "link": "https://www.bleepingcomputer.com/news/security/filefix-attack-weaponizes-windows-file-explorer-for-stealthy-powershell-commands/",
+      "published": "2025-06-24 15:00:09"
+    },
+    {
+      "title": "Mclaren Health Care Data Breach Impacts Over 743,000 Patients",
+      "link": "https://www.infosecurity-magazine.com/news/mclaren-health-care-data-breach/",
+      "published": "2025-06-24 15:00:00"
+    },
+    {
+      "title": "The AI Fix #56: ChatGPT traps man in a cult of one, and AI is actually stupid",
+      "link": "https://grahamcluley.com/the-ai-fix-56/",
+      "published": "2025-06-24 14:56:17"
+    },
+    {
+      "title": "Researchers Find Way to Shut Down Cryptominer Campaigns Using Bad Shares and XMRogue",
+      "link": "https://thehackernews.com/2025/06/researchers-find-way-to-shut-down.html",
+      "published": "2025-06-24 14:17:00"
+    },
+    {
+      "title": "How Today’s Pentest Models Compare and Why Continuous Wins",
+      "link": "https://www.bleepingcomputer.com/news/security/how-todays-pentest-models-compare-and-why-continuous-wins/",
+      "published": "2025-06-24 14:01:11"
+    },
+    {
+      "title": "How the US Military Is Redefining Zero Trust",
+      "link": "https://www.darkreading.com/vulnerabilities-threats/how-us-military-redefining-zero-trust",
+      "published": "2025-06-24 14:00:00"
+    },
+    {
+      "title": "US House bans WhatsApp on staff devices over security concerns",
+      "link": "https://www.bleepingcomputer.com/news/security/us-house-bans-whatsapp-on-staff-devices-over-security-concerns/",
+      "published": "2025-06-24 13:43:53"
+    },
+    {
+      "title": "Siemens Notifies Customers of Microsoft Defender Antivirus Issue",
+      "link": "https://www.securityweek.com/siemens-notifies-customers-of-microsoft-defender-antivirus-issue/",
+      "published": "2025-06-24 13:27:44"
+    },
+    {
+      "title": "Hackers Target Over 70 Microsoft Exchange Servers to Steal Credentials via Keyloggers",
+      "link": "https://thehackernews.com/2025/06/hackers-target-65-microsoft-exchange.html",
+      "published": "2025-06-24 13:26:00"
+    },
+    {
+      "title": "Cybersecurity governance: A guide for businesses to follow",
+      "link": "https://www.techtarget.com/searchsecurity/tip/Cybersecurity-governance-A-guide-for-businesses-to-follow",
+      "published": "2025-06-24 13:25:00"
+    },
+    {
+      "title": "Aflac, one of the USA’s largest insurers, is the latest to fall “under siege” to hackers",
+      "link": "https://grahamcluley.com/aflac-one-of-the-usas-largest-insurers-is-the-latest-to-fall-under-siege-to-hackers/",
+      "published": "2025-06-24 13:08:11"
+    },
+    {
+      "title": "Cryptominers? Anatomy: Shutting Down Mining Botnets",
+      "link": "https://www.akamai.com/blog/security-research/2025/jun/cryptominers-anatomy-shutting-down-mining-botnets",
+      "published": "2025-06-24 13:00:00"
+    },
+    {
+      "title": "The Attack Vector: Database Triggers as Persistence Mechanisms",
+      "link": "https://www.trustwave.com/en-us/resources/blogs/spiderlabs-blog/the-attack-vector-database-triggers-as-persistence-mechanisms/",
+      "published": "2025-06-24 13:00:00"
+    },
+    {
+      "title": "Deep Dive into Automated Security Testing Tools",
+      "link": "https://cybersecurityventures.com/deep-dive-into-automated-security-testing-tools/",
+      "published": "2025-06-24 12:38:55"
+    },
+    {
+      "title": "Half of Security Pros Want GenAI Deployment Pause",
+      "link": "https://www.infosecurity-magazine.com/news/half-security-pros-genai-pause/",
+      "published": "2025-06-24 12:30:00"
+    },
+    {
+      "title": "Oh! Canada Added to List of Nations Targeted in Salt Typhoon Telecom Spree",
+      "link": "https://www.darkreading.com/cloud-security/canada-targeted-salt-typhoon-telecom",
+      "published": "2025-06-24 12:10:32"
+    },
+    {
+      "title": "Four REvil ransomware crooks walk free, escape gulag fate, after admitting guilt",
+      "link": "https://go.theregister.com/feed/www.theregister.com/2025/06/24/four_revil_ransomware_suspects_time_served/",
+      "published": "2025-06-24 11:46:09"
+    },
+    {
+      "title": "Reported Impersonation Scams Surge 148% as AI Takes Hold",
+      "link": "https://www.infosecurity-magazine.com/news/reported-impersonation-scams-surge/",
+      "published": "2025-06-24 11:45:00"
+    }
+  ]
+}

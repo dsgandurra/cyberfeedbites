@@ -137,6 +137,7 @@ def main():
             icon_map,
             top_text,
             top_title,
+            current_date_string_file_public
         )
 
         write_all_rss_to_csv(
