@@ -4,12 +4,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{top_text} from {earliest_date} {timezone_print} to {current_date} {timezone_print}</title>
+    <title>{top_text} from {start_date_str} {timezone_print} to {end_date_str} {timezone_print}</title>
     <link href="https://cdn.jsdelivr.net/npm/bootswatch@5.3.1/dist/materia/bootstrap.min.css" rel="stylesheet" />
     <link rel="stylesheet" type="text/css" href="../templates/style.css">
 </head>
 <body>
-    <h1>{top_text} from {earliest_date} {timezone_print} to {current_date} {timezone_print}</h1>
+    <h1>{top_text} from {start_date_str} {timezone_print} to {end_date_str} {timezone_print}</h1>
     <div class="table-wrapper">
         <table>
             <tr>
@@ -21,5 +21,8 @@
             {rows}
         </table>
     </div>
+    <footer style="text-align:center; margin-top: 20px; font-size: 0.9em; color: #666;">
+    Powered by <a href="https://github.com/dsgandurra/cyberfeedbites/" target="_blank" rel="noopener noreferrer">CyberFeedBites</a>
+</footer>
 </body>
 </html>

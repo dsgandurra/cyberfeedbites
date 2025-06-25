@@ -22,14 +22,13 @@ import concurrent.futures
 import xml.etree.ElementTree as ET
 
 from rss_reader import process_feed, read_opml
-from utils import get_last_time
 from config import MAX_THREAD_WORKERS, MAX_DAYS_BACK
 
-def process_rss_feed(opml_filename, max_days):
+def process_rss_feed(opml_filename, start_date, end_date):
     """Handles the RSS feed processing."""
     all_entries_queue = queue.Queue()
     lock = threading.Lock()
-    earliest_date = get_last_time(max_days)
+
     try:
         feeds, icon_map, top_text, top_title = read_opml(opml_filename)
     except FileNotFoundError as e:
@@ -46,7 +45,7 @@ def process_rss_feed(opml_filename, max_days):
 
     with concurrent.futures.ThreadPoolExecutor(max_workers=MAX_THREAD_WORKERS) as executor:
         future_to_feed = {
-            executor.submit(process_feed, feedtitle, feed_url, earliest_date, lock, all_entries_queue): (feedtitle, feed_url)
+            executor.submit(process_feed, feedtitle, feed_url, start_date, end_date, lock, all_entries_queue): (feedtitle, feed_url)
             for feedtitle, feed_url in sorted_feeds
         }
 
@@ -64,4 +63,4 @@ def process_rss_feed(opml_filename, max_days):
     while not all_entries_queue.empty():
         all_entries.append(all_entries_queue.get())
 
-    return all_entries, earliest_date, icon_map, top_text, top_title, errors
+    return all_entries, icon_map, top_text, top_title, errors

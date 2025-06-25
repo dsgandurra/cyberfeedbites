@@ -58,12 +58,10 @@ def read_opml(file_path):
     
     return feeds, icon_map, top_text, top_title
 
-
-def fetch_recent_articles(feed_url, earliest_date):
-    """Fetches articles from an RSS feed from the earliest date."""
+def fetch_articles(feed_url, start_date, end_date):
+    """Fetches articles from an RSS feed in the given time range."""
     try:
         feed = feedparser.parse(feed_url)
-        # 'bozo' is True if the feed is malformed or could not be parsed correctly (e.g., network or XML errors)
         if feed.bozo:
             raise RuntimeError(f"Feed parsing error: {feed.bozo_exception}")
     except ssl.SSLError as e:
@@ -80,13 +78,13 @@ def fetch_recent_articles(feed_url, earliest_date):
             raise RuntimeError(f"SSL error while accessing {feed_url}: {e}")
     except Exception as e:
         raise RuntimeError(f"Failed to fetch feed {feed_url}: {e}")
-    
+
     channel_updated = feed.feed.get(UPDATED_PARSED_KEY)
     if channel_updated:
         channel_updated_date = datetime(*channel_updated[:6], tzinfo=timezone.utc)
-        if channel_updated_date <= earliest_date:
-            return []
-    
+        if channel_updated_date < start_date:
+            return []  # No new updates since start_date, skip entries
+
     image_info = feed.feed.get(IMAGE_KEY) or feed.feed.get(ICON_KEY) or feed.feed.get(LOGO_KEY) or {}
     channel_image = None
 
@@ -101,7 +99,7 @@ def fetch_recent_articles(feed_url, earliest_date):
         published = entry.get(PUBLISHED_PARSED_KEY) or entry.get(UPDATED_PARSED_KEY)
         if published:
             published_date = datetime(*published[:6], tzinfo=timezone.utc)
-            if earliest_date < published_date:
+            if start_date <= published_date <= end_date:
                 title = entry.get('title', 'No title')
                 link = entry.get('link', '')
                 truncated_plain_text_description = format_description(entry)
@@ -116,16 +114,16 @@ def fetch_recent_articles(feed_url, earliest_date):
             LINK_KEY: link,
             DESCRIPTION_KEY: description,
             PUBLISHED_DATE_KEY: published_date,
-            CHANNEL_IMAGE_KEY : channel_image
+            CHANNEL_IMAGE_KEY: channel_image
         }
         entries.append(entry)
-        
+
     return entries
 
-def process_feed(feedtitle, feed_url, earliest_date, lock, all_entries_queue):
+def process_feed(feedtitle, feed_url, start_date, end_date, lock, all_entries_queue):
     """Processes a feed source and fetches its recent articles."""
     try:
-        recent_articles = fetch_recent_articles(feed_url, earliest_date)
+        recent_articles = fetch_articles(feed_url, start_date, end_date)
         print_feed_details(feedtitle, feed_url, recent_articles, lock)
         if recent_articles:
             for entry in recent_articles:

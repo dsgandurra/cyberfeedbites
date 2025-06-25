@@ -23,8 +23,7 @@ from urllib.parse import urlparse
 
 from config import (
     MAX_LENGTH_DESCRIPTION, FEED_SEPARATOR, SUMMARY_KEY,
-    XMLURL_KEY, PUBLISHED_PARSED_KEY, UPDATED_PARSED_KEY,
-    FEED_URL_KEY, TITLE_KEY, LINK_KEY, DESCRIPTION_KEY, PUBLISHED_DATE_KEY
+    TITLE_KEY, LINK_KEY, DESCRIPTION_KEY, PUBLISHED_DATE_KEY
 )
 
 def html_to_plain_text(html_str):
@@ -41,14 +40,6 @@ def truncate_string(text, max_length):
     if len(text) > max_length:
         return text[:max_length].rsplit(' ', 1)[0] + "..."
     return text
-
-def get_last_time(max_days):
-    """Gets the earliest UTC time based on the maximum number of days to look back."""
-    max_look_back_period = timedelta(days=max_days)
-    now = datetime.now(timezone.utc)
-    earliest_time = now - max_look_back_period
-
-    return earliest_time
 
 def format_description(entry):
     """Formats the description of the RSS entry."""
