@@ -19,3 +19,6 @@ venv/
 
 # Ignore GitHub config folder
 .github/
+
+# Ignore docs folder
+docs/
