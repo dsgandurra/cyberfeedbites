@@ -117,8 +117,6 @@ Each CSV file contains a table with the following columns:
 - **Description**: A brief description of the article.  
 - **Link**: The URL to the full article.
 
-**Example Reports**: You can view example HTML reports live on the [GitHub Pages site](https://dsgandurra.github.io/cyberfeedbites/). These are generated from files in the `docs/` folder.
-
 ## Sample OPML File
 
 The repository includes a sample OPML file (`data/rss_sources/cybersecnews-sources.opml`) containing a curated list of relevant RSS sources. You can edit this file to add or remove RSS feed URLs according to your preferences or use a custom OPML file by passing its path via the `--opml` option.
