@@ -30,7 +30,7 @@ def process_rss_feed(opml_filename, start_date, end_date):
     lock = threading.Lock()
 
     try:
-        feeds, icon_map, top_text, top_title = read_opml(opml_filename)
+        feeds, icon_map, opml_text, opml_title = read_opml(opml_filename)
     except FileNotFoundError as e:
         raise FileNotFoundError(f"The OPML file '{opml_filename}' does not exist.") from e
     except ET.ParseError as e:
@@ -63,4 +63,4 @@ def process_rss_feed(opml_filename, start_date, end_date):
     while not all_entries_queue.empty():
         all_entries.append(all_entries_queue.get())
 
-    return all_entries, icon_map, top_text, top_title, errors
+    return all_entries, icon_map, opml_text, opml_title, errors

@@ -21,9 +21,8 @@ import xml.etree.ElementTree as ET
 import os
 from datetime import datetime, timezone
 import feedparser
-import traceback
 
-from utils import format_description, print_article, print_feed_details
+from utils import format_description, print_feed_details
 from config import (
     XMLURL_KEY, PUBLISHED_PARSED_KEY, UPDATED_PARSED_KEY, FEED_URL_KEY,
     BODY_KEY, OUTLINE_KEY, TEXT_KEY, TITLE_KEY, LINK_KEY, DESCRIPTION_KEY,
@@ -41,8 +40,8 @@ def read_opml(file_path):
 
     body = root.find(BODY_KEY)
     top_outline = body.find(OUTLINE_KEY) if body is not None else None
-    top_text = top_outline.attrib.get(TEXT_KEY) if top_outline is not None else None
-    top_title = top_outline.attrib.get(TITLE_KEY) if top_outline is not None else None
+    opml_text = top_outline.attrib.get(TEXT_KEY) if top_outline is not None else None
+    opml_title = top_outline.attrib.get(TITLE_KEY) if top_outline is not None else None
     
     feeds = []
     icon_map = {}
@@ -56,7 +55,7 @@ def read_opml(file_path):
         if text and icon:
             icon_map[text] = icon
     
-    return feeds, icon_map, top_text, top_title
+    return feeds, icon_map, opml_text, opml_title
 
 def fetch_articles(feed_url, start_date, end_date):
     """Fetches articles from an RSS feed in the given time range."""
