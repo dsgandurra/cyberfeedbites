@@ -6,13 +6,13 @@ CyberFeedBites is a lightweight Python tool that provides an overview of recent 
 
 ## Features
 
-- Collects and processes cybersecurity news from various RSS feeds (curated list included in an OPML file).  
+- Collects and processes cybersecurity news from various RSS feeds (curated list already included in an OPML file).  
 - Fetches cybersecurity news from the past N days (default: 7 days).
-- Generates HTML and CSV files with news titles, brief descriptions, and links to articles, sorted by date, providing an overview of the latest cybersecurity news.  
+- Generates HTML, JSON and CSV files with news titles, brief descriptions, and links to articles, sorted by date, providing an overview of the latest cybersecurity news.  
 - Includes a customisable OPML file with a list of notable cybersecurity RSS sources.
 
 ## Quick Start
-CyberFeedBites is ready to use once dependencies are installed. To run it as is, follow these steps to fetch the latest 24-hour articles from the sources listed in the provided `cybersecnews-sources.opml` file and generate a summary as HTML and CSV files saved in the `data/html_reports/` and `data/csv_reports/` directories:
+CyberFeedBites is ready to use once dependencies are installed. To run it as is, follow these steps to fetch the latest 24-hour articles from the sources listed in the provided `cybersecnews-sources.opml` file and generate a summary as HTML, JSON and CSV files saved in the `data/html_reports/` and `data/csv_reports/` directories:
 
 1. Clone the repository: `git clone https://github.com/dsgandurra/cyberfeedbites.git`
 2. Move to the root folder: `cd cyberfeedbites`
@@ -93,9 +93,10 @@ Examples:
 
 ## Output
 
-The resulting HTML and CSV files, which list the news from the past 'X' days, will be saved in the `data/html_reports` and `data/csv_reports` folders, respectively. The filenames will be in the following format:
+The resulting HTML, JSON and CSV files, which list the news from the past 'X' days, will be saved in the `data/html_reports`, `data/json_reports`, and `data/csv_reports` folders, respectively. The filenames will be in the following format:
 
 - `<prefix>_YYYY-MM-DD_HH-MM-SS.html`
+- `<prefix>_YYYY-MM-DD_HH-MM-SS.json`
 - `<prefix>_YYYY-MM-DD_HH-MM-SS.csv`
 
 Where `<prefix>` is derived from the `text` attribute of the top-level `<outline>` element in the OPML file (with special characters removed and all letters converted to lowercase). If that attribute is missing, a default prefix (`cybersecuritynews`) will be used. In the provided OPML file, the top-level `<outline>` element contains `text="Cybersecurity News"`, so the resulting filename will also begin with `cybersecuritynews`.
@@ -108,6 +109,14 @@ Each HTML file contains a table with the following columns:
 - **Title**: The title of the article.  
 - **Description**: A brief description of the article.  
 - **Link**: The URL to the full article.
+
+Each JSON file has the following format:
+
+- **title**: The title of the article.  
+- **link**: The URL to the full article.
+- **published**: The date the article was published.
+- **source**: The website name of the source.
+- **description**: A brief description of the article.  
 
 Each CSV file contains a table with the following columns:
 
