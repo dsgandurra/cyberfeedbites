@@ -24,7 +24,7 @@ import argparse
 import traceback
 
 from rss_processor import process_rss_feed
-from output_writer import split_and_write_public_json, write_feed_to_html, write_feed_to_csv, write_feed_to_json
+from output_writer import write_feed_to_html, write_feed_to_csv, write_feed_to_json
 from config import (
     MAX_DAYS_BACK,
     OPML_FILENAME,
@@ -37,7 +37,6 @@ from config import (
     TEXT_DATE_FORMAT_PRINT,
     FEED_SEPARATOR,
     TIMEZONE_PRINT,
-    TODAY_FEED_JSON_FILE
 )
 
 def validate_days(value):
@@ -60,7 +59,7 @@ def parse_arguments():
         "--days", 
         type=validate_days,  # Use the custom validation function
         default=DAYS_BACK, 
-        help=f"Number of days to look back for entries in the RSS feeds. Default is {DAYS_BACK}."
+        help=f"Number of days to look back for entries in the RSS feeds, ending today. Default is {DAYS_BACK}. If --align-start-to-midnight is set, using, e.g., '2' means today and yesterday, otherwise 48 hours."
     )
         
     parser.add_argument(
@@ -71,27 +70,49 @@ def parse_arguments():
     )
 
     parser.add_argument(
-        "--public-json",
+        "--output-format",
         type=str,
-        help="Output folder for JSON files intended for public sharing. If specified, two JSON files covering the period from yesterday 00:00 UTC to now are generated in the specified folder. All other outputs (HTML, CSV, internal JSON) are disabled in this mode."
+        default="html,csv,json",
+        help="Comma-separated list of output formats to generate: html, csv, json. Default is all."
+    )
+
+    parser.add_argument(
+        "--output-html-folder",
+        type=str,
+        default=HTML_REPORT_FOLDER,
+        help="Output folder for HTML reports. Default is configured default folder."
+    )
+
+    parser.add_argument(
+        "--output-csv-folder",
+        type=str,
+        default=CSV_REPORT_FOLDER,
+        help="Output folder for CSV reports. Default is configured default folder."
+    )
+
+    parser.add_argument(
+        "--output-json-folder",
+        type=str,
+        default=JSON_REPORT_FOLDER,
+        help="Output folder for JSON reports. Default is configured default folder."
+    )
+
+    parser.add_argument(
+    "--align-start-to-midnight",
+    action="store_true",
+    help="Align the start date to midnight of the first day instead of counting exact hours back."
     )
 
     args = parser.parse_args()
-
-    if args.public_json is not None and args.public_json.strip() == "":
-        parser.error("--public-json cannot be empty if provided.")
-
     return args
 
 def parse_args():
     """Returns parsed command-line arguments as simple values."""
     return parse_arguments()
 
-def prepare_output_folder(html_folder_path, csv_folder_path, json_folder_path):
-    """Creates the output folders if they do not exist."""
-    os.makedirs(html_folder_path, exist_ok=True)
-    os.makedirs(csv_folder_path, exist_ok=True)
-    os.makedirs(json_folder_path, exist_ok=True)
+def prepare_output_folder(folder_path):
+    if folder_path:
+        os.makedirs(folder_path, exist_ok=True)
 
 def run_processing(opml_filename, start_date, end_date):
     """Processes the RSS feed and returns the results needed for output."""
@@ -99,8 +120,8 @@ def run_processing(opml_filename, start_date, end_date):
     return all_entries, icon_map, opml_text, opml_title, errors
 
 def print_summary(
-    is_internal_mode,
     days_back,
+    align_start_to_midnight,
     start_date_print,
     end_date_print,
     opml_filename,
@@ -108,8 +129,6 @@ def print_summary(
     html_outfilename,
     csv_outfilename,
     json_outfilename,
-    json_yesterday_filename,
-    json_today_filename,
     errors,
     start_time,
     end_time
@@ -118,22 +137,19 @@ def print_summary(
     print(f"\n{FEED_SEPARATOR}")
     print("Summary")
     print(f"{FEED_SEPARATOR}")
-    
-    if is_internal_mode:
-        print(f"Days back: {days_back}")
-    
+    if align_start_to_midnight:
+        print(f"Days back: {days_back} (aligned to midnight)")
+    else:
+        print(f"Days back: {days_back} (rolling {days_back * 24} hours)")
     print(f"Time range: {start_date_print} {TIMEZONE_PRINT} to {end_date_print} {TIMEZONE_PRINT}")
     print(f"OPML file: {opml_filename}")
     print(f"Total entries: {total_entries}")
 
-    if json_yesterday_filename or json_today_filename:
-        if json_yesterday_filename:
-            print(f"Yesterday JSON: {json_yesterday_filename}")
-        if json_today_filename:
-            print(f"Today JSON: {json_today_filename}")
-    else:
+    if html_outfilename:
         print(f"News written to file: {html_outfilename}")
+    if csv_outfilename:
         print(f"CSV written to file: {csv_outfilename}")
+    if json_outfilename:
         print(f"json written to file: {json_outfilename}")
 
     if errors:
@@ -149,19 +165,21 @@ def main():
         args = parse_args()
         days_back = args.days
         opml_filename = args.opml
-        public_json = args.public_json
-        
-        current_date = datetime.now(timezone.utc)
-        start_time = time.time()
-        
-        if public_json:
-            # Public json: From start of yesterday to now (i.e. covers yesterday + today's partial feed)
-            start_date = datetime.combine((current_date - timedelta(days=1)).date(), dt_time(0, 0), tzinfo=timezone.utc)
-            end_date = current_date
+        output_formats = {fmt.strip().lower() for fmt in args.output_format.split(",")}
+        # Decide output folders (use defaults if not provided)
+        html_folder = args.output_html_folder or HTML_REPORT_FOLDER
+        csv_folder = args.output_csv_folder or CSV_REPORT_FOLDER
+        json_folder = args.output_json_folder or JSON_REPORT_FOLDER
 
+        start_time = time.time()
+
+        current_date = datetime.now(timezone.utc)        
+        end_date = current_date
+
+        if args.align_start_to_midnight:
+            aligned_start = current_date.replace(hour=0, minute=0, second=0, microsecond=0) - timedelta(days=days_back - 1)
+            start_date = aligned_start
         else:
-            # For internal: Use past N days
-            end_date = current_date
             start_date = current_date - timedelta(days=days_back)
 
         current_date_string_file = end_date.strftime(TEXT_DATE_FORMAT_FILE)
@@ -174,68 +192,54 @@ def main():
         html_outfilename = None
         csv_outfilename = None
         json_outfilename = None
-        json_yesterday_filename = None
-        json_today_filename = None
-        json_yesterday_full_path_filename = None
-        json_today_full_path_filename = None
 
-        if public_json:
-            yesterday_date = (current_date - timedelta(days=1)).strftime(TEXT_DATE_FORMAT_FILE_SHORT)
-            json_yesterday_filename = f"{out_filename_prefix}_{yesterday_date}.json"
-            json_today_filename = TODAY_FEED_JSON_FILE
-            public_json_output_folder = os.path.join(public_json, out_filename_prefix)
-            json_yesterday_full_path_filename = os.path.join(public_json_output_folder, json_yesterday_filename)
-            json_today_full_path_filename = os.path.join(public_json_output_folder, json_today_filename)
+        if "html" in output_formats:
+            prepare_output_folder(html_folder)
+            html_outfilename = os.path.join(html_folder, f"{out_filename_prefix}_{current_date_string_file}.html")
 
-            split_and_write_public_json(
-                all_entries,
-                public_json_output_folder,
-                json_yesterday_filename,
-                json_today_filename,
-                yesterday_date,
-                current_date.strftime(TEXT_DATE_FORMAT_FILE_SHORT),
-                opml_title,
-                opml_text
-            )
+        if "csv" in output_formats:
+            prepare_output_folder(csv_folder)
+            csv_outfilename = os.path.join(csv_folder, f"{out_filename_prefix}_{current_date_string_file}.csv")
 
-        else:
-            prepare_output_folder(HTML_REPORT_FOLDER, CSV_REPORT_FOLDER, JSON_REPORT_FOLDER)
-            html_outfilename = os.path.join(HTML_REPORT_FOLDER, f"{out_filename_prefix}_{current_date_string_file}.html")
-            csv_outfilename = os.path.join(CSV_REPORT_FOLDER, f"{out_filename_prefix}_{current_date_string_file}.csv")
-            json_outfilename = os.path.join(JSON_REPORT_FOLDER, f"{out_filename_prefix}_{current_date_string_file}.json")
+        if "json" in output_formats:
+            prepare_output_folder(json_folder)
+            json_outfilename = os.path.join(json_folder, f"{out_filename_prefix}_{current_date_string_file}.json")
 
+        if "html" in output_formats:
             write_feed_to_html(
-                all_entries,
-                html_outfilename,
-                earliest_date_string_print,
-                current_date_string_print,
-                icon_map,
-                opml_text,
-                opml_title,
-            )
+            all_entries,
+            html_outfilename,
+            earliest_date_string_print,
+            current_date_string_print,
+            icon_map,
+            opml_text,
+            opml_title,
+        )
 
+        if "csv" in output_formats:
             write_feed_to_csv(
-                all_entries, 
-                csv_outfilename, 
-                earliest_date_string_print,
-                current_date_string_print,  
-                opml_text, 
-                opml_title
-            )
+            all_entries, 
+            csv_outfilename, 
+            earliest_date_string_print,
+            current_date_string_print,  
+            opml_text, 
+            opml_title
+        )
 
+        if "json" in output_formats:
             write_feed_to_json(
-                all_entries,
-                json_outfilename,
-                current_date.strftime(TEXT_DATE_FORMAT_FILE_SHORT),
-                opml_text, 
-                opml_title
-            )
+            all_entries,
+            json_outfilename,
+            current_date.strftime(TEXT_DATE_FORMAT_FILE_SHORT),
+            opml_text, 
+            opml_title
+        )  
 
         end_time = time.time()
 
         print_summary(
-            is_internal_mode = not public_json,
             days_back = days_back,
+            align_start_to_midnight = args.align_start_to_midnight,
             start_date_print = earliest_date_string_print,
             end_date_print = current_date_string_print,
             opml_filename = opml_filename,
@@ -243,8 +247,6 @@ def main():
             html_outfilename = html_outfilename,
             csv_outfilename = csv_outfilename,
             json_outfilename = json_outfilename,
-            json_yesterday_filename = json_yesterday_full_path_filename,
-            json_today_filename = json_today_full_path_filename,
             errors = errors,
             start_time = start_time,
             end_time = end_time

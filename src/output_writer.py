@@ -16,46 +16,14 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-import os
 import csv
 import json
-from datetime import datetime, timedelta, timezone
 
 from config import (
     TEMPLATE_HTML_FILE, TITLE_KEY, LINK_KEY, DESCRIPTION_KEY, PUBLISHED_DATE_KEY,
     CHANNEL_IMAGE_KEY, FEED_TITLE_KEY, TEXT_DATE_FORMAT_PRINT_SHORT, TIMEZONE_PRINT, TEXT_DATE_FORMAT_JSON
 )
 from utils import sanitize_for_html, get_website_name
-
-def split_and_write_public_json(posts, output_folder, yesterday_filename, today_filename, yesterday_date, today_date, opml_title, opml_text):
-    """
-    Given posts from yesterday 00:00 to now, split them into:
-      - yesterday 00:00–23:59:59
-      - today 00:00–now
-    Then write two JSON files using write_feed_json.
-    """
-
-    now = datetime.now(timezone.utc)
-    today_start = now.replace(hour=0, minute=0, second=0, microsecond=0)
-    yesterday_start = today_start - timedelta(days=1)
-    yesterday_end = today_start - timedelta(seconds=1)
-
-    # Filter posts
-    yesterday_posts = [
-        p for p in posts
-        if yesterday_start <= p[PUBLISHED_DATE_KEY] <= yesterday_end
-    ]
-    today_posts = [
-        p for p in posts
-        if today_start <= p[PUBLISHED_DATE_KEY] <= now
-    ]
-
-    os.makedirs(output_folder, exist_ok=True)
-
-    # Write files
-    write_feed_to_json(yesterday_posts, os.path.join(output_folder, yesterday_filename), yesterday_date, opml_title, opml_text)
-    write_feed_to_json(today_posts, os.path.join(output_folder, today_filename), today_date, opml_title, opml_text)
-
 
 def write_feed_to_json(posts, output_path, date, opml_title, opml_text):
     """Writes all RSS feed entries to a JSON file."""
