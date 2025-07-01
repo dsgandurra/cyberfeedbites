@@ -115,7 +115,7 @@ def write_feed_to_csv(posts_to_print, outfilename, start_date_str, end_date_str,
     csv_rows = []
     for post in sorted_posts:
         website_name = get_website_name(post[LINK_KEY])
-
+        
         published_date_string_print = post[PUBLISHED_DATE_KEY].strftime(TEXT_DATE_FORMAT_PRINT_SHORT)
         title_row = sanitize_for_html(post[TITLE_KEY]).strip()  # Strip leading/trailing spaces
         description_row = sanitize_for_html(post[DESCRIPTION_KEY]).strip()  # Strip leading/trailing spaces
