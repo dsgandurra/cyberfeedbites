@@ -42,7 +42,7 @@ def write_feed_to_json(posts, output_path, current_date, start_date, end_date, o
         data = {
             "start_date": start_date,
             "end_date" : end_date,
-            "date": current_date,
+            "published": current_date,
             "title": opml_title,
             "text": opml_text,
             "items": json_items,

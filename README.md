@@ -56,6 +56,8 @@ The required packages are:
 
 ## Usage
 
+## Usage
+
 1. Navigate to the root folder of the project:
 
     ```bash
@@ -65,30 +67,35 @@ The required packages are:
 2. Run CyberFeedBites with optional parameters:
 
     ```bash
-    python src/main.py [--days <days_back>] [--opml <opml_file_path>]
+    python src/main.py [--start <start_days_ago>] [--end <end_days_ago>] [--opml <opml_file_path>] [--output-format <formats>] [--output-html-folder <folder>] [--output-csv-folder <folder>] [--output-json-folder <folder>] [--align-start-to-midnight] [--align-end-to-midnight] [--no-html-img]
     ```
 
-- `--days`: Specify the number of days to fetch news from (e.g., `--days 2`). Defaults to the `DAYS_BACK` value set in `config.py`.
-- `--opml`: Provide a custom path to an OPML file (e.g., `--opml data/rss_sources/custom.opml`). Defaults to the OPML file specified by `OPML_FILENAME` in `config.py`.
-
-Both `--days` and `--opml` are optional parameters. If not specified, the script uses default values set in `config.py`.
+- `--start`: Number of days ago to start fetching news (default: 1).
+- `--end`: Number of days ago to end fetching news (default: 0).
+- `--opml`: Path to the OPML file to use (default as configured).
+- `--output-format`: Comma-separated list of output formats (html, csv, json). Default is all.
+- `--output-html-folder`: Folder for HTML output (default configured).
+- `--output-csv-folder`: Folder for CSV output (default configured).
+- `--output-json-folder`: Folder for JSON output (default configured).
+- `--align-start-to-midnight`: Align start date to midnight.
+- `--align-end-to-midnight`: Align end date to 23:59:59.
+- `--no-html-img`: Exclude images from the HTML output.
 
 Examples:
-- Fetch news from the last 24 hours (default value of `DAYS_BACK`, if no `--days` is specified):  
+- Fetch news from the last 1 day (default):
+
   ```bash
   python src/main.py
   ```
-- Fetch news from the last 3 days:
+
+- Fetch news from 5 to 2 days ago:
+
   ```bash
-  python src/main.py --days 3
+  python src/main.py --start 5 --end 2
   ```
-- Use a custom OPML file:
+- Generate only CSV output:
   ```bash
-  python src/main.py --opml data/rss_sources/custom.opml
-  ```
-- Combine both:
-  ```bash
-  python src/main.py --days 5 --opml data/rss_sources/another_file.opml
+  python src/main.py --output-format csv
   ```
 
 ## Output
