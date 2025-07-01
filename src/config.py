@@ -32,9 +32,17 @@ HTML_OUT_FILENAME_PREFIX = "cybersecuritynews"
 RSS_SOURCES = os.path.join(DATA_FOLDER, "rss_sources")
 OPML_FILENAME = os.path.join(RSS_SOURCES, "cybersecnews-sources.opml")
 
-# RSS feed settings
-DAYS_BACK = 1
-MAX_DAYS_BACK = 7 #limits how many days back to search
+# Default start and end offsets (in days) relative to today
+DEFAULT_START = 1
+DEFAULT_END = 0  # 0 means today
+# Limits how many days back to search
+MAX_DAYS_BACK = 7
+# Limits how many days back to start the search
+MAX_START_DAYS = 31
+# Limits how many days back to end the search
+MAX_END_DAYS = 31
+# Maximum length for RSS feed description
+MAX_LENGTH_DESCRIPTION = 200
 FEED_SEPARATOR = "-" * 40
 
 # Keys used in RSS feed entries
@@ -58,9 +66,6 @@ ICON_KEY = "icon"
 LOGO_KEY = "logo"
 HREF_KEY = "href"
 URL_KEY = "url"
-
-# Maximum length for RSS feed description
-MAX_LENGTH_DESCRIPTION = 200
 
 # Timezone
 TIMEZONE_PRINT = "UTC"

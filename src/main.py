@@ -27,23 +27,33 @@ from rss_processor import process_rss_feed
 from output_writer import write_feed_to_html, write_feed_to_csv, write_feed_to_json
 from config import (
     MAX_DAYS_BACK,
+    MAX_START_DAYS,
+    MAX_END_DAYS,
     OPML_FILENAME,
     HTML_REPORT_FOLDER,
     CSV_REPORT_FOLDER,
     JSON_REPORT_FOLDER,
-    DAYS_BACK,
+    DEFAULT_START,
+    DEFAULT_END,
     TEXT_DATE_FORMAT_FILE,
-    TEXT_DATE_FORMAT_FILE_SHORT,
     TEXT_DATE_FORMAT_PRINT,
+    TEXT_DATE_FORMAT_JSON,
     FEED_SEPARATOR,
     TIMEZONE_PRINT,
 )
 
-def validate_days(value):
+def validate_start(value):
+    """Ensure that start is less than or equal to MAX_DAYS_BACK to limit output."""
+    value = int(value)
+    if value > MAX_START_DAYS:
+        raise argparse.ArgumentTypeError(f"Start day offset must be less than or equal to {MAX_START_DAYS}.")
+    return value
+
+def validate_end(value):
     """Ensure that the number of days is less than or equal to MAX_DAYS_BACK to limit output."""
     value = int(value)
-    if value > MAX_DAYS_BACK:
-        raise argparse.ArgumentTypeError(f"Number of days must be less than or equal to {MAX_DAYS_BACK}.")
+    if value > MAX_END_DAYS:
+        raise argparse.ArgumentTypeError(f"End day offset must be less than or equal to {MAX_END_DAYS}.")
     return value
 
 def parse_arguments():
@@ -56,10 +66,17 @@ def parse_arguments():
     parser = argparse.ArgumentParser(description=description)
 
     parser.add_argument(
-        "--days", 
-        type=validate_days,  # Use the custom validation function
-        default=DAYS_BACK, 
-        help=f"Number of days to look back for entries in the RSS feeds, ending today. Default is {DAYS_BACK}. If --align-start-to-midnight is set, using, e.g., '2' means today and yesterday, otherwise 48 hours."
+        "--start",
+        type=validate_start,
+        default=DEFAULT_START,
+        help=f"Start day offset (days ago) to look back from today. Default is {DEFAULT_START}."
+    )
+
+    parser.add_argument(
+        "--end",
+        type=validate_end,
+        default=DEFAULT_END,
+        help=f"End day offset (days ago) to end looking back. Default is {DEFAULT_END} (today)."
     )
         
     parser.add_argument(
@@ -98,12 +115,31 @@ def parse_arguments():
     )
 
     parser.add_argument(
-    "--align-start-to-midnight",
-    action="store_true",
-    help="Align the start date to midnight of the first day instead of counting exact hours back."
+        "--align-start-to-midnight",
+        action="store_true",
+        help="Align the start date to midnight of the first day instead of counting exact hours back."
+    )
+
+    parser.add_argument(
+        "--align-end-to-midnight",
+        action="store_true",
+        help="Align the end date to 23:59:59 of the end day instead of current time."
+    )
+
+    parser.add_argument(
+        "--no-html-img",
+        action="store_true",
+        help="Exclude images from the HTML output."
     )
 
     args = parser.parse_args()
+
+    if args.start < args.end:
+        raise argparse.ArgumentTypeError("Start day offset must be greater than or equal to end day offset.")
+
+    if (args.start - args.end) > MAX_DAYS_BACK:
+        raise argparse.ArgumentTypeError(f"Difference between start and end cannot exceed {MAX_DAYS_BACK} days.")
+
     return args
 
 def parse_args():
@@ -120,8 +156,6 @@ def run_processing(opml_filename, start_date, end_date):
     return all_entries, icon_map, opml_text, opml_title, errors
 
 def print_summary(
-    days_back,
-    align_start_to_midnight,
     start_date_print,
     end_date_print,
     opml_filename,
@@ -137,10 +171,7 @@ def print_summary(
     print(f"\n{FEED_SEPARATOR}")
     print("Summary")
     print(f"{FEED_SEPARATOR}")
-    if align_start_to_midnight:
-        print(f"Days back: {days_back} (aligned to midnight)")
-    else:
-        print(f"Days back: {days_back} (rolling {days_back * 24} hours)")
+
     print(f"Time range: {start_date_print} {TIMEZONE_PRINT} to {end_date_print} {TIMEZONE_PRINT}")
     print(f"OPML file: {opml_filename}")
     print(f"Total entries: {total_entries}")
@@ -163,7 +194,6 @@ def print_summary(
 def main():
     try:
         args = parse_args()
-        days_back = args.days
         opml_filename = args.opml
         output_formats = {fmt.strip().lower() for fmt in args.output_format.split(",")}
         # Decide output folders (use defaults if not provided)
@@ -174,17 +204,23 @@ def main():
         start_time = time.time()
 
         current_date = datetime.now(timezone.utc)        
-        end_date = current_date
+        start_date = current_date - timedelta(days=args.start)
+        end_date = current_date - timedelta(days=args.end)
 
         if args.align_start_to_midnight:
-            aligned_start = current_date.replace(hour=0, minute=0, second=0, microsecond=0) - timedelta(days=days_back - 1)
-            start_date = aligned_start
-        else:
-            start_date = current_date - timedelta(days=days_back)
+            start_date = start_date.replace(hour=0, minute=0, second=0, microsecond=0)
 
-        current_date_string_file = end_date.strftime(TEXT_DATE_FORMAT_FILE)
-        current_date_string_print = end_date.strftime(TEXT_DATE_FORMAT_PRINT)
-        earliest_date_string_print = start_date.strftime(TEXT_DATE_FORMAT_PRINT) #TODO: to check
+        if args.align_end_to_midnight:
+            end_date = end_date.replace(hour=23, minute=59, second=59, microsecond=999999)
+
+        current_date_string_filename_suffix = current_date.strftime(TEXT_DATE_FORMAT_FILE)
+
+        start_date_string_print = start_date.strftime(TEXT_DATE_FORMAT_PRINT)
+        end_date_string_print = end_date.strftime(TEXT_DATE_FORMAT_PRINT)
+
+        current_date_string_print_json = current_date.strftime(TEXT_DATE_FORMAT_JSON) 
+        start_date_string_print_json = start_date.strftime(TEXT_DATE_FORMAT_JSON)
+        end_date_string_print_json =  end_date.strftime(TEXT_DATE_FORMAT_JSON)
 
         all_entries, icon_map, opml_text, opml_title, errors = run_processing(opml_filename, start_date, end_date)
         
@@ -195,33 +231,35 @@ def main():
 
         if "html" in output_formats:
             prepare_output_folder(html_folder)
-            html_outfilename = os.path.join(html_folder, f"{out_filename_prefix}_{current_date_string_file}.html")
+            html_outfilename = os.path.join(html_folder, f"{out_filename_prefix}_{current_date_string_filename_suffix}.html")
 
         if "csv" in output_formats:
             prepare_output_folder(csv_folder)
-            csv_outfilename = os.path.join(csv_folder, f"{out_filename_prefix}_{current_date_string_file}.csv")
+            csv_outfilename = os.path.join(csv_folder, f"{out_filename_prefix}_{current_date_string_filename_suffix}.csv")
 
         if "json" in output_formats:
             prepare_output_folder(json_folder)
-            json_outfilename = os.path.join(json_folder, f"{out_filename_prefix}_{current_date_string_file}.json")
+            json_outfilename = os.path.join(json_folder, f"{out_filename_prefix}_{current_date_string_filename_suffix}.json")
 
         if "html" in output_formats:
+            include_images = not args.no_html_img
             write_feed_to_html(
             all_entries,
             html_outfilename,
-            earliest_date_string_print,
-            current_date_string_print,
+            start_date_string_print,
+            end_date_string_print,
             icon_map,
             opml_text,
             opml_title,
+            include_images
         )
 
         if "csv" in output_formats:
             write_feed_to_csv(
             all_entries, 
             csv_outfilename, 
-            earliest_date_string_print,
-            current_date_string_print,  
+            start_date_string_print,
+            end_date_string_print,  
             opml_text, 
             opml_title
         )
@@ -230,7 +268,9 @@ def main():
             write_feed_to_json(
             all_entries,
             json_outfilename,
-            current_date.strftime(TEXT_DATE_FORMAT_FILE_SHORT),
+            current_date_string_print_json,
+            start_date_string_print_json,
+            end_date_string_print_json,
             opml_text, 
             opml_title
         )  
@@ -238,10 +278,8 @@ def main():
         end_time = time.time()
 
         print_summary(
-            days_back = days_back,
-            align_start_to_midnight = args.align_start_to_midnight,
-            start_date_print = earliest_date_string_print,
-            end_date_print = current_date_string_print,
+            start_date_print = start_date_string_print,
+            end_date_print = end_date_string_print,
             opml_filename = opml_filename,
             total_entries = len(all_entries),
             html_outfilename = html_outfilename,

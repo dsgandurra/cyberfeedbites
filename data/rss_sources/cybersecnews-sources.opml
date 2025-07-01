@@ -6,6 +6,7 @@
 	<body>
 		<outline text="Cybersecurity News" title="Cybersecurity News Feeds">
 			<outline type="rss" text="Akamai" xmlUrl="https://feeds.feedburner.com/akamai/blog" htmlUrl="https://www.akamai.com/blog" iconUrl="https://www.akamai.com/site/favicon/apple-touch-icon-57x57.png"/>
+			<outline type="rss" text="Arctic Wolf Blog" xmlUrl="https://arcticwolf.com/resources/category/blog/feed/" htmlUrl="https://arcticwolf.com/resources/category/blog/" />
 			<outline type="rss" text="Ars Technica - Technology" xmlUrl="https://feeds.arstechnica.com/arstechnica/technology-lab" htmlUrl="https://arstechnica.com" />
 			<outline type="rss" text="ATT Cybersecurity (LevelBlue)" xmlUrl="https://cybersecurity.att.com/site/blog-all-rss" htmlUrl="https://cybersecurity.att.com/blogs/" iconUrl="https://cdn.levelblue.com/images/uploads/Levelblue-Favicon.png" />
 			<outline type="rss" text="Avast" xmlUrl="https://blog.avast.com/rss.xml" htmlUrl="https://blog.avast.com" />

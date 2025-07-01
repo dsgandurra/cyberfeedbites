@@ -25,7 +25,7 @@ from config import (
 )
 from utils import sanitize_for_html, get_website_name
 
-def write_feed_to_json(posts, output_path, date, opml_title, opml_text):
+def write_feed_to_json(posts, output_path, current_date, start_date, end_date, opml_title, opml_text):
     """Writes all RSS feed entries to a JSON file."""
     try:
         json_items = [
@@ -40,7 +40,9 @@ def write_feed_to_json(posts, output_path, date, opml_title, opml_text):
         ]
 
         data = {
-            "date": date,
+            "start_date": start_date,
+            "end_date" : end_date,
+            "date": current_date,
             "title": opml_title,
             "text": opml_text,
             "items": json_items,
@@ -52,7 +54,7 @@ def write_feed_to_json(posts, output_path, date, opml_title, opml_text):
     except Exception as e:
         print(f"Error writing {output_path}: {e}")
 
-def write_feed_to_html(posts_to_print, outfilename, start_date_str, end_date_str, icon_map, opml_text, opml_title):
+def write_feed_to_html(posts_to_print, outfilename, start_date_str, end_date_str, icon_map, opml_text, opml_title, include_images=True):
     """Writes all RSS feed entries to a HTML file."""
 
     sorted_posts = sorted(posts_to_print, key=lambda post: post[PUBLISHED_DATE_KEY], reverse=False)
@@ -61,7 +63,7 @@ def write_feed_to_html(posts_to_print, outfilename, start_date_str, end_date_str
     for post in sorted_posts:
         website_name = sanitize_for_html(get_website_name(post[LINK_KEY]))
         image_url = post.get(CHANNEL_IMAGE_KEY) or (icon_map.get(post[FEED_TITLE_KEY]) if icon_map else "")
-        image_html = f"<img src='{sanitize_for_html(image_url)}' alt='{website_name}' class='channel-image'>" if image_url else ""
+        image_html = f"<img src='{sanitize_for_html(image_url)}' alt='{website_name}' class='channel-image'>" if (image_url and include_images) else ""
 
         published_date_string_print = post[PUBLISHED_DATE_KEY].strftime(TEXT_DATE_FORMAT_PRINT_SHORT)
         title_row = sanitize_for_html(post[TITLE_KEY]).strip('"')
