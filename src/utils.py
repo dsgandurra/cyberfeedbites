@@ -41,7 +41,7 @@ def truncate_string(text, max_length):
         return text[:max_length].rsplit(' ', 1)[0] + "..."
     return text
 
-def format_description(entry):
+def format_description(entry, max_length_description):
     """Formats the description of the RSS entry."""
     truncated_plain_text_description = ""
     description = entry.get(DESCRIPTION_KEY)
@@ -51,7 +51,7 @@ def format_description(entry):
            
     if description:
         plain_text_description = html_to_plain_text(description).strip().replace('\n', ' ')
-        truncated_plain_text_description = truncate_string(plain_text_description, MAX_LENGTH_DESCRIPTION)
+        truncated_plain_text_description = truncate_string(plain_text_description, max_length_description)
         
     return truncated_plain_text_description
 

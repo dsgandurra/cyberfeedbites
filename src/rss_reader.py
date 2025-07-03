@@ -57,7 +57,7 @@ def read_opml(file_path):
     
     return feeds, icon_map, opml_text, opml_title
 
-def fetch_articles(feed_url, start_date, end_date):
+def fetch_articles(feed_url, start_date, end_date, max_length_description):
     """Fetches articles from an RSS feed in the given time range."""
     try:
         feed = feedparser.parse(feed_url)
@@ -101,7 +101,7 @@ def fetch_articles(feed_url, start_date, end_date):
             if start_date <= published_date <= end_date:
                 title = entry.get('title', 'No title')
                 link = entry.get('link', '')
-                truncated_plain_text_description = format_description(entry)
+                truncated_plain_text_description = format_description(entry, max_length_description)
                 recent_articles.append((title, link, truncated_plain_text_description, published_date))
 
     entries = []
@@ -119,10 +119,10 @@ def fetch_articles(feed_url, start_date, end_date):
 
     return entries
 
-def process_feed(feedtitle, feed_url, start_date, end_date, lock, all_entries_queue):
+def process_feed(feedtitle, feed_url, start_date, end_date, max_length_description, lock, all_entries_queue):
     """Processes a feed source and fetches its recent articles."""
     try:
-        recent_articles = fetch_articles(feed_url, start_date, end_date)
+        recent_articles = fetch_articles(feed_url, start_date, end_date, max_length_description)
         print_feed_details(feedtitle, feed_url, recent_articles, lock)
         if recent_articles:
             for entry in recent_articles:

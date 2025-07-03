@@ -18,6 +18,7 @@
 
 import csv
 import json
+import html
 
 from config import (
     TEMPLATE_HTML_FILE, TITLE_KEY, LINK_KEY, DESCRIPTION_KEY, PUBLISHED_DATE_KEY,
@@ -61,14 +62,14 @@ def write_feed_to_html(posts_to_print, outfilename, start_date_str, end_date_str
 
     table_rows = []
     for post in sorted_posts:
-        website_name = sanitize_for_html(get_website_name(post[LINK_KEY]))
+        website_name = sanitize_for_html(html.unescape(get_website_name(post[LINK_KEY])))
         image_url = post.get(CHANNEL_IMAGE_KEY) or (icon_map.get(post[FEED_TITLE_KEY]) if icon_map else "")
-        image_html = f"<img src='{sanitize_for_html(image_url)}' alt='{website_name}' class='channel-image'>" if (image_url and include_images) else ""
+        image_html = f"<img src='{sanitize_for_html(html.unescape(image_url))}' alt='{website_name}' class='channel-image'>" if (image_url and include_images) else ""
 
         published_date_string_print = post[PUBLISHED_DATE_KEY].strftime(TEXT_DATE_FORMAT_PRINT_SHORT)
-        title_row = sanitize_for_html(post[TITLE_KEY]).strip('"')
-        description_row = sanitize_for_html(post[DESCRIPTION_KEY]).strip('"')
-        safe_post_link = sanitize_for_html(post[LINK_KEY])
+        title_row = sanitize_for_html(html.unescape(post[TITLE_KEY])).strip('"')
+        description_row = sanitize_for_html(html.unescape(post[DESCRIPTION_KEY])).strip('"')
+        safe_post_link = sanitize_for_html(html.unescape(post[LINK_KEY]))
 
         row_td = (
             f"<td>{published_date_string_print}</td>"

@@ -24,7 +24,7 @@ import xml.etree.ElementTree as ET
 from rss_reader import process_feed, read_opml
 from config import MAX_THREAD_WORKERS, MAX_DAYS_BACK
 
-def process_rss_feed(opml_filename, start_date, end_date):
+def process_rss_feed(opml_filename, start_date, end_date, max_length_description):
     """Handles the RSS feed processing."""
     all_entries_queue = queue.Queue()
     lock = threading.Lock()
@@ -45,7 +45,7 @@ def process_rss_feed(opml_filename, start_date, end_date):
 
     with concurrent.futures.ThreadPoolExecutor(max_workers=MAX_THREAD_WORKERS) as executor:
         future_to_feed = {
-            executor.submit(process_feed, feedtitle, feed_url, start_date, end_date, lock, all_entries_queue): (feedtitle, feed_url)
+            executor.submit(process_feed, feedtitle, feed_url, start_date, end_date, max_length_description, lock, all_entries_queue): (feedtitle, feed_url)
             for feedtitle, feed_url in sorted_feeds
         }
 

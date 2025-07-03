@@ -40,6 +40,8 @@ from config import (
     TEXT_DATE_FORMAT_JSON,
     FEED_SEPARATOR,
     TIMEZONE_PRINT,
+    MAX_LENGTH_DESCRIPTION,
+    MAX_ALLOWED_LENGTH_DESCRIPTION
 )
 
 def validate_start(value):
@@ -54,6 +56,12 @@ def validate_end(value):
     value = int(value)
     if value > MAX_END_DAYS:
         raise argparse.ArgumentTypeError(f"End day offset must be less than or equal to {MAX_END_DAYS}.")
+    return value
+
+def validate_max_length_description(value):
+    value = int(value)
+    if value <= 0 or value > MAX_ALLOWED_LENGTH_DESCRIPTION:
+        raise argparse.ArgumentTypeError(f"max-length-description must be between 1 and {MAX_ALLOWED_LENGTH_DESCRIPTION}.")
     return value
 
 def parse_arguments():
@@ -89,8 +97,8 @@ def parse_arguments():
     parser.add_argument(
         "--output-format",
         type=str,
-        default="html,csv,json",
-        help="Comma-separated list of output formats to generate: html, csv, json. Default is all."
+        default="html",
+        help="Comma-separated list of output formats to generate: html, csv, json. Default is html."
     )
 
     parser.add_argument(
@@ -132,6 +140,14 @@ def parse_arguments():
         help="Exclude images from the HTML output."
     )
 
+
+    parser.add_argument(
+        "--max-length-description",
+        type=validate_max_length_description,
+        default=MAX_LENGTH_DESCRIPTION,
+        help=f"Maximum length for RSS feed descriptions. Default is {MAX_LENGTH_DESCRIPTION}."
+    )
+
     args = parser.parse_args()
 
     if args.start < args.end:
@@ -150,9 +166,9 @@ def prepare_output_folder(folder_path):
     if folder_path:
         os.makedirs(folder_path, exist_ok=True)
 
-def run_processing(opml_filename, start_date, end_date):
+def run_processing(opml_filename, start_date, end_date, max_length_description):
     """Processes the RSS feed and returns the results needed for output."""
-    all_entries, icon_map, opml_text, opml_title, errors = process_rss_feed(opml_filename, start_date, end_date)
+    all_entries, icon_map, opml_text, opml_title, errors = process_rss_feed(opml_filename, start_date, end_date, max_length_description)
     return all_entries, icon_map, opml_text, opml_title, errors
 
 def print_summary(
@@ -195,6 +211,7 @@ def main():
     try:
         args = parse_args()
         opml_filename = args.opml
+        max_length_description = args.max_length_description
         output_formats = {fmt.strip().lower() for fmt in args.output_format.split(",")}
         # Decide output folders (use defaults if not provided)
         html_folder = args.output_html_folder or HTML_REPORT_FOLDER
@@ -222,7 +239,7 @@ def main():
         start_date_string_print_json = start_date.strftime(TEXT_DATE_FORMAT_JSON)
         end_date_string_print_json =  end_date.strftime(TEXT_DATE_FORMAT_JSON)
 
-        all_entries, icon_map, opml_text, opml_title, errors = run_processing(opml_filename, start_date, end_date)
+        all_entries, icon_map, opml_text, opml_title, errors = run_processing(opml_filename, start_date, end_date, max_length_description)
         
         out_filename_prefix = re.sub(r'[^a-zA-Z0-9_]', '', (opml_text or "").lower())
         html_outfilename = None

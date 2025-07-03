@@ -43,6 +43,7 @@ MAX_START_DAYS = 31
 MAX_END_DAYS = 31
 # Maximum length for RSS feed description
 MAX_LENGTH_DESCRIPTION = 200
+MAX_ALLOWED_LENGTH_DESCRIPTION = 1000
 FEED_SEPARATOR = "-" * 40
 
 # Keys used in RSS feed entries
