@@ -102,11 +102,13 @@ Examples:
 
 The resulting HTML, JSON and CSV files, which list the news from the past 'X' days, will be saved in the `data/html_reports`, `data/json_reports`, and `data/csv_reports` folders, respectively. The filenames will be in the following format:
 
-- `<prefix>_YYYY-MM-DD_HH-MM-SS.html`
-- `<prefix>_YYYY-MM-DD_HH-MM-SS.json`
-- `<prefix>_YYYY-MM-DD_HH-MM-SS.csv`
+- <prefix>_YYYY-MM-DD_HH-MM-SS.html
+- <prefix>_YYYY-MM-DD_HH-MM-SS.json
+- <prefix>_YYYY-MM-DD_HH-MM-SS.csv
 
-Where `<prefix>` is derived from the `text` attribute of the top-level `<outline>` element in the OPML file (with special characters removed and all letters converted to lowercase). If that attribute is missing, a default prefix (`cybersecuritynews`) will be used. In the provided OPML file, the top-level `<outline>` element contains `text="Cybersecurity News"`, so the resulting filename will also begin with `cybersecuritynews`.
+Where <prefix> is derived from the `category` attribute of the top-level `<outline>` element in the OPML file (with special characters removed and all letters converted to lowercase). If that attribute is missing, the `text` attribute will be used instead. If both are missing, an error will be raised. 
+
+In the provided OPML file, the top-level `<outline>` element contains `category="Cybersecurity News"`, so the resulting filename will begin with `cybersecuritynews`.
 
 Each HTML file contains a table with the following columns:
 
@@ -139,13 +141,7 @@ The repository includes a sample OPML file (`data/rss_sources/cybersecnews-sourc
 
 ## OPML File Structure
 
-Currently, CyberFeedBites expects **each OPML file to include only one top-level `<outline>` element** (i.e., one section or feed group, e.g., `<outline text="Cybersecurity News" title="Cybersecurity News Feeds">`). This is important because:
-
-- The program generates a single HTML report file per OPML input, using the top-level outline's `text` attribute as the filename prefix.
-- If multiple top-level outlines are present in one OPML file, only the first outline will be processed; others will be ignored.
-- To organise feeds into multiple categories or sections, create separate OPML files—one per category—and run CyberFeedBites separately for each.
-
-This design choice keeps the program simple and avoids complexity in handling multiple output files or combined reports, as well as allowing different look-back periods for different sections/feed groups (useful if some sections are more verbose).
+CyberFeedBites expects **each OPML file to include only one top-level `<outline>` element** (i.e., one section or feed group, e.g., `<outline text="Cybersecurity News" title="Cybersecurity News Feeds" category="Cybersecurity News">`). Based on this, the program generates report files (HTML, JSON, CSV) using the top-level outline's `category` attribute (or `text`, if missing) as the filename prefix. If multiple top-level outlines are present in one OPML file, only the first will be processed; others will be ignored. Hence, to organise feeds into multiple categories or sections, split them into separate OPML files—one per category—and run CyberFeedBites separately for each. This keeps the program simple and avoids handling multiple output files or combined reports, while allowing different look-back periods for different categories or sections.
 
 ## Customisation
 
