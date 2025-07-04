@@ -27,7 +27,7 @@ from config import (
     XMLURL_KEY, PUBLISHED_PARSED_KEY, UPDATED_PARSED_KEY, FEED_URL_KEY,
     BODY_KEY, OUTLINE_KEY, TEXT_KEY, TITLE_KEY, LINK_KEY, DESCRIPTION_KEY,
     PUBLISHED_DATE_KEY, CHANNEL_IMAGE_KEY, ICON_URL_KEY, FEED_TITLE_KEY, 
-    IMAGE_KEY, ICON_KEY, LOGO_KEY, HREF_KEY, URL_KEY
+    IMAGE_KEY, ICON_KEY, LOGO_KEY, HREF_KEY, URL_KEY, CATEGORY_KEY
 )
 
 def read_opml(file_path):
@@ -42,6 +42,7 @@ def read_opml(file_path):
     top_outline = body.find(OUTLINE_KEY) if body is not None else None
     opml_text = top_outline.attrib.get(TEXT_KEY) if top_outline is not None else None
     opml_title = top_outline.attrib.get(TITLE_KEY) if top_outline is not None else None
+    opml_category = top_outline.attrib.get(CATEGORY_KEY) if top_outline is not None else None
     
     feeds = []
     icon_map = {}
@@ -55,7 +56,7 @@ def read_opml(file_path):
         if text and icon:
             icon_map[text] = icon
     
-    return feeds, icon_map, opml_text, opml_title
+    return feeds, icon_map, opml_text, opml_title, opml_category
 
 def fetch_articles(feed_url, start_date, end_date, max_length_description):
     """Fetches articles from an RSS feed in the given time range."""

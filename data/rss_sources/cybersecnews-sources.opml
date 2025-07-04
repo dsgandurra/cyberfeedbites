@@ -4,7 +4,7 @@
 		<title>Cybersecurity News Feeds</title>
 	</head>
 	<body>
-		<outline text="Cybersecurity News" title="Cybersecurity News Feeds">
+		<outline text="Cybersecurity News" title="Cybersecurity News Feeds" category="Cybersecurity News">
 			<outline type="rss" text="Akamai" xmlUrl="https://feeds.feedburner.com/akamai/blog" htmlUrl="https://www.akamai.com/blog" iconUrl="https://www.akamai.com/site/favicon/apple-touch-icon-57x57.png"/>
 			<outline type="rss" text="Arctic Wolf Blog" xmlUrl="https://arcticwolf.com/resources/category/blog/feed/" htmlUrl="https://arcticwolf.com/resources/category/blog/" />
 			<outline type="rss" text="Ars Technica - Technology" xmlUrl="https://feeds.arstechnica.com/arstechnica/technology-lab" htmlUrl="https://arstechnica.com" />

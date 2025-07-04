@@ -168,8 +168,7 @@ def prepare_output_folder(folder_path):
 
 def run_processing(opml_filename, start_date, end_date, max_length_description):
     """Processes the RSS feed and returns the results needed for output."""
-    all_entries, icon_map, opml_text, opml_title, errors = process_rss_feed(opml_filename, start_date, end_date, max_length_description)
-    return all_entries, icon_map, opml_text, opml_title, errors
+    return process_rss_feed(opml_filename, start_date, end_date, max_length_description)
 
 def print_summary(
     start_date_print,
@@ -239,9 +238,13 @@ def main():
         start_date_string_print_json = start_date.strftime(TEXT_DATE_FORMAT_JSON)
         end_date_string_print_json =  end_date.strftime(TEXT_DATE_FORMAT_JSON)
 
-        all_entries, icon_map, opml_text, opml_title, errors = run_processing(opml_filename, start_date, end_date, max_length_description)
+        all_entries, icon_map, opml_text, opml_title, opml_category, errors = run_processing(opml_filename, start_date, end_date, max_length_description)
         
-        out_filename_prefix = re.sub(r'[^a-zA-Z0-9_]', '', (opml_text or "").lower())
+        base = opml_category or opml_text
+        if not base:
+            raise ValueError("Missing both 'category' and 'text' fields — cannot generate prefix.")
+        out_filename_prefix = re.sub(r'[^a-zA-Z0-9_]', '', base.lower())
+
         html_outfilename = None
         csv_outfilename = None
         json_outfilename = None
@@ -278,7 +281,7 @@ def main():
             start_date_string_print,
             end_date_string_print,  
             opml_text, 
-            opml_title
+            opml_title,
         )
 
         if "json" in output_formats:
@@ -289,7 +292,8 @@ def main():
             start_date_string_print_json,
             end_date_string_print_json,
             opml_text, 
-            opml_title
+            opml_title,
+            opml_category
         )  
 
         end_time = time.time()

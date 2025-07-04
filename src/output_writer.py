@@ -26,7 +26,7 @@ from config import (
 )
 from utils import sanitize_for_html, get_website_name
 
-def write_feed_to_json(posts, output_path, current_date, start_date, end_date, opml_title, opml_text):
+def write_feed_to_json(posts, output_path, current_date, start_date, end_date, opml_text, opml_title, opml_category):
     """Writes all RSS feed entries to a JSON file."""
     try:
         json_items = [
@@ -46,6 +46,7 @@ def write_feed_to_json(posts, output_path, current_date, start_date, end_date, o
             "published": current_date,
             "title": opml_title,
             "text": opml_text,
+            "category" : opml_category,
             "items": json_items,
         }
 
@@ -101,7 +102,7 @@ def write_feed_to_html(posts_to_print, outfilename, start_date_str, end_date_str
     except Exception as e:
         print(f"Error writing output file: {e}")
 
-def write_feed_to_csv(posts_to_print, outfilename, start_date_str, end_date_str, opml_text, opml_title):
+def write_feed_to_csv(posts_to_print, outfilename, start_date_str, end_date_str, opml_text, opml_title, opml_category):
     """Writes all RSS feed entries to a CSV file."""
     
     # Sort posts by published date
