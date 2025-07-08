@@ -56,7 +56,7 @@ def write_feed_to_json(posts, output_path, current_date, start_date, end_date, o
     except Exception as e:
         print(f"Error writing {output_path}: {e}")
 
-def write_feed_to_html(posts_to_print, outfilename, start_date_str, end_date_str, icon_map, opml_text, opml_title, include_images=True):
+def write_feed_to_html(posts_to_print, outfilename, start_date_str, end_date_str, icon_map, opml_text, opml_title, opml_category, include_images=True):
     """Writes all RSS feed entries to a HTML file."""
 
     sorted_posts = sorted(posts_to_print, key=lambda post: post[PUBLISHED_DATE_KEY], reverse=False)
@@ -90,7 +90,8 @@ def write_feed_to_html(posts_to_print, outfilename, start_date_str, end_date_str
             timezone_print=TIMEZONE_PRINT,
             rows="".join(table_rows),
             opml_text=opml_text,
-            opml_title=opml_title
+            opml_title=opml_title,
+            opml_category=opml_category
         )
     except Exception as e:
         print(f"Error loading or formatting template: {e}")
@@ -141,6 +142,7 @@ def write_feed_to_csv(posts_to_print, outfilename, start_date_str, end_date_str,
             writer.writerow([f"Time range: {start_date_str} to {end_date_str}"])
             writer.writerow([f"Report Title: {opml_title}"])
             writer.writerow([f"Report Description: {opml_text}"])
+            writer.writerow([f"Report Category: {opml_category}"])
             
             # Write the header for the CSV data
             writer.writerow([])  # Blank line before header

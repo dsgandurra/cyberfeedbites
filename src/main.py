@@ -271,6 +271,7 @@ def main():
             icon_map,
             opml_text,
             opml_title,
+            opml_category,
             include_images
         )
 
@@ -282,6 +283,7 @@ def main():
             end_date_string_print,  
             opml_text, 
             opml_title,
+            opml_category
         )
 
         if "json" in output_formats:
