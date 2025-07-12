@@ -158,3 +158,4 @@ This project is licensed under the GPL-3.0 License - see the [LICENSE](LICENSE) 
 
 - CyberFeedBites uses the `feedparser` library for parsing RSS feeds.
 - The `beautifulsoup4` library is used for HTML parsing and sanitising descriptions.
+- The `requests` library is used for robust HTTP fetching with custom headers.

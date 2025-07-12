@@ -21,6 +21,8 @@ import xml.etree.ElementTree as ET
 import os
 from datetime import datetime, timezone
 import feedparser
+import requests
+import re
 
 from utils import format_description, print_feed_details
 from config import (
@@ -58,24 +60,69 @@ def read_opml(file_path):
     
     return feeds, icon_map, opml_text, opml_title, opml_category
 
+def clean_feed_content(content):
+    text = content.decode('utf-8', errors='ignore')
+    
+    # Replace tabs with spaces (to avoid hidden tab issues)
+    text = text.replace('\t', ' ')
+    
+    # Remove ASCII control characters except \n and \r (valid in XML)
+    text = re.sub(r'[\x00-\x08\x0B\x0C\x0E-\x1F]', '', text)
+    
+    # Remove illegal unicode characters in XML 1.0
+    text = re.sub(r'[\uFFFE\uFFFF\uD800-\uDFFF]', '', text)
+    
+    # Replace bare & not followed by valid entities with &amp;
+    text = re.sub(r'&(?!amp;|lt;|gt;|apos;|quot;)', '&amp;', text)
+    
+    # Optionally normalise line endings
+    text = text.replace('\r\n', '\n').replace('\r', '\n')
+    
+    return text.encode('utf-8')
+
 def fetch_articles(feed_url, start_date, end_date, max_length_description):
     """Fetches articles from an RSS feed in the given time range."""
+    headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/115.0 Safari/537.36'}
+    timeout=10
     try:
         feed = feedparser.parse(feed_url)
         if feed.bozo:
-            raise RuntimeError(f"Feed parsing error: {feed.bozo_exception}")
+            # fallback to requests + cleaning
+            response = requests.get(feed_url, headers=headers, timeout=timeout)
+            response.raise_for_status()
+            cleaned_content = clean_feed_content(response.content)
+            feed = feedparser.parse(cleaned_content)
+            if feed.bozo:
+                raise RuntimeError(f"Cleaned feed parsing error: {feed.bozo_exception}")
+
     except ssl.SSLError as e:
         if feed_url.startswith("https://"):
             fallback_url = "http://" + feed_url[len("https://"):]
             try:
                 feed = feedparser.parse(fallback_url)
                 if feed.bozo:
-                    raise RuntimeError(f"Fallback feed parsing error: {feed.bozo_exception}")
+                    # fallback to requests + cleaning on fallback URL
+                    response = requests.get(fallback_url, headers=headers, timeout=timeout)
+                    response.raise_for_status()
+                    cleaned_content = clean_feed_content(response.content)
+                    feed = feedparser.parse(cleaned_content)
+                    if feed.bozo:
+                        raise RuntimeError(f"Fallback cleaned feed parsing error: {feed.bozo_exception}")
                 feed_url = fallback_url
             except Exception:
-                raise RuntimeError(f"SSL error on {feed_url} and fallback to {fallback_url} also failed: {e}")
+                # final fallback: requests + cleaning on original URL
+                try:
+                    response = requests.get(feed_url, headers=headers, timeout=timeout)
+                    response.raise_for_status()
+                    cleaned_content = clean_feed_content(response.content)
+                    feed = feedparser.parse(cleaned_content)
+                    if feed.bozo:
+                        raise RuntimeError(f"Requests fallback feed parsing error: {feed.bozo_exception}")
+                except Exception as req_e:
+                    raise RuntimeError(f"SSL error on {feed_url}, fallback to {fallback_url} and requests fallback all failed: {e}; {req_e}")
         else:
             raise RuntimeError(f"SSL error while accessing {feed_url}: {e}")
+
     except Exception as e:
         raise RuntimeError(f"Failed to fetch feed {feed_url}: {e}")
 
