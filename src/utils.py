@@ -17,13 +17,12 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 import html
-from datetime import datetime, timedelta, timezone
 from bs4 import BeautifulSoup
 from urllib.parse import urlparse
 
 from config import (
-    MAX_LENGTH_DESCRIPTION, FEED_SEPARATOR, SUMMARY_KEY,
-    TITLE_KEY, LINK_KEY, DESCRIPTION_KEY, PUBLISHED_DATE_KEY
+    FEED_SEPARATOR, SUMMARY_KEY, TITLE_KEY, LINK_KEY, 
+    DESCRIPTION_KEY, PUBLISHED_DATE_KEY, SKIPPED_REASON
 )
 
 def html_to_plain_text(html_str):
@@ -41,9 +40,9 @@ def truncate_string(text, max_length):
         return text[:max_length].rsplit(' ', 1)[0] + "..."
     return text
 
-def format_description(entry, max_length_description):
-    """Formats the description of the RSS entry."""
-    truncated_plain_text_description = ""
+def get_description(entry):
+    """Returns the plain description."""
+
     description = entry.get(DESCRIPTION_KEY)
     
     if not description:
@@ -51,6 +50,14 @@ def format_description(entry, max_length_description):
            
     if description:
         plain_text_description = html_to_plain_text(description).strip().replace('\n', ' ')
+        
+    return plain_text_description
+
+def truncate_description(plain_text_description, max_length_description):
+    """Formats the description of the RSS entry."""
+    truncated_plain_text_description = ""
+           
+    if plain_text_description:
         truncated_plain_text_description = truncate_string(plain_text_description, max_length_description)
         
     return truncated_plain_text_description
@@ -76,7 +83,7 @@ def get_website_name(url):
         print(f"Error parsing URL {url}: {e}")
         return "Unknown"
 
-def print_feed_details(feedtitle, feed_url, recent_articles, lock):
+def print_feed_details(feedtitle, feed_url, recent_articles, skipped_articles, lock):
     """Helper function to print feed details."""
     with lock:
         print(f"\n{FEED_SEPARATOR}")
@@ -85,8 +92,18 @@ def print_feed_details(feedtitle, feed_url, recent_articles, lock):
             print(f"{FEED_SEPARATOR}")
             for article in recent_articles:
                 print_article(article)
+
+        if skipped_articles:
+            print(f"\n")
+            for skipped_article in skipped_articles:
+                print_skipped_article(skipped_article)
         print(f"{FEED_SEPARATOR}")
+
 
 def print_article(entry):
     """Helper function to print article details."""
     print(f"\t[{entry[TITLE_KEY]}] [{entry[DESCRIPTION_KEY]}] [{entry[LINK_KEY]}] [{entry[PUBLISHED_DATE_KEY]}]")
+
+def print_skipped_article(entry):
+    """Helper function to print skipped article details."""
+    print(f"\t***SKIPPED due to {entry[SKIPPED_REASON]}: [{entry[TITLE_KEY]}] [{entry[TITLE_KEY]}] [{entry[DESCRIPTION_KEY]}] [{entry[LINK_KEY]}] [{entry[PUBLISHED_DATE_KEY]}]")

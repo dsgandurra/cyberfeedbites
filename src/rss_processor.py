@@ -22,11 +22,12 @@ import concurrent.futures
 import xml.etree.ElementTree as ET
 
 from rss_reader import process_feed, read_opml
-from config import MAX_THREAD_WORKERS, MAX_DAYS_BACK
+from config import MAX_THREAD_WORKERS
 
-def process_rss_feed(opml_filename, start_date, end_date, max_length_description):
+def process_rss_feed(opml_filename, start_date, end_date, max_length_description, exclude_keywords):
     """Handles the RSS feed processing."""
     all_entries_queue = queue.Queue()
+    skipped_entries_queue = queue.Queue()
     lock = threading.Lock()
 
     try:
@@ -45,14 +46,14 @@ def process_rss_feed(opml_filename, start_date, end_date, max_length_description
 
     with concurrent.futures.ThreadPoolExecutor(max_workers=MAX_THREAD_WORKERS) as executor:
         future_to_feed = {
-            executor.submit(process_feed, feedtitle, feed_url, start_date, end_date, max_length_description, lock, all_entries_queue): (feedtitle, feed_url)
+            executor.submit(process_feed, feedtitle, feed_url, start_date, end_date, max_length_description, lock, all_entries_queue, skipped_entries_queue, exclude_keywords): (feedtitle, feed_url)
             for feedtitle, feed_url in sorted_feeds
         }
 
         for future in concurrent.futures.as_completed(future_to_feed):
             feedtitle, feed_url = future_to_feed[future]
             try:
-                entries, error = future.result()
+                entries, skipped, error = future.result()
                 if error is not None:
                     errors.append(error)
             except Exception as e:
@@ -63,4 +64,8 @@ def process_rss_feed(opml_filename, start_date, end_date, max_length_description
     while not all_entries_queue.empty():
         all_entries.append(all_entries_queue.get())
 
-    return all_entries, icon_map, opml_text, opml_title, opml_category, errors
+    skipped_entries = []
+    while not skipped_entries_queue.empty():
+        skipped_entries.append(skipped_entries_queue.get())
+    
+    return all_entries, skipped_entries, icon_map, opml_text, opml_title, opml_category, errors

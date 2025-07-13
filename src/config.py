@@ -44,6 +44,23 @@ MAX_END_DAYS = 31
 MAX_LENGTH_DESCRIPTION = 200
 MAX_ALLOWED_LENGTH_DESCRIPTION = 1000
 FEED_SEPARATOR = "-" * 40
+DEFAULT_REQUEST_HEADERS = {
+    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/115.0 Safari/537.36'
+}
+HTTP_REQUEST_TIMEOUT = 10  # seconds
+
+EXCLUDE_KEYWORDS = [
+    'sponsored',
+    'advertisement',
+    'giveaway',
+    'clickbait',
+    'advertorial',
+    'paid content'
+]
+
+KEYWORD_EXCEPTIONS = {
+    'sponsored': ['state-sponsored', 'self-sponsored']
+}
 
 # Keys used in RSS feed entries
 SUMMARY_KEY = "summary"
@@ -61,6 +78,7 @@ LINK_KEY = "link"
 DESCRIPTION_KEY = "description"
 PUBLISHED_DATE_KEY = "published_date"
 CHANNEL_IMAGE_KEY = "channel_image"
+SKIPPED_REASON = "skipped_reason"
 IMAGE_KEY = "image"
 ICON_KEY = "icon"
 LOGO_KEY = "logo"

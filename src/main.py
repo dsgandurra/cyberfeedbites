@@ -41,7 +41,8 @@ from config import (
     FEED_SEPARATOR,
     TIMEZONE_PRINT,
     MAX_LENGTH_DESCRIPTION,
-    MAX_ALLOWED_LENGTH_DESCRIPTION
+    MAX_ALLOWED_LENGTH_DESCRIPTION,
+    EXCLUDE_KEYWORDS
 )
 
 def validate_start(value):
@@ -166,15 +167,16 @@ def prepare_output_folder(folder_path):
     if folder_path:
         os.makedirs(folder_path, exist_ok=True)
 
-def run_processing(opml_filename, start_date, end_date, max_length_description):
+def run_processing(opml_filename, start_date, end_date, max_length_description, exclude_keywords):
     """Processes the RSS feed and returns the results needed for output."""
-    return process_rss_feed(opml_filename, start_date, end_date, max_length_description)
+    return process_rss_feed(opml_filename, start_date, end_date, max_length_description, exclude_keywords)
 
 def print_summary(
     start_date_print,
     end_date_print,
     opml_filename,
     total_entries,
+    skipped_entries,
     html_outfilename,
     csv_outfilename,
     json_outfilename,
@@ -190,6 +192,8 @@ def print_summary(
     print(f"Time range: {start_date_print} {TIMEZONE_PRINT} to {end_date_print} {TIMEZONE_PRINT}")
     print(f"OPML file: {opml_filename}")
     print(f"Total entries: {total_entries}")
+    if skipped_entries:
+        print(f"Skipped entries: {skipped_entries}")
 
     if html_outfilename:
         print(f"News written to file: {html_outfilename}")
@@ -216,6 +220,7 @@ def main():
         html_folder = args.output_html_folder or HTML_REPORT_FOLDER
         csv_folder = args.output_csv_folder or CSV_REPORT_FOLDER
         json_folder = args.output_json_folder or JSON_REPORT_FOLDER
+        exclude_keywords = EXCLUDE_KEYWORDS
 
         start_time = time.time()
 
@@ -238,7 +243,7 @@ def main():
         start_date_string_print_json = start_date.strftime(TEXT_DATE_FORMAT_JSON)
         end_date_string_print_json =  end_date.strftime(TEXT_DATE_FORMAT_JSON)
 
-        all_entries, icon_map, opml_text, opml_title, opml_category, errors = run_processing(opml_filename, start_date, end_date, max_length_description)
+        all_entries, skipped_entries, icon_map, opml_text, opml_title, opml_category, errors = run_processing(opml_filename, start_date, end_date, max_length_description, exclude_keywords)
         
         base = opml_category or opml_text
         if not base:
@@ -305,6 +310,7 @@ def main():
             end_date_print = end_date_string_print,
             opml_filename = opml_filename,
             total_entries = len(all_entries),
+            skipped_entries = len(skipped_entries),
             html_outfilename = html_outfilename,
             csv_outfilename = csv_outfilename,
             json_outfilename = json_outfilename,

@@ -24,12 +24,14 @@ import feedparser
 import requests
 import re
 
-from utils import format_description, print_feed_details
+from utils import get_description, truncate_description, print_feed_details
 from config import (
     XMLURL_KEY, PUBLISHED_PARSED_KEY, UPDATED_PARSED_KEY, FEED_URL_KEY,
     BODY_KEY, OUTLINE_KEY, TEXT_KEY, TITLE_KEY, LINK_KEY, DESCRIPTION_KEY,
     PUBLISHED_DATE_KEY, CHANNEL_IMAGE_KEY, ICON_URL_KEY, FEED_TITLE_KEY, 
-    IMAGE_KEY, ICON_KEY, LOGO_KEY, HREF_KEY, URL_KEY, CATEGORY_KEY
+    IMAGE_KEY, ICON_KEY, LOGO_KEY, HREF_KEY, URL_KEY, CATEGORY_KEY,
+    DEFAULT_REQUEST_HEADERS, HTTP_REQUEST_TIMEOUT, KEYWORD_EXCEPTIONS,
+    SKIPPED_REASON
 )
 
 def read_opml(file_path):
@@ -80,10 +82,32 @@ def clean_feed_content(content):
     
     return text.encode('utf-8')
 
-def fetch_articles(feed_url, start_date, end_date, max_length_description):
+def matches_exclude_keywords(text: str, exclude_keywords: set[str], exceptions: dict[str, list[str]] = None) -> str | None:
+    """
+    Returns the first matched keyword from exclude_keywords in text,
+    considering exceptions (words or phrases that override exclusion).
+    If no keyword matches, returns None.
+    
+    exceptions format: {keyword: [list of exception substrings]}
+    e.g. {'sponsored': ['state-sponsored', 'self-sponsored']}
+    """
+    text_lower = text.lower()
+    exceptions = exceptions or {}
+
+    for keyword in exclude_keywords:
+        if keyword in text_lower:
+            # Check exceptions for this keyword
+            exception_phrases = exceptions.get(keyword, [])
+            if any(exc in text_lower for exc in exception_phrases):
+                continue  # exception matched, skip exclusion for this keyword
+            return keyword
+    return None
+
+def fetch_articles(feed_url, start_date, end_date, max_length_description, exclude_keywords=None):
     """Fetches articles from an RSS feed in the given time range."""
-    headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/115.0 Safari/537.36'}
-    timeout=10
+    headers = DEFAULT_REQUEST_HEADERS
+    timeout = HTTP_REQUEST_TIMEOUT
+    exclude_keywords = set(k.lower() for k in exclude_keywords or [])
     try:
         feed = feedparser.parse(feed_url)
         if feed.bozo:
@@ -130,7 +154,7 @@ def fetch_articles(feed_url, start_date, end_date, max_length_description):
     if channel_updated:
         channel_updated_date = datetime(*channel_updated[:6], tzinfo=timezone.utc)
         if channel_updated_date < start_date:
-            return []  # No new updates since start_date, skip entries
+            return [], []  # No new updates since start_date, skip entries
 
     image_info = feed.feed.get(IMAGE_KEY) or feed.feed.get(ICON_KEY) or feed.feed.get(LOGO_KEY) or {}
     channel_image = None
@@ -141,6 +165,7 @@ def fetch_articles(feed_url, start_date, end_date, max_length_description):
         channel_image = image_info
 
     recent_articles = []
+    skipped_articles = []
 
     for entry in feed.entries:
         published = entry.get(PUBLISHED_PARSED_KEY) or entry.get(UPDATED_PARSED_KEY)
@@ -149,36 +174,61 @@ def fetch_articles(feed_url, start_date, end_date, max_length_description):
             if start_date <= published_date <= end_date:
                 title = entry.get('title', 'No title')
                 link = entry.get('link', '')
-                truncated_plain_text_description = format_description(entry, max_length_description)
-                recent_articles.append((title, link, truncated_plain_text_description, published_date))
+                full_text_description = get_description(entry)
+                truncated_plain_text_description = truncate_description(full_text_description, max_length_description)
+                combined_text = (title + " " + full_text_description).lower()
+                matched_keyword = matches_exclude_keywords(combined_text, exclude_keywords, KEYWORD_EXCEPTIONS)
+                skipped_reason = f"Matched keyword: {matched_keyword}"
+                if matched_keyword:
+                    skipped_articles.append((title, link, truncated_plain_text_description, published_date, skipped_reason))
+                else:
+                    recent_articles.append((title, link, truncated_plain_text_description, published_date))
 
     entries = []
 
     for title, link, description, published_date in recent_articles:
         entry = {
             FEED_URL_KEY: feed_url,
-            TITLE_KEY: title,
+            TITLE_KEY: title.strip(),
             LINK_KEY: link,
-            DESCRIPTION_KEY: description,
+            DESCRIPTION_KEY: description.strip(),
             PUBLISHED_DATE_KEY: published_date,
             CHANNEL_IMAGE_KEY: channel_image
         }
         entries.append(entry)
 
-    return entries
+    skipped_entries = []
 
-def process_feed(feedtitle, feed_url, start_date, end_date, max_length_description, lock, all_entries_queue):
+    for title, link, description, published_date, skipped_reason in skipped_articles:
+        skipped_entry = {
+            FEED_URL_KEY: feed_url,
+            TITLE_KEY: title.strip(),
+            LINK_KEY: link,
+            DESCRIPTION_KEY: description.strip(),
+            PUBLISHED_DATE_KEY: published_date,
+            CHANNEL_IMAGE_KEY: channel_image,
+            SKIPPED_REASON: skipped_reason
+        }
+        skipped_entries.append(skipped_entry)
+
+    return entries, skipped_entries
+
+def process_feed(feedtitle, feed_url, start_date, end_date, max_length_description, lock, all_entries_queue, skipped_entries_queue, exclude_keywords):
     """Processes a feed source and fetches its recent articles."""
     try:
-        recent_articles = fetch_articles(feed_url, start_date, end_date, max_length_description)
-        print_feed_details(feedtitle, feed_url, recent_articles, lock)
+        recent_articles, skipped_articles = fetch_articles(feed_url, start_date, end_date, max_length_description, exclude_keywords)
+        print_feed_details(feedtitle, feed_url, recent_articles, skipped_articles, lock)
         if recent_articles:
             for entry in recent_articles:
                 entry[FEED_TITLE_KEY] = feedtitle 
                 all_entries_queue.put(entry)
-        return recent_articles or [], None
+        if skipped_articles:
+            for skipped_entry in skipped_articles:
+                skipped_entry[FEED_TITLE_KEY] = feedtitle
+                skipped_entries_queue.put(skipped_entry)
+        return recent_articles, skipped_articles or [], None
     except Exception as e:
-        print_feed_details(feedtitle, feed_url, [], lock)  # lock acquired internally
+        print_feed_details(feedtitle, feed_url, [], [], lock)  # lock acquired internally
         with lock:
             print(f"\nFailed to fetch feed: {feedtitle} ({feed_url})")
             print(f"Error: {e}")
