@@ -22,7 +22,8 @@ from urllib.parse import urlparse
 
 from config import (
     FEED_SEPARATOR, SUMMARY_KEY, TITLE_KEY, LINK_KEY, 
-    DESCRIPTION_KEY, PUBLISHED_DATE_KEY, SKIPPED_REASON
+    DESCRIPTION_KEY, PUBLISHED_DATE_KEY, SKIPPED_REASON, 
+    CONTENT_KEY
 )
 
 def html_to_plain_text(html_str):
@@ -41,17 +42,22 @@ def truncate_string(text, max_length):
     return text
 
 def get_description(entry):
-    """Returns the plain description."""
+    """
+    Returns the plain description.
+    Falls back to summary if description is missing,
+    and finally extracts plain text from HTML content if both are unavailable.
+    """
+    description = entry.get(DESCRIPTION_KEY) or entry.get(SUMMARY_KEY)
 
-    description = entry.get(DESCRIPTION_KEY)
-    
     if not description:
-        description = entry.get(SUMMARY_KEY, "")
-           
-    if description:
-        plain_text_description = html_to_plain_text(description).strip().replace('\n', ' ')
-        
-    return plain_text_description
+        content = entry.get(CONTENT_KEY)
+        if isinstance(content, list) and content:
+            content = content[0].get('value', '')
+        description = content or ""
+
+    plain_text = html_to_plain_text(description).strip().replace('\n', ' ')
+
+    return plain_text
 
 def truncate_description(plain_text_description, max_length_description):
     """Formats the description of the RSS entry."""

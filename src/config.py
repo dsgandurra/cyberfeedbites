@@ -85,6 +85,7 @@ LOGO_KEY = "logo"
 HREF_KEY = "href"
 URL_KEY = "url"
 CATEGORY_KEY = "category"
+CONTENT_KEY = "content"
 
 # Timezone
 TIMEZONE_PRINT = "UTC"
