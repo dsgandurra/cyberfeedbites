@@ -59,7 +59,7 @@ EXCLUDE_KEYWORDS = [
 ]
 
 KEYWORD_EXCEPTIONS = {
-    'sponsored': ['state-sponsored', 'self-sponsored']
+    'sponsored': ['state-sponsored']
 }
 
 # Keys used in RSS feed entries

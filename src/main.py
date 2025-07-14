@@ -22,6 +22,7 @@ from datetime import datetime, time as dt_time, timezone, timedelta
 import time
 import argparse
 import traceback
+import sys
 
 from rss_processor import process_rss_feed
 from output_writer import write_feed_to_html, write_feed_to_csv, write_feed_to_json
@@ -141,12 +142,25 @@ def parse_arguments():
         help="Exclude images from the HTML output."
     )
 
-
     parser.add_argument(
         "--max-length-description",
         type=validate_max_length_description,
         default=MAX_LENGTH_DESCRIPTION,
         help=f"Maximum length for RSS feed descriptions. Default is {MAX_LENGTH_DESCRIPTION}."
+    )
+
+    parser.add_argument(
+    "--exclude-keywords",
+    action="store_true",
+    default=False,
+    help="Enable exclusion of entries containing specific keywords. Default is False."
+    )
+
+    parser.add_argument(
+        "--exclude-keywords-file",
+        type=str,
+        default=None,
+        help="Path to a file containing keywords to exclude, one per line. If provided, overrides default keywords."
     )
 
     args = parser.parse_args()
@@ -220,7 +234,19 @@ def main():
         html_folder = args.output_html_folder or HTML_REPORT_FOLDER
         csv_folder = args.output_csv_folder or CSV_REPORT_FOLDER
         json_folder = args.output_json_folder or JSON_REPORT_FOLDER
-        exclude_keywords = EXCLUDE_KEYWORDS
+
+        exclude_keywords = []
+        if args.exclude_keywords:
+            if args.exclude_keywords_file:
+                try:
+                    with open(args.exclude_keywords_file, "r", encoding="utf-8") as f:
+                        exclude_keywords = [line.strip().lower() for line in f if line.strip()]
+                except Exception as e:
+                    print(f"Error reading exclude keywords file '{args.exclude_keywords_file}': {e}")
+                    sys.exit(1)
+            else:
+                # Use default EXCLUDE_KEYWORDS from config if no file provided
+                exclude_keywords = [kw.lower() for kw in EXCLUDE_KEYWORDS]
 
         start_time = time.time()
 
@@ -322,7 +348,7 @@ def main():
     except Exception as e:
         print(f"Error: {e}")
         traceback.print_exc()
-        exit(1)
+        sys.exit(1)
 
 if __name__ == "__main__":
     main()

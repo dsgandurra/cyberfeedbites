@@ -31,11 +31,11 @@ def write_feed_to_json(posts, output_path, current_date, start_date, end_date, o
     try:
         json_items = [
             {
-                "title": post.get(TITLE_KEY, "").strip('"'),
+                "title": html.unescape(post.get(TITLE_KEY, "").strip('"')),
                 "link": post.get(LINK_KEY, ""),
                 "published": post[PUBLISHED_DATE_KEY].strftime(TEXT_DATE_FORMAT_JSON),
                 "source": get_website_name(post[LINK_KEY]),
-                "description": post.get(DESCRIPTION_KEY, "").strip('"')
+                "description": html.unescape(post.get(DESCRIPTION_KEY, "").strip('"'))
             }
             for post in sorted(posts, key=lambda p: p[PUBLISHED_DATE_KEY], reverse=True)
         ]

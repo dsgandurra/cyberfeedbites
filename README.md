@@ -56,8 +56,6 @@ The required packages are:
 
 ## Usage
 
-## Usage
-
 1. Navigate to the root folder of the project:
 
     ```bash
@@ -67,7 +65,7 @@ The required packages are:
 2. Run CyberFeedBites with optional parameters:
 
     ```bash
-    python src/main.py [--start <start_days_ago>] [--end <end_days_ago>] [--opml <opml_file_path>] [--output-format <formats>] [--output-html-folder <folder>] [--output-csv-folder <folder>] [--output-json-folder <folder>] [--align-start-to-midnight] [--align-end-to-midnight] [--no-html-img]
+    python src/main.py [--start <start_days_ago>] [--end <end_days_ago>] [--opml <opml_file_path>] [--output-format <formats>] [--output-html-folder <folder>] [--output-csv-folder <folder>] [--output-json-folder <folder>] [--align-start-to-midnight] [--align-end-to-midnight] [--no-html-img] [--max-length-description <length>] [--exclude-keywords] [--exclude-keywords-file <file>]
     ```
 
 - `--start`: Number of days ago to start fetching news (default: 1).
@@ -80,6 +78,9 @@ The required packages are:
 - `--align-start-to-midnight`: Align start date to midnight.
 - `--align-end-to-midnight`: Align end date to 23:59:59.
 - `--no-html-img`: Exclude images from the HTML output.
+- `--max-length-description`: Maximum length for RSS feed descriptions (default: 200).
+- `--exclude-keywords`: Enable exclusion of entries containing specific keywords.
+- `--exclude-keywords-file`: Path to a file containing keywords to exclude, one per line. Overrides default keywords.
 
 Examples:
 - Fetch news from the last 1 day (default):
@@ -96,6 +97,11 @@ Examples:
 - Generate only CSV output:
   ```bash
   python src/main.py --output-format csv
+  ```
+
+- Exclude entries containing keywords (using default or file):
+  ```bash
+  python src/main.py --exclude-keywords --exclude-keywords-file exclude.txt
   ```
 
 ## Output
@@ -145,10 +151,9 @@ CyberFeedBites expects **each OPML file to include only one top-level `<outline>
 
 ## Customisation
 
-- You can modify the default number of days for news retrieval by changing the `DAYS_BACK` parameter in the `config.py` file. Depending on the number of RSS feeds, it is best to keep this number small to make the output manageable (e.g., with the current feeds, around 100–150 entries are generated with the default value of 1 day). The `MAX_DAYS_BACK` parameter in the `config.py` file limits the maximum number of days that can be retrieved (default is 7 days). You can edit this variable in `config.py` if you want to increase this limit.
-- You can also add or remove RSS feed sources by editing the `cybersecnews-sources.opml` file.
-- Alternatively, you can use a different OPML file by providing its path when running the script, allowing multiple feed sets to be maintained separately.
-- CyberFeedBites generates HTML output based on a template located in the `data/templates` folder. You can modify this template (`template.html`) and the accompanying `style.css` for customisation. Note that if you choose a different directory to store the report, make sure to reference the CSS.
+- The `MAX_DAYS_BACK` parameter in `config.py` limits the maximum number of days allowed as input to prevent fetching an excessive number of RSS entries. You can increase this limit by editing the variable in `config.py`.
+- You can also add or remove RSS feed sources by editing the `cybersecnews-sources.opml` file. Alternatively, you can use a different OPML file as parameter, allowing multiple feed sets to be maintained separately.
+- CyberFeedBites generates HTML output based on a template located in the `data/templates` folder. You can modify this template (`template.html`) and the accompanying `style.css` for customisation. Note that if you choose a different directory to store the html reports, make sure to reference that style CSS.
 
 ## License
 
