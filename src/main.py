@@ -164,6 +164,13 @@ def parse_arguments():
         help="Path to a file containing keywords to exclude, one per line. If provided, overrides default keywords."
     )
 
+    parser.add_argument(
+        "--print-skipped",
+        action="store_true",
+        default=False,
+        help="Print skipped entries at the end of processing. Default is False."
+    )
+
     args = parser.parse_args()
 
     if args.start < args.end:
@@ -251,8 +258,9 @@ def main():
                 # Use default EXCLUDE_KEYWORDS from config if no file provided
                 exclude_keywords = [kw.lower() for kw in EXCLUDE_KEYWORDS]
 
-        start_time = time.time()
+        print_skipped_entries = args.print_skipped
 
+        start_time = time.time()
         current_date = datetime.now(timezone.utc)        
         start_date = current_date - timedelta(days=args.start)
         end_date = current_date - timedelta(days=args.end)
@@ -339,7 +347,7 @@ def main():
             end_date_print = end_date_string_print,
             opml_filename = opml_filename,
             total_entries = len(all_entries),
-            skipped_entries = skipped_entries,
+            skipped_entries = skipped_entries if print_skipped_entries else None,
             html_outfilename = html_outfilename,
             csv_outfilename = csv_outfilename,
             json_outfilename = json_outfilename,
