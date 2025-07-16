@@ -172,11 +172,12 @@ def fetch_articles(feed_url, start_date, end_date, max_length_description, exclu
         if published:
             published_date = datetime(*published[:6], tzinfo=timezone.utc)
             if start_date <= published_date <= end_date:
-                title = entry.get('title', 'No title')
-                link = entry.get('link', '')
+                title = entry.get(TITLE_KEY, 'No title')
+                link = entry.get(LINK_KEY, '')
+                category = entry.get(CATEGORY_KEY, '')
                 full_text_description = get_description(entry)
                 truncated_plain_text_description = truncate_description(full_text_description, max_length_description)
-                combined_text = (title + " " + full_text_description).lower()
+                combined_text = (title + " " + category + " " + full_text_description).lower()
                 matched_keyword = matches_exclude_keywords(combined_text, exclude_keywords, KEYWORD_EXCEPTIONS)
                 skipped_reason = f"Matched keyword: {matched_keyword}"
                 if matched_keyword:

@@ -112,4 +112,4 @@ def print_article(entry):
 
 def print_skipped_article(entry):
     """Helper function to print skipped article details."""
-    print(f"\t***SKIPPED due to {entry[SKIPPED_REASON]}: [{entry[TITLE_KEY]}] [{entry[TITLE_KEY]}] [{entry[DESCRIPTION_KEY]}] [{entry[LINK_KEY]}] [{entry[PUBLISHED_DATE_KEY]}]")
+    print(f"\t***Skipped entry due to {entry[SKIPPED_REASON]}: [{entry[TITLE_KEY]}] [{entry[TITLE_KEY]}] [{entry[DESCRIPTION_KEY]}] [{entry[LINK_KEY]}] [{entry[PUBLISHED_DATE_KEY]}]")

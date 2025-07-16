@@ -45,6 +45,7 @@ from config import (
     MAX_ALLOWED_LENGTH_DESCRIPTION,
     EXCLUDE_KEYWORDS
 )
+from utils import print_skipped_article
 
 def validate_start(value):
     """Ensure that start is less than or equal to MAX_DAYS_BACK to limit output."""
@@ -207,7 +208,9 @@ def print_summary(
     print(f"OPML file: {opml_filename}")
     print(f"Total entries: {total_entries}")
     if skipped_entries:
-        print(f"Skipped entries: {skipped_entries}")
+        print(f"Skipped entries: {len(skipped_entries)}")
+        for entry in skipped_entries:
+            print_skipped_article(entry)
 
     if html_outfilename:
         print(f"News written to file: {html_outfilename}")
@@ -336,7 +339,7 @@ def main():
             end_date_print = end_date_string_print,
             opml_filename = opml_filename,
             total_entries = len(all_entries),
-            skipped_entries = len(skipped_entries),
+            skipped_entries = skipped_entries,
             html_outfilename = html_outfilename,
             csv_outfilename = csv_outfilename,
             json_outfilename = json_outfilename,
