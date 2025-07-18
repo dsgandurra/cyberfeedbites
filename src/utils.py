@@ -19,12 +19,26 @@
 import html
 from bs4 import BeautifulSoup
 from urllib.parse import urlparse
+from datetime import datetime, timezone
 
 from config import (
-    FEED_SEPARATOR, SUMMARY_KEY, TITLE_KEY, LINK_KEY, 
+    FEED_SEPARATOR, SUMMARY_KEY, TITLE_KEY, LINK_KEY, FEED_URL_KEY, CHANNEL_IMAGE_KEY,
     DESCRIPTION_KEY, PUBLISHED_DATE_KEY, SKIPPED_REASON, 
-    CONTENT_KEY
+    CONTENT_KEY, MAX_LENGTH_TITLE, MAX_LENGTH_LINK, MAX_LENGTH_FEED_URL, 
+    MAX_LENGTH_SKIPPED_REASON, PUBLISHED_PARSED_KEY, UPDATED_PARSED_KEY, MAX_LENGTH_CHANNEL_IMAGE
 )
+
+def get_published_date(entry, fallback_to_now=False):
+    parsed = entry.get(PUBLISHED_PARSED_KEY) or entry.get(UPDATED_PARSED_KEY)
+    if parsed:
+        try:
+            return datetime(*parsed[:6], tzinfo=timezone.utc)
+        except Exception:
+            pass
+    if fallback_to_now:
+        return datetime.now(timezone.utc)
+    return None
+
 
 def html_to_plain_text(html_str):
     """Converts HTML to plain text using BeautifulSoup."""
@@ -36,7 +50,12 @@ def html_to_plain_text(html_str):
         return ""
 
 def truncate_string(text, max_length):
-    """Truncates the string to a maximum length."""
+    if text is None:
+        print("Error: 'text' is None in truncate_string()")
+
+    if not isinstance(text, str):
+        print(f"Error: Expected string but got {type(text).__name__} in truncate_string()")
+
     if len(text) > max_length:
         return text[:max_length].rsplit(' ', 1)[0] + "..."
     return text
@@ -67,6 +86,33 @@ def truncate_description(plain_text_description, max_length_description):
         truncated_plain_text_description = truncate_string(plain_text_description, max_length_description)
         
     return truncated_plain_text_description
+
+def clean_articles(articles: list[dict], max_length_description: int) -> list[dict]:
+    cleaned = []
+    for article in articles:
+        title = article.get(TITLE_KEY, '') or ''
+        link = article.get(LINK_KEY, '') or ''
+        description = article.get(DESCRIPTION_KEY, '') or ''
+        skipped_reason = article.get(SKIPPED_REASON, None)
+        published_date = article.get(PUBLISHED_DATE_KEY)
+        feed_url = article.get(FEED_URL_KEY, '') or ''
+        channel_image = article.get(CHANNEL_IMAGE_KEY, '') or ''
+
+        cleaned_article = {
+            TITLE_KEY: truncate_string(title.strip(), MAX_LENGTH_TITLE),
+            LINK_KEY: truncate_string(link.strip(), MAX_LENGTH_LINK),
+            DESCRIPTION_KEY: truncate_description(description.strip(), max_length_description),
+            FEED_URL_KEY: truncate_string(feed_url.strip(), MAX_LENGTH_FEED_URL),
+            CHANNEL_IMAGE_KEY: truncate_string(channel_image.strip(), MAX_LENGTH_CHANNEL_IMAGE),
+            PUBLISHED_DATE_KEY: published_date  # Keep unmodified
+        }
+
+        if skipped_reason is not None:
+            cleaned_article[SKIPPED_REASON] = truncate_string(skipped_reason.strip(), MAX_LENGTH_SKIPPED_REASON)
+
+        cleaned.append(cleaned_article)
+
+    return cleaned
 
 def sanitize_for_html(text):
     """Escapes text for safe HTML display and preserves line breaks."""
@@ -104,7 +150,6 @@ def print_feed_details(feedtitle, feed_url, recent_articles, skipped_articles, l
             for skipped_article in skipped_articles:
                 print_skipped_article(skipped_article)
         print(f"{FEED_SEPARATOR}")
-
 
 def print_article(entry):
     """Helper function to print article details."""

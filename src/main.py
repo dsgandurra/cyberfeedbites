@@ -215,9 +215,10 @@ def print_summary(
     print(f"OPML file: {opml_filename}")
     print(f"Total entries: {total_entries}")
     if skipped_entries:
-        print(f"Skipped entries: {len(skipped_entries)}")
+        print(f"\nSkipped entries: {len(skipped_entries)}")
         for entry in skipped_entries:
             print_skipped_article(entry)
+        print(f"")
 
     if html_outfilename:
         print(f"News written to file: {html_outfilename}")

@@ -24,14 +24,13 @@ import feedparser
 import requests
 import re
 
-from utils import get_description, truncate_description, print_feed_details
+from utils import get_description, print_feed_details, clean_articles, truncate_string, get_published_date
 from config import (
-    XMLURL_KEY, PUBLISHED_PARSED_KEY, UPDATED_PARSED_KEY, FEED_URL_KEY,
-    BODY_KEY, OUTLINE_KEY, TEXT_KEY, TITLE_KEY, LINK_KEY, DESCRIPTION_KEY,
-    PUBLISHED_DATE_KEY, CHANNEL_IMAGE_KEY, ICON_URL_KEY, FEED_TITLE_KEY, 
-    IMAGE_KEY, ICON_KEY, LOGO_KEY, HREF_KEY, URL_KEY, CATEGORY_KEY,
-    DEFAULT_REQUEST_HEADERS, HTTP_REQUEST_TIMEOUT, KEYWORD_EXCEPTIONS,
-    SKIPPED_REASON
+    XMLURL_KEY, UPDATED_PARSED_KEY, FEED_URL_KEY, BODY_KEY, OUTLINE_KEY, 
+    TEXT_KEY, TITLE_KEY, LINK_KEY, DESCRIPTION_KEY, PUBLISHED_DATE_KEY, 
+    CHANNEL_IMAGE_KEY, ICON_URL_KEY, FEED_TITLE_KEY, IMAGE_KEY, ICON_KEY, 
+    LOGO_KEY, HREF_KEY, URL_KEY, CATEGORY_KEY, DEFAULT_REQUEST_HEADERS, 
+    HTTP_REQUEST_TIMEOUT, KEYWORD_EXCEPTIONS, SKIPPED_REASON,
 )
 
 def read_opml(file_path):
@@ -168,51 +167,35 @@ def fetch_articles(feed_url, start_date, end_date, max_length_description, exclu
     skipped_articles = []
 
     for entry in feed.entries:
-        published = entry.get(PUBLISHED_PARSED_KEY) or entry.get(UPDATED_PARSED_KEY)
-        if published:
-            published_date = datetime(*published[:6], tzinfo=timezone.utc)
-            if start_date <= published_date <= end_date:
-                title = entry.get(TITLE_KEY, 'No title')
-                link = entry.get(LINK_KEY, '')
-                category = entry.get(CATEGORY_KEY, '')
-                full_text_description = get_description(entry)
-                truncated_plain_text_description = truncate_description(full_text_description, max_length_description)
-                combined_text = (title + " " + category + " " + full_text_description).lower()
-                matched_keyword = matches_exclude_keywords(combined_text, exclude_keywords, KEYWORD_EXCEPTIONS)
-                skipped_reason = f"Matched keyword: {matched_keyword}"
-                if matched_keyword:
-                    skipped_articles.append((title, link, truncated_plain_text_description, published_date, skipped_reason))
-                else:
-                    recent_articles.append((title, link, truncated_plain_text_description, published_date))
+        published_date = get_published_date(entry, fallback_to_now=False)
+        if published_date and start_date <= published_date <= end_date:
+            title = entry.get(TITLE_KEY, '')
+            link = entry.get(LINK_KEY, '')
+            category = entry.get(CATEGORY_KEY, '')
+            full_text_description = get_description(entry)
 
-    entries = []
+            combined_text = (title + " " + category + " " + full_text_description).lower()
+            matched_keyword = matches_exclude_keywords(combined_text, exclude_keywords, KEYWORD_EXCEPTIONS)
 
-    for title, link, description, published_date in recent_articles:
-        entry = {
-            FEED_URL_KEY: feed_url,
-            TITLE_KEY: title.strip(),
-            LINK_KEY: link,
-            DESCRIPTION_KEY: description.strip(),
-            PUBLISHED_DATE_KEY: published_date,
-            CHANNEL_IMAGE_KEY: channel_image
-        }
-        entries.append(entry)
+            article_data = {
+                FEED_URL_KEY: feed_url,
+                TITLE_KEY: title,
+                LINK_KEY: link,
+                DESCRIPTION_KEY: full_text_description,
+                PUBLISHED_DATE_KEY: published_date,
+                CHANNEL_IMAGE_KEY: channel_image
+            }
 
-    skipped_entries = []
+            if matched_keyword:
+                article_data[SKIPPED_REASON] = f"Matched keyword: {matched_keyword}"
+                skipped_articles.append(article_data)
+            else:
+                recent_articles.append(article_data)
 
-    for title, link, description, published_date, skipped_reason in skipped_articles:
-        skipped_entry = {
-            FEED_URL_KEY: feed_url,
-            TITLE_KEY: title.strip(),
-            LINK_KEY: link,
-            DESCRIPTION_KEY: description.strip(),
-            PUBLISHED_DATE_KEY: published_date,
-            CHANNEL_IMAGE_KEY: channel_image,
-            SKIPPED_REASON: skipped_reason
-        }
-        skipped_entries.append(skipped_entry)
+    recent_articles_cleaned = clean_articles(recent_articles, max_length_description)
+    skipped_articles_cleaned = clean_articles(skipped_articles, max_length_description)
 
-    return entries, skipped_entries
+    return recent_articles_cleaned, skipped_articles_cleaned
 
 def process_feed(feedtitle, feed_url, start_date, end_date, max_length_description, lock, all_entries_queue, skipped_entries_queue, exclude_keywords):
     """Processes a feed source and fetches its recent articles."""

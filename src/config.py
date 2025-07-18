@@ -22,7 +22,9 @@ import os
 MAX_THREAD_WORKERS = 5
 
 # File paths and template settings
-DATA_FOLDER = "data"
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))   # base path
+DATA_FOLDER = os.path.join(BASE_DIR, "..", "data")
+
 TEMPLATE_FOLDER = os.path.join(DATA_FOLDER, "templates")
 TEMPLATE_HTML_FILE = os.path.join(TEMPLATE_FOLDER, "template.html")
 HTML_REPORT_FOLDER = os.path.join(DATA_FOLDER, "html_reports")
@@ -30,6 +32,14 @@ CSV_REPORT_FOLDER = os.path.join(DATA_FOLDER, "csv_reports")
 JSON_REPORT_FOLDER = os.path.join(DATA_FOLDER, "json_reports")
 RSS_SOURCES = os.path.join(DATA_FOLDER, "rss_sources")
 OPML_FILENAME = os.path.join(RSS_SOURCES, "cybersecnews-sources.opml")
+
+# Optionally, normalize them all:
+TEMPLATE_HTML_FILE = os.path.abspath(TEMPLATE_HTML_FILE)
+HTML_REPORT_FOLDER = os.path.abspath(HTML_REPORT_FOLDER)
+CSV_REPORT_FOLDER = os.path.abspath(CSV_REPORT_FOLDER)
+JSON_REPORT_FOLDER = os.path.abspath(JSON_REPORT_FOLDER)
+OPML_FILENAME = os.path.abspath(OPML_FILENAME)
+
 
 # Default start and end offsets (in days) relative to today
 DEFAULT_START = 1
@@ -43,6 +53,11 @@ MAX_END_DAYS = 31
 # Maximum length for RSS feed description
 MAX_LENGTH_DESCRIPTION = 200
 MAX_ALLOWED_LENGTH_DESCRIPTION = 1000
+MAX_LENGTH_FEED_URL = 200
+MAX_LENGTH_TITLE = 100
+MAX_LENGTH_LINK = 200
+MAX_LENGTH_CHANNEL_IMAGE = 200
+MAX_LENGTH_SKIPPED_REASON = 500
 FEED_SEPARATOR = "-" * 40
 DEFAULT_REQUEST_HEADERS = {
     'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/115.0 Safari/537.36'
