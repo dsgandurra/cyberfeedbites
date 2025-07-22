@@ -23,7 +23,7 @@ from datetime import datetime, timezone
 
 from config import (
     FEED_SEPARATOR, SUMMARY_KEY, TITLE_KEY, LINK_KEY, FEED_URL_KEY, CHANNEL_IMAGE_KEY,
-    DESCRIPTION_KEY, PUBLISHED_DATE_KEY, SKIPPED_REASON, 
+    DESCRIPTION_KEY, PUBLISHED_DATE_KEY, SKIPPED_REASON, MAX_FEEDTITLE_LEN_PRINT,
     CONTENT_KEY, MAX_LENGTH_TITLE, MAX_LENGTH_LINK, MAX_LENGTH_FEED_URL, 
     MAX_LENGTH_SKIPPED_REASON, PUBLISHED_PARSED_KEY, UPDATED_PARSED_KEY, MAX_LENGTH_CHANNEL_IMAGE
 )
@@ -135,26 +135,22 @@ def get_website_name(url):
         print(f"Error parsing URL {url}: {e}")
         return "Unknown"
 
-def print_feed_details(feedtitle, feed_url, recent_articles, skipped_articles, lock):
+def print_feed_details(feedtitle, feed_url, recent_articles):
     """Helper function to print feed details."""
-    with lock:
-        print(f"\n{FEED_SEPARATOR}")
-        print(f"[{feedtitle}] [{feed_url}]")
-        if recent_articles:
-            print(f"{FEED_SEPARATOR}")
-            for article in recent_articles:
-                print_article(article)
-
-        if skipped_articles:
-            print(f"\n")
-            for skipped_article in skipped_articles:
-                print_skipped_article(skipped_article)
+    print(f"\n{FEED_SEPARATOR}")
+    print(f"[{feedtitle}] [{feed_url}]")
+    if recent_articles:
         print(f"{FEED_SEPARATOR}")
+        for article in recent_articles:
+            print_article(article)
+
+    print(f"{FEED_SEPARATOR}")
 
 def print_article(entry):
     """Helper function to print article details."""
     print(f"\t[{entry[TITLE_KEY]}] [{entry[DESCRIPTION_KEY]}] [{entry[LINK_KEY]}] [{entry[PUBLISHED_DATE_KEY]}]")
 
-def print_skipped_article(entry):
-    """Helper function to print skipped article details."""
-    print(f"\t***Skipped entry due to {entry[SKIPPED_REASON]}: [{entry[TITLE_KEY]}] [{entry[TITLE_KEY]}] [{entry[DESCRIPTION_KEY]}] [{entry[LINK_KEY]}] [{entry[PUBLISHED_DATE_KEY]}]")
+def format_title_for_print(title):
+    if len(title) > MAX_FEEDTITLE_LEN_PRINT:
+        return title[:MAX_FEEDTITLE_LEN_PRINT - 1] + '…'
+    return title.ljust(MAX_FEEDTITLE_LEN_PRINT)

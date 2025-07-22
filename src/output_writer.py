@@ -31,7 +31,7 @@ def write_feed_to_json(posts, output_path, current_date, start_date, end_date, o
     try:
         json_items = [
             {
-                "title": html.unescape(post.get(TITLE_KEY, "").strip('"')),
+                "title": html.unescape(html.unescape(post.get(TITLE_KEY, "").strip('"'))),
                 "link": post.get(LINK_KEY, ""),
                 "published": post[PUBLISHED_DATE_KEY].strftime(TEXT_DATE_FORMAT_JSON),
                 "source": get_website_name(post[LINK_KEY]),
@@ -56,10 +56,18 @@ def write_feed_to_json(posts, output_path, current_date, start_date, end_date, o
     except Exception as e:
         print(f"Error writing {output_path}: {e}")
 
-def write_feed_to_html(posts_to_print, outfilename, start_date_str, end_date_str, icon_map, opml_text, opml_title, opml_category, include_images=True):
+def write_feed_to_html(posts_to_print, outfilename, start_date_str, end_date_str, icon_map, opml_text, opml_title, opml_category, order_by, include_images=True):
     """Writes all RSS feed entries to a HTML file."""
 
-    sorted_posts = sorted(posts_to_print, key=lambda post: post[PUBLISHED_DATE_KEY], reverse=False)
+    order_by = order_by.lower() if isinstance(order_by, str) else 'date'
+
+    sorted_posts = []
+    
+    if order_by == 'title_date':
+        sorted_posts = sorted(posts_to_print, key=lambda post: (post[FEED_TITLE_KEY], post[PUBLISHED_DATE_KEY]))
+    else:
+        # Fallback and default
+        sorted_posts = sorted(posts_to_print, key=lambda post: post[PUBLISHED_DATE_KEY])
 
     table_rows = []
     for post in sorted_posts:
@@ -68,7 +76,7 @@ def write_feed_to_html(posts_to_print, outfilename, start_date_str, end_date_str
         image_html = f"<img src='{sanitize_for_html(html.unescape(image_url))}' alt='{website_name}' class='channel-image'>" if (image_url and include_images) else ""
 
         published_date_string_print = post[PUBLISHED_DATE_KEY].strftime(TEXT_DATE_FORMAT_PRINT_SHORT)
-        title_row = sanitize_for_html(html.unescape(post[TITLE_KEY])).strip('"')
+        title_row = sanitize_for_html(html.unescape(html.unescape(post.get(TITLE_KEY, "")))).strip('"')
         description_row = sanitize_for_html(html.unescape(post[DESCRIPTION_KEY])).strip('"')
         safe_post_link = sanitize_for_html(html.unescape(post[LINK_KEY]))
 

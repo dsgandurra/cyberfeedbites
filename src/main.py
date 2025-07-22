@@ -23,8 +23,9 @@ import time
 import argparse
 import traceback
 import sys
+from collections import defaultdict
 
-from rss_processor import process_rss_feed
+from rss_reader import process_rss_feed
 from output_writer import write_feed_to_html, write_feed_to_csv, write_feed_to_json
 from config import (
     MAX_DAYS_BACK,
@@ -43,9 +44,11 @@ from config import (
     TIMEZONE_PRINT,
     MAX_LENGTH_DESCRIPTION,
     MAX_ALLOWED_LENGTH_DESCRIPTION,
-    EXCLUDE_KEYWORDS
+    EXCLUDE_KEYWORDS,
+    FEED_TITLE_KEY,
+    FEED_URL_KEY
 )
-from utils import print_skipped_article
+from utils import print_feed_details
 
 def validate_start(value):
     """Ensure that start is less than or equal to MAX_DAYS_BACK to limit output."""
@@ -138,9 +141,10 @@ def parse_arguments():
     )
 
     parser.add_argument(
-        "--no-html-img",
+        "--html-img",
         action="store_true",
-        help="Exclude images from the HTML output."
+        default=False,
+        help="Include images in the HTML output. Default is False."
     )
 
     parser.add_argument(
@@ -151,10 +155,10 @@ def parse_arguments():
     )
 
     parser.add_argument(
-    "--exclude-keywords",
-    action="store_true",
-    default=False,
-    help="Enable exclusion of entries containing specific keywords. Default is False."
+        "--exclude-keywords",
+        action="store_true",
+        default=False,
+        help="Enable exclusion of articles containing specific keywords. Default is False."
     )
 
     parser.add_argument(
@@ -165,10 +169,25 @@ def parse_arguments():
     )
 
     parser.add_argument(
+        "--print-retrieved",
+        action="store_true",
+        default=False,
+        help="Print retrieved articles at the end of processing. Default is False."
+    )
+
+    parser.add_argument(
         "--print-skipped",
         action="store_true",
         default=False,
-        help="Print skipped entries at the end of processing. Default is False."
+        help="Print skipped articles at the end of processing. Default is False."
+    )
+
+    parser.add_argument(
+        "--order-by",
+        type=str,
+        choices=["date", "title_date"],
+        default="date",
+        help="Order for HTML output: 'date' (default) or 'title_date'."
     )
 
     args = parser.parse_args()
@@ -197,8 +216,10 @@ def print_summary(
     start_date_print,
     end_date_print,
     opml_filename,
-    total_entries,
+    entries,
     skipped_entries,
+    print_retrieved_entries,
+    print_skipped_entries,
     html_outfilename,
     csv_outfilename,
     json_outfilename,
@@ -207,32 +228,48 @@ def print_summary(
     end_time
 ):
     """Prints a summary of the run."""
-    print(f"\n{FEED_SEPARATOR}")
+    print(f"{FEED_SEPARATOR}")
     print("Summary")
     print(f"{FEED_SEPARATOR}")
 
     print(f"Time range: {start_date_print} {TIMEZONE_PRINT} to {end_date_print} {TIMEZONE_PRINT}")
-    print(f"OPML file: {opml_filename}")
-    print(f"Total entries: {total_entries}")
-    if skipped_entries:
-        print(f"\nSkipped entries: {len(skipped_entries)}")
-        for entry in skipped_entries:
-            print_skipped_article(entry)
-        print(f"")
+    print(f"\nOPML file: {opml_filename}")
+
+    print(f"\nRetrieved articles: {len(entries)}")
+    if print_retrieved_entries:
+        grouped_entries = defaultdict(list)
+        for entry in entries:
+            key = (entry[FEED_TITLE_KEY], entry[FEED_URL_KEY])
+            grouped_entries[key].append(entry)
+
+        for (feedtitle, feed_url) in sorted(grouped_entries.keys()):
+            articles = grouped_entries[(feedtitle, feed_url)]
+            print_feed_details(feedtitle, feed_url, articles)
+
+    print(f"\nSkipped articles: {len(skipped_entries)}")
+    if print_skipped_entries:
+        grouped_skipped_entries = defaultdict(list)
+        for skipped in skipped_entries:
+            key = (skipped[FEED_TITLE_KEY], skipped[FEED_URL_KEY])
+            grouped_skipped_entries[key].append(skipped)
+
+        for (feedtitle, feed_url) in sorted(grouped_skipped_entries.keys()):
+            articles = grouped_skipped_entries[(feedtitle, feed_url)]
+            print_feed_details(feedtitle, feed_url, articles)
 
     if html_outfilename:
-        print(f"News written to file: {html_outfilename}")
+        print(f"\nHTML written to file: {html_outfilename}")
     if csv_outfilename:
-        print(f"CSV written to file: {csv_outfilename}")
+        print(f"\nCSV written to file: {csv_outfilename}")
     if json_outfilename:
-        print(f"json written to file: {json_outfilename}")
+        print(f"\njson written to file: {json_outfilename}")
 
     if errors:
-        print("Feeds that failed to fetch (check individual entries log for more info):")
-        for feedtitle, feed_url in errors:
-            print(f"\t- {feedtitle}: {feed_url}")
+        print("\nFeeds that failed to fetch:")
+        for feedtitle, feed_url, exception in errors:
+            print(f"\t- {feedtitle}: {feed_url}: {exception}")
 
-    print(f"Total execution time: {end_time - start_time:.4f} seconds")
+    print(f"\nTotal execution time: {end_time - start_time:.2f} seconds")
     print(f"{FEED_SEPARATOR}")
 
 def main():
@@ -259,7 +296,9 @@ def main():
                 # Use default EXCLUDE_KEYWORDS from config if no file provided
                 exclude_keywords = [kw.lower() for kw in EXCLUDE_KEYWORDS]
 
+        print_retrieved_entries = args.print_retrieved
         print_skipped_entries = args.print_skipped
+        order_by = args.order_by
 
         start_time = time.time()
         current_date = datetime.now(timezone.utc)        
@@ -305,7 +344,7 @@ def main():
             json_outfilename = os.path.join(json_folder, f"{out_filename_prefix}_{current_date_string_filename_suffix}.json")
 
         if "html" in output_formats:
-            include_images = not args.no_html_img
+            include_images = args.html_img
             write_feed_to_html(
             all_entries,
             html_outfilename,
@@ -315,6 +354,7 @@ def main():
             opml_text,
             opml_title,
             opml_category,
+            order_by,
             include_images
         )
 
@@ -347,8 +387,10 @@ def main():
             start_date_print = start_date_string_print,
             end_date_print = end_date_string_print,
             opml_filename = opml_filename,
-            total_entries = len(all_entries),
-            skipped_entries = skipped_entries if print_skipped_entries else None,
+            entries = all_entries,
+            skipped_entries = skipped_entries,
+            print_retrieved_entries = print_retrieved_entries,
+            print_skipped_entries = print_skipped_entries,
             html_outfilename = html_outfilename,
             csv_outfilename = csv_outfilename,
             json_outfilename = json_outfilename,

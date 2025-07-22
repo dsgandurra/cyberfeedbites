@@ -16,22 +16,57 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-import ssl
 import xml.etree.ElementTree as ET
 import os
 from datetime import datetime, timezone
+import aiohttp
+import asyncio
 import feedparser
+import ssl
 import requests
 import re
+from asyncio.proactor_events import _ProactorBasePipeTransport
 
-from utils import get_description, print_feed_details, clean_articles, truncate_string, get_published_date
+from utils import get_description, clean_articles, format_title_for_print, get_published_date
 from config import (
     XMLURL_KEY, UPDATED_PARSED_KEY, FEED_URL_KEY, BODY_KEY, OUTLINE_KEY, 
     TEXT_KEY, TITLE_KEY, LINK_KEY, DESCRIPTION_KEY, PUBLISHED_DATE_KEY, 
     CHANNEL_IMAGE_KEY, ICON_URL_KEY, FEED_TITLE_KEY, IMAGE_KEY, ICON_KEY, 
     LOGO_KEY, HREF_KEY, URL_KEY, CATEGORY_KEY, DEFAULT_REQUEST_HEADERS, 
-    HTTP_REQUEST_TIMEOUT, KEYWORD_EXCEPTIONS, SKIPPED_REASON,
+    HTTP_REQUEST_TIMEOUT, KEYWORD_EXCEPTIONS, SKIPPED_REASON
 )
+
+_original_call_connection_lost = _ProactorBasePipeTransport._call_connection_lost
+
+def process_rss_feed(opml_filename, start_date, end_date, max_length_description, exclude_keywords):
+    """Handles the RSS feed processing asynchronously via run_feeds."""
+    try:
+        feeds, icon_map, opml_text, opml_title, opml_category = read_opml(opml_filename)
+    except FileNotFoundError as e:
+        raise FileNotFoundError(f"The OPML file '{opml_filename}' does not exist.") from e
+    except ET.ParseError as e:
+        msg = f"The OPML file '{opml_filename}' is not well-formed XML: {e}"
+        raise ET.ParseError(msg) from e
+    except Exception as e:
+        raise RuntimeError(f"Error reading OPML file '{opml_filename}': {e}") from e
+
+    sorted_feeds = sorted(feeds, key=lambda feed: feed[0])
+    
+    # Call async runner
+    all_entries, skipped_entries, errors = asyncio.run(
+        process_all_feeds (sorted_feeds, start_date, end_date, max_length_description, exclude_keywords)
+    )
+    
+    return all_entries, skipped_entries, icon_map, opml_text, opml_title, opml_category, errors
+
+def _patched_call_connection_lost(self, exc):
+    try:
+        _original_call_connection_lost(self, exc)
+    except OSError:
+        # Ignore OSError from shutdown if socket already closed
+        pass
+
+_ProactorBasePipeTransport._call_connection_lost = _patched_call_connection_lost
 
 def read_opml(file_path):
     """Reads OPML file and extracts feed URLs and icons."""
@@ -102,62 +137,15 @@ def matches_exclude_keywords(text: str, exclude_keywords: set[str], exceptions: 
             return keyword
     return None
 
-def fetch_articles(feed_url, start_date, end_date, max_length_description, exclude_keywords=None):
-    """Fetches articles from an RSS feed in the given time range."""
-    headers = DEFAULT_REQUEST_HEADERS
-    timeout = HTTP_REQUEST_TIMEOUT
-    exclude_keywords = set(k.lower() for k in exclude_keywords or [])
-    try:
-        feed = feedparser.parse(feed_url)
-        if feed.bozo:
-            # fallback to requests + cleaning
-            response = requests.get(feed_url, headers=headers, timeout=timeout)
-            response.raise_for_status()
-            cleaned_content = clean_feed_content(response.content)
-            feed = feedparser.parse(cleaned_content)
-            if feed.bozo:
-                raise RuntimeError(f"Cleaned feed parsing error: {feed.bozo_exception}")
-
-    except ssl.SSLError as e:
-        if feed_url.startswith("https://"):
-            fallback_url = "http://" + feed_url[len("https://"):]
-            try:
-                feed = feedparser.parse(fallback_url)
-                if feed.bozo:
-                    # fallback to requests + cleaning on fallback URL
-                    response = requests.get(fallback_url, headers=headers, timeout=timeout)
-                    response.raise_for_status()
-                    cleaned_content = clean_feed_content(response.content)
-                    feed = feedparser.parse(cleaned_content)
-                    if feed.bozo:
-                        raise RuntimeError(f"Fallback cleaned feed parsing error: {feed.bozo_exception}")
-                feed_url = fallback_url
-            except Exception:
-                # final fallback: requests + cleaning on original URL
-                try:
-                    response = requests.get(feed_url, headers=headers, timeout=timeout)
-                    response.raise_for_status()
-                    cleaned_content = clean_feed_content(response.content)
-                    feed = feedparser.parse(cleaned_content)
-                    if feed.bozo:
-                        raise RuntimeError(f"Requests fallback feed parsing error: {feed.bozo_exception}")
-                except Exception as req_e:
-                    raise RuntimeError(f"SSL error on {feed_url}, fallback to {fallback_url} and requests fallback all failed: {e}; {req_e}")
-        else:
-            raise RuntimeError(f"SSL error while accessing {feed_url}: {e}")
-
-    except Exception as e:
-        raise RuntimeError(f"Failed to fetch feed {feed_url}: {e}")
-
+def process_feed_entries(feed, feed_url, start_date, end_date, exclude_keywords, max_length_description):
     channel_updated = feed.feed.get(UPDATED_PARSED_KEY)
     if channel_updated:
         channel_updated_date = datetime(*channel_updated[:6], tzinfo=timezone.utc)
         if channel_updated_date < start_date:
-            return [], []  # No new updates since start_date, skip entries
+            return [], []
 
     image_info = feed.feed.get(IMAGE_KEY) or feed.feed.get(ICON_KEY) or feed.feed.get(LOGO_KEY) or {}
     channel_image = None
-
     if isinstance(image_info, dict):
         channel_image = image_info.get(HREF_KEY) or image_info.get(URL_KEY)
     elif isinstance(image_info, str):
@@ -173,7 +161,6 @@ def fetch_articles(feed_url, start_date, end_date, max_length_description, exclu
             link = entry.get(LINK_KEY, '')
             category = entry.get(CATEGORY_KEY, '')
             full_text_description = get_description(entry)
-
             combined_text = (title + " " + category + " " + full_text_description).lower()
             matched_keyword = matches_exclude_keywords(combined_text, exclude_keywords, KEYWORD_EXCEPTIONS)
 
@@ -197,23 +184,134 @@ def fetch_articles(feed_url, start_date, end_date, max_length_description, exclu
 
     return recent_articles_cleaned, skipped_articles_cleaned
 
-def process_feed(feedtitle, feed_url, start_date, end_date, max_length_description, lock, all_entries_queue, skipped_entries_queue, exclude_keywords):
-    """Processes a feed source and fetches its recent articles."""
+def handle_asyncio_exception(loop, context):
+    msg = context.get("message", "")
+    if "ProactorBasePipeTransport" in msg:
+        # Suppress this specific warning
+        return
+    loop.default_exception_handler(context)
+
+loop = asyncio.get_event_loop()
+loop.set_exception_handler(handle_asyncio_exception)
+
+async def fetch_articles_async(session, feed_url, start_date, end_date, max_length_description, exclude_keywords=None):
+    exclude_keywords = set(k.lower() for k in exclude_keywords or [])
+    headers = DEFAULT_REQUEST_HEADERS
+
     try:
-        recent_articles, skipped_articles = fetch_articles(feed_url, start_date, end_date, max_length_description, exclude_keywords)
-        print_feed_details(feedtitle, feed_url, recent_articles, skipped_articles, lock)
-        if recent_articles:
-            for entry in recent_articles:
-                entry[FEED_TITLE_KEY] = feedtitle 
-                all_entries_queue.put(entry)
-        if skipped_articles:
-            for skipped_entry in skipped_articles:
-                skipped_entry[FEED_TITLE_KEY] = feedtitle
-                skipped_entries_queue.put(skipped_entry)
-        return recent_articles, skipped_articles or [], None
+        async with session.get(feed_url, headers=headers) as response:
+            response.raise_for_status()
+            content = await response.read()
+        cleaned_content = clean_feed_content(content)
+        feed = feedparser.parse(cleaned_content)
+        if feed.bozo:
+            raise RuntimeError(f"Feed parsing error: {feed.bozo_exception}")
+
+    except aiohttp.ClientResponseError as e:
+        if e.status == 403:
+            loop = asyncio.get_running_loop()
+            return await loop.run_in_executor(None, fetch_articles_sync_fallback, feed_url, start_date, end_date, max_length_description, exclude_keywords)
+        else:
+            raise RuntimeError(f"Failed to fetch or parse feed {feed_url}: {e}")
+
+    return process_feed_entries(feed, feed_url, start_date, end_date, exclude_keywords, max_length_description)
+
+
+def fetch_articles_sync_fallback(feed_url, start_date, end_date, max_length_description, exclude_keywords):
+    headers = DEFAULT_REQUEST_HEADERS
+    timeout = HTTP_REQUEST_TIMEOUT
+    exclude_keywords = set(k.lower() for k in exclude_keywords or [])
+
+    def try_parse_feed(url):
+        feed = feedparser.parse(url)
+        if feed.bozo:
+            # fallback to requests + cleaning
+            response = requests.get(url, headers=headers, timeout=timeout)
+            response.raise_for_status()
+            cleaned_content = clean_feed_content(response.content)
+            feed = feedparser.parse(cleaned_content)
+            if feed.bozo:
+                raise RuntimeError(f"Cleaned feed parsing error: {feed.bozo_exception}")
+        return feed
+
+    try:
+        feed = try_parse_feed(feed_url)
+        return process_feed_entries(feed, feed_url, start_date, end_date, exclude_keywords, max_length_description)
+
+    except ssl.SSLError as e:
+        if feed_url.startswith("https://"):
+            fallback_url = "http://" + feed_url[len("https://"):]
+            try:
+                feed = try_parse_feed(fallback_url)
+                return process_feed_entries(feed, fallback_url, start_date, end_date, exclude_keywords, max_length_description)
+            except Exception:
+                # final fallback: requests + cleaning on original URL
+                try:
+                    response = requests.get(feed_url, headers=headers, timeout=timeout)
+                    response.raise_for_status()
+                    cleaned_content = clean_feed_content(response.content)
+                    feed = feedparser.parse(cleaned_content)
+                    if feed.bozo:
+                        raise RuntimeError(f"Requests fallback feed parsing error: {feed.bozo_exception}")
+                    return process_feed_entries(feed, feed_url, start_date, end_date, exclude_keywords, max_length_description)
+                except Exception as req_e:
+                    raise RuntimeError(f"SSL error on {feed_url}, fallback to {fallback_url} and requests fallback all failed: {e}; {req_e}")
+        else:
+            raise RuntimeError(f"SSL error while accessing {feed_url}: {e}")
+
     except Exception as e:
-        print_feed_details(feedtitle, feed_url, [], [], lock)  # lock acquired internally
-        with lock:
-            print(f"\nFailed to fetch feed: {feedtitle} ({feed_url})")
-            print(f"Error: {e}")
-        return [], (feedtitle, feed_url)
+        raise RuntimeError(f"Fallback sync fetch failed for {feed_url}: {e}")
+
+
+async def process_feed_async(session, feedtitle, feed_url, start_date, end_date, max_length_description, exclude_keywords):
+    try:
+        recent_articles, skipped_articles = await fetch_articles_async(
+            session,
+            feed_url,
+            start_date,
+            end_date,
+            max_length_description,
+            exclude_keywords
+        )
+
+        for entry in recent_articles:
+            entry[FEED_TITLE_KEY] = feedtitle
+            entry[FEED_URL_KEY] = feed_url
+
+        for entry in skipped_articles:
+            entry[FEED_TITLE_KEY] = feedtitle
+            entry[FEED_URL_KEY] = feed_url
+
+        print(f"Processed {format_title_for_print(feedtitle)} {len(recent_articles)} article{'s' if len(recent_articles) != 1 else ''}")
+        return recent_articles, skipped_articles, None
+
+    except ConnectionResetError:
+        print(f"Connection reset while processing: {feedtitle} ({feed_url})")
+        return [], [], (feedtitle, feed_url, ConnectionResetError("Connection reset"))
+
+    except Exception as e:
+        print(f"Error processing: {feedtitle} ({feed_url})")
+        return [], [], (feedtitle, feed_url, e)
+
+async def process_all_feeds(feeds, start_date, end_date, max_length_description, exclude_keywords, max_concurrent=10):
+    semaphore = asyncio.Semaphore(max_concurrent)
+    async with aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=HTTP_REQUEST_TIMEOUT)) as session:
+
+        async def sem_task(feedtitle, feed_url):
+            async with semaphore:
+                return await process_feed_async(session, feedtitle, feed_url, start_date, end_date, max_length_description, exclude_keywords)
+
+        tasks = [sem_task(title, url) for title, url in feeds]
+        results = await asyncio.gather(*tasks)
+
+    all_entries = []
+    skipped_entries = []
+    errors = []
+
+    for recent, skipped, error in results:
+        all_entries.extend(recent)
+        skipped_entries.extend(skipped)
+        if error is not None:
+            errors.append(error)
+
+    return all_entries, skipped_entries, errors

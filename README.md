@@ -10,6 +10,7 @@ CyberFeedBites is a lightweight Python tool that provides an overview of recent 
 - Fetches cybersecurity news from the past N days (default: 7 days).
 - Generates HTML, JSON and CSV files with news titles, brief descriptions, and links to articles, sorted by date, providing an overview of the latest cybersecurity news.  
 - Includes a customisable OPML file with a list of notable cybersecurity RSS sources.
+- Supports asynchronous HTTP fetching using `aiohttp` for improved performance.
 
 ## Quick Start
 CyberFeedBites is ready to use once dependencies are installed. To run it as is, follow these steps to fetch the latest 24-hour articles from the sources listed in the provided `cybersecnews-sources.opml` file and generate a summary as HTML, JSON and CSV files saved in the `data/html_reports/` and `data/csv_reports/` directories:
@@ -53,6 +54,8 @@ The required packages are:
 
 - `feedparser`: For parsing RSS feeds.
 - `beautifulsoup4`: For HTML parsing and manipulation.
+- `aiohttp`: For asynchronous HTTP requests to speed up feed fetching.
+- `requests`: For robust HTTP fetching with custom headers.
 
 ## Usage
 
@@ -65,7 +68,7 @@ The required packages are:
 2. Run CyberFeedBites with optional parameters:
 
     ```bash
-    python src/main.py [--start <start_days_ago>] [--end <end_days_ago>] [--opml <opml_file_path>] [--output-format <formats>] [--output-html-folder <folder>] [--output-csv-folder <folder>] [--output-json-folder <folder>] [--align-start-to-midnight] [--align-end-to-midnight] [--no-html-img] [--max-length-description <length>] [--exclude-keywords] [--exclude-keywords-file <file>]
+    python src/main.py [--start <start_days_ago>] [--end <end_days_ago>] [--opml <opml_file_path>] [--output-format <formats>] [--output-html-folder <folder>] [--output-csv-folder <folder>] [--output-json-folder <folder>] [--align-start-to-midnight] [--align-end-to-midnight] [--html-img] [--max-length-description <length>] [--exclude-keywords] [--exclude-keywords-file <file>] [--print-retrieved] [--print-skipped] [--order-by {date,title_date}]
     ```
 
 - `--start`: Number of days ago to start fetching news (default: 1).
@@ -77,10 +80,13 @@ The required packages are:
 - `--output-json-folder`: Folder for JSON output (default configured).
 - `--align-start-to-midnight`: Align start date to midnight.
 - `--align-end-to-midnight`: Align end date to 23:59:59.
-- `--no-html-img`: Exclude images from the HTML output.
 - `--max-length-description`: Maximum length for RSS feed descriptions (default: 200).
 - `--exclude-keywords`: Enable exclusion of entries containing specific keywords.
 - `--exclude-keywords-file`: Path to a file containing keywords to exclude, one per line. Overrides default keywords.
+- `--print-retrieved`: Print retrieved articles summary at the end.
+- `--print-skipped`: Print skipped articles summary at the end.
+- `--order-by`: Order HTML output by `date` (default) or `title_date`.
+- `--html-img`: Include images in the HTML output (default is False).
 
 Examples:
 - Fetch news from the last 1 day (default):
@@ -158,9 +164,3 @@ CyberFeedBites expects **each OPML file to include only one top-level `<outline>
 ## License
 
 This project is licensed under the GPL-3.0 License - see the [LICENSE](LICENSE) file for details.
-
-## Acknowledgements
-
-- CyberFeedBites uses the `feedparser` library for parsing RSS feeds.
-- The `beautifulsoup4` library is used for HTML parsing and sanitising descriptions.
-- The `requests` library is used for robust HTTP fetching with custom headers.
