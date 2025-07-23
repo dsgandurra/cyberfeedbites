@@ -7,20 +7,26 @@
     <title>{opml_title} - {opml_text} from {start_date_str} {timezone_print} to {end_date_str} {timezone_print}</title>
     <link href="https://cdn.jsdelivr.net/npm/bootswatch@5.3.1/dist/materia/bootstrap.min.css" rel="stylesheet" />
     <link rel="stylesheet" type="text/css" href="../templates/style.css">
+        <script src="../templates/sorttable.js"></script>
 </head>
 <body>
     <h1>Title: {opml_title}</h1>
     <h2>Category: {opml_category}</h2>
     <h2>{opml_text} from {start_date_str} {timezone_print} to {end_date_str} {timezone_print}</h2>
     <div class="table-wrapper">
-        <table>
-            <tr>
-                <th>Date/Time (UTC)</th>
-                <th colspan="2">Website</th>
-                <th>Title</th>
-                <th>Description</th>
-            </tr>
-            {rows}
+        <table class="sortable">
+            <thead>
+                <tr>
+                    <th>Date/Time (UTC)</th>
+                    <th>Website</th>
+                    <th></th>
+                    <th>Title</th>
+                    <th>Description</th>
+                </tr>
+            </thead>
+            <tbody>
+                {rows}
+            </tbody>
         </table>
     </div>
     <footer style="text-align:center; margin-top: 20px; font-size: 0.9em; color: #666;">

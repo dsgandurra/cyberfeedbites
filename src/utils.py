@@ -20,6 +20,8 @@ import html
 from bs4 import BeautifulSoup
 from urllib.parse import urlparse
 from datetime import datetime, timezone
+import re
+import tldextract
 
 from config import (
     FEED_SEPARATOR, SUMMARY_KEY, TITLE_KEY, LINK_KEY, FEED_URL_KEY, CHANNEL_IMAGE_KEY,
@@ -41,8 +43,10 @@ def get_published_date(entry, fallback_to_now=False):
 
 
 def html_to_plain_text(html_str):
-    """Converts HTML to plain text using BeautifulSoup."""
+    """Converts HTML to plain text using BeautifulSoup, only if input looks like HTML."""
     try:
+        if not re.search(r'<[^>]+>', html_str):
+            return html_str
         soup = BeautifulSoup(html_str, 'html.parser')
         return soup.get_text()
     except Exception as e:
@@ -66,17 +70,20 @@ def get_description(entry):
     Falls back to summary if description is missing,
     and finally extracts plain text from HTML content if both are unavailable.
     """
-    description = entry.get(DESCRIPTION_KEY) or entry.get(SUMMARY_KEY)
+    description = entry.get(DESCRIPTION_KEY)
+
+    if not description:
+        description = entry.get(SUMMARY_KEY)
 
     if not description:
         content = entry.get(CONTENT_KEY)
         if isinstance(content, list) and content:
-            content = content[0].get('value', '')
-        description = content or ""
+            description = content[0].get('value', '')
 
-    plain_text = html_to_plain_text(description).strip().replace('\n', ' ')
+    if not description:
+        return ""
 
-    return plain_text
+    return html_to_plain_text(description).strip().replace('\n', ' ')
 
 def truncate_description(plain_text_description, max_length_description):
     """Formats the description of the RSS entry."""
@@ -127,10 +134,10 @@ def sanitize_for_csv(text):
     return text
 
 def get_website_name(url):
-    """Extracts the website name from a URL."""
     try:
-        parsed_url = urlparse(url)
-        return parsed_url.netloc
+        ext = tldextract.extract(url)
+        # domain + suffix forms the registered domain
+        return ext.domain + '.' + ext.suffix
     except Exception as e:
         print(f"Error parsing URL {url}: {e}")
         return "Unknown"

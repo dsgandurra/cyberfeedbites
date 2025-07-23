@@ -56,6 +56,7 @@ The required packages are:
 - `beautifulsoup4`: For HTML parsing and manipulation.
 - `aiohttp`: For asynchronous HTTP requests to speed up feed fetching.
 - `requests`: For robust HTTP fetching with custom headers.
+- `tldextract` — extracting domain names from URLs
 
 ## Usage
 
@@ -159,7 +160,7 @@ CyberFeedBites expects **each OPML file to include only one top-level `<outline>
 
 - The `MAX_DAYS_BACK` parameter in `config.py` limits the maximum number of days allowed as input to prevent fetching an excessive number of RSS entries. You can increase this limit by editing the variable in `config.py`.
 - You can also add or remove RSS feed sources by editing the `cybersecnews-sources.opml` file. Alternatively, you can use a different OPML file as parameter, allowing multiple feed sets to be maintained separately.
-- CyberFeedBites generates HTML output based on a template located in the `data/templates` folder. You can modify this template (`template.html`) and the accompanying `style.css` for customisation. Note that if you choose a different directory to store the html reports, make sure to reference that style CSS.
+- CyberFeedBites generates HTML output based on a template located in the `data/templates` folder. The template also includes `sorttable.js` to enable sortable tables. You can modify `template.html` and the accompanying `style.css` for customisation. If you choose a different directory to store the HTML reports, ensure the style CSS and `sorttable.js` references are updated accordingly.
 
 ## License
 
