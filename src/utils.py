@@ -155,7 +155,10 @@ def print_feed_details(feedtitle, feed_url, recent_articles):
 
 def print_article(entry):
     """Helper function to print article details."""
-    print(f"\t[{entry[TITLE_KEY]}] [{entry[DESCRIPTION_KEY]}] [{entry[LINK_KEY]}] [{entry[PUBLISHED_DATE_KEY]}]")
+    if(not entry[SKIPPED_REASON]):
+        print(f"\t[{entry[TITLE_KEY]}] [{entry[DESCRIPTION_KEY]}] [{entry[LINK_KEY]}] [{entry[PUBLISHED_DATE_KEY]}]")
+    else:
+        print(f"\t[{entry[TITLE_KEY]}] [{entry[DESCRIPTION_KEY]}] [{entry[LINK_KEY]}] [{entry[PUBLISHED_DATE_KEY]}] [{entry[SKIPPED_REASON]}]")
 
 def format_title_for_print(title):
     if len(title) > MAX_FEEDTITLE_LEN_PRINT:

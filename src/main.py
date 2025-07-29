@@ -46,7 +46,8 @@ from config import (
     MAX_ALLOWED_LENGTH_DESCRIPTION,
     EXCLUDE_KEYWORDS,
     FEED_TITLE_KEY,
-    FEED_URL_KEY
+    FEED_URL_KEY,
+    CYBERSECURITY_KEYWORDS
 )
 from utils import print_feed_details
 
@@ -169,6 +170,20 @@ def parse_arguments():
     )
 
     parser.add_argument(
+        "--aggressive-filtering",
+        action="store_true",
+        default=False,
+        help="Enable removal of articles that do NOT include any security keywords."
+    )
+
+    parser.add_argument(
+        "--aggressive-keywords-file",
+        type=str,
+        default=None,
+        help="Path to a file containing security keywords to keep, one per line. Overrides default cybersecurity keywords."
+    )
+
+    parser.add_argument(
         "--print-retrieved",
         action="store_true",
         default=False,
@@ -208,9 +223,9 @@ def prepare_output_folder(folder_path):
     if folder_path:
         os.makedirs(folder_path, exist_ok=True)
 
-def run_processing(opml_filename, start_date, end_date, max_length_description, exclude_keywords):
+def run_processing(opml_filename, start_date, end_date, max_length_description, exclude_keywords, aggressive_keywords):
     """Processes the RSS feed and returns the results needed for output."""
-    return process_rss_feed(opml_filename, start_date, end_date, max_length_description, exclude_keywords)
+    return process_rss_feed(opml_filename, start_date, end_date, max_length_description, exclude_keywords, aggressive_keywords)
 
 def print_summary(
     start_date_print,
@@ -267,7 +282,8 @@ def print_summary(
     if errors:
         print("\nFeeds that failed to fetch:")
         for feedtitle, feed_url, exception in errors:
-            print(f"\t- {feedtitle}: {feed_url}: {exception}")
+            print(f"\t- {feedtitle}: {feed_url}")
+            traceback.print_exception(type(exception), exception, exception.__traceback__)
 
     print(f"\nTotal execution time: {end_time - start_time:.2f} seconds")
     print(f"{FEED_SEPARATOR}")
@@ -282,6 +298,22 @@ def main():
         html_folder = args.output_html_folder or HTML_REPORT_FOLDER
         csv_folder = args.output_csv_folder or CSV_REPORT_FOLDER
         json_folder = args.output_json_folder or JSON_REPORT_FOLDER
+
+        aggressive_filtering = args.aggressive_filtering
+        aggressive_keywords = []
+
+        if aggressive_filtering:
+            if args.aggressive_keywords_file:
+                try:
+                    with open(args.aggressive_keywords_file, "r", encoding="utf-8") as f:
+                        aggressive_keywords = [line.strip().lower() for line in f if line.strip()]
+                except Exception as e:
+                    print(f"Error reading aggressive keywords file '{args.aggressive_keywords_file}': {e}")
+                    sys.exit(1)
+            else:
+                aggressive_keywords = [kw.lower() for kw in CYBERSECURITY_KEYWORDS]
+        else:
+            aggressive_keywords = []
 
         exclude_keywords = []
         if args.exclude_keywords:
@@ -320,7 +352,7 @@ def main():
         start_date_string_print_json = start_date.strftime(TEXT_DATE_FORMAT_JSON)
         end_date_string_print_json =  end_date.strftime(TEXT_DATE_FORMAT_JSON)
 
-        all_entries, skipped_entries, icon_map, opml_text, opml_title, opml_category, errors = run_processing(opml_filename, start_date, end_date, max_length_description, exclude_keywords)
+        all_entries, skipped_entries, icon_map, opml_text, opml_title, opml_category, errors = run_processing(opml_filename, start_date, end_date, max_length_description, exclude_keywords, aggressive_keywords)
         
         base = opml_category or opml_text
         if not base:

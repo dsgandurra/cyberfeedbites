@@ -88,6 +88,8 @@ The required packages are:
 - `--print-skipped`: Print skipped articles summary at the end.
 - `--order-by`: Order HTML output by `date` (default) or `title_date`.
 - `--html-img`: Include images in the HTML output (default is False).
+- `--aggressive-filtering`: Enable removal of articles that do NOT include any security keywords. Default is False.
+- `--aggressive-keywords-file`: Path to a file containing security keywords to keep, one per line. Overrides default cybersecurity keywords.
 
 Examples:
 - Fetch news from the last 1 day (default):

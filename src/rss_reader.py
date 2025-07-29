@@ -33,12 +33,12 @@ from config import (
     TEXT_KEY, TITLE_KEY, LINK_KEY, DESCRIPTION_KEY, PUBLISHED_DATE_KEY, 
     CHANNEL_IMAGE_KEY, ICON_URL_KEY, FEED_TITLE_KEY, IMAGE_KEY, ICON_KEY, 
     LOGO_KEY, HREF_KEY, URL_KEY, CATEGORY_KEY, DEFAULT_REQUEST_HEADERS, 
-    HTTP_REQUEST_TIMEOUT, KEYWORD_EXCEPTIONS, SKIPPED_REASON
+    HTTP_REQUEST_TIMEOUT, KEYWORD_EXCEPTIONS, SKIPPED_REASON, CYBERSECURITY_KEYWORDS
 )
 
 _original_call_connection_lost = _ProactorBasePipeTransport._call_connection_lost
 
-def process_rss_feed(opml_filename, start_date, end_date, max_length_description, exclude_keywords):
+def process_rss_feed(opml_filename, start_date, end_date, max_length_description, exclude_keywords, aggressive_keywords):
     """Handles the RSS feed processing asynchronously via run_feeds."""
     try:
         feeds, icon_map, opml_text, opml_title, opml_category = read_opml(opml_filename)
@@ -54,7 +54,7 @@ def process_rss_feed(opml_filename, start_date, end_date, max_length_description
     
     # Call async runner
     all_entries, skipped_entries, errors = asyncio.run(
-        process_all_feeds (sorted_feeds, start_date, end_date, max_length_description, exclude_keywords)
+        process_all_feeds (sorted_feeds, start_date, end_date, max_length_description, exclude_keywords, aggressive_keywords)
     )
     
     return all_entries, skipped_entries, icon_map, opml_text, opml_title, opml_category, errors
@@ -116,6 +116,31 @@ def clean_feed_content(content):
     
     return text.encode('utf-8')
 
+def matches_aggressive_keywords(tags, combined_text, aggressive_keywords):
+    """
+    Returns True if any aggressive keyword is found in tags or combined_text,
+    or if aggressive_keywords is empty (no filtering needed).
+    """
+    if not aggressive_keywords:
+        return True
+
+    aggressive_keywords_lower = {kw.lower() for kw in aggressive_keywords}
+
+    # Check tags: any aggressive keyword in any tag's 'term' (case-insensitive)
+    if any(
+        keyword in tag.get('term', '').lower()
+        for tag in tags
+        for keyword in aggressive_keywords_lower
+    ):
+        return True
+
+    # Check combined_text for any aggressive keyword
+    combined_text_lower = combined_text.lower()
+    if any(keyword in combined_text_lower for keyword in aggressive_keywords_lower):
+        return True
+
+    return False
+
 def matches_exclude_keywords(text: str, exclude_keywords: set[str], exceptions: dict[str, list[str]] = None) -> str | None:
     """
     Returns the first matched keyword from exclude_keywords in text,
@@ -137,7 +162,7 @@ def matches_exclude_keywords(text: str, exclude_keywords: set[str], exceptions: 
             return keyword
     return None
 
-def process_feed_entries(feed, feed_url, start_date, end_date, exclude_keywords, max_length_description):
+def process_feed_entries(feed, feed_url, start_date, end_date, exclude_keywords, aggressive_keywords, max_length_description):
     channel_updated = feed.feed.get(UPDATED_PARSED_KEY)
     if channel_updated:
         channel_updated_date = datetime(*channel_updated[:6], tzinfo=timezone.utc)
@@ -162,7 +187,9 @@ def process_feed_entries(feed, feed_url, start_date, end_date, exclude_keywords,
             category = entry.get(CATEGORY_KEY, '')
             full_text_description = get_description(entry)
             combined_text = (title + " " + category + " " + full_text_description).lower()
+            tags = entry.get('tags', [])
             matched_keyword = matches_exclude_keywords(combined_text, exclude_keywords, KEYWORD_EXCEPTIONS)
+            aggressive_keyword = matches_aggressive_keywords(tags, combined_text, aggressive_keywords)
 
             article_data = {
                 FEED_URL_KEY: feed_url,
@@ -173,7 +200,10 @@ def process_feed_entries(feed, feed_url, start_date, end_date, exclude_keywords,
                 CHANNEL_IMAGE_KEY: channel_image
             }
 
-            if matched_keyword:
+            if not aggressive_keyword:
+                article_data[SKIPPED_REASON] = f"Not cybersecurity keyword found:"
+                skipped_articles.append(article_data)
+            elif matched_keyword:
                 article_data[SKIPPED_REASON] = f"Matched keyword: {matched_keyword}"
                 skipped_articles.append(article_data)
             else:
@@ -194,7 +224,7 @@ def handle_asyncio_exception(loop, context):
 loop = asyncio.get_event_loop()
 loop.set_exception_handler(handle_asyncio_exception)
 
-async def fetch_articles_async(session, feed_url, start_date, end_date, max_length_description, exclude_keywords=None):
+async def fetch_articles_async(session, feed_url, start_date, end_date, max_length_description, exclude_keywords=None, aggressive_keywords=None):
     exclude_keywords = set(k.lower() for k in exclude_keywords or [])
     headers = DEFAULT_REQUEST_HEADERS
 
@@ -210,17 +240,18 @@ async def fetch_articles_async(session, feed_url, start_date, end_date, max_leng
     except aiohttp.ClientResponseError as e:
         if e.status == 403:
             loop = asyncio.get_running_loop()
-            return await loop.run_in_executor(None, fetch_articles_sync_fallback, feed_url, start_date, end_date, max_length_description, exclude_keywords)
+            return await loop.run_in_executor(None, fetch_articles_sync_fallback, feed_url, start_date, end_date, max_length_description, exclude_keywords, aggressive_keywords)
         else:
             raise RuntimeError(f"Failed to fetch or parse feed {feed_url}: {e}")
 
-    return process_feed_entries(feed, feed_url, start_date, end_date, exclude_keywords, max_length_description)
+    return process_feed_entries(feed, feed_url, start_date, end_date, exclude_keywords, aggressive_keywords, max_length_description)
 
 
-def fetch_articles_sync_fallback(feed_url, start_date, end_date, max_length_description, exclude_keywords):
+def fetch_articles_sync_fallback(feed_url, start_date, end_date, max_length_description, exclude_keywords, aggressive_keywords):
     headers = DEFAULT_REQUEST_HEADERS
     timeout = HTTP_REQUEST_TIMEOUT
     exclude_keywords = set(k.lower() for k in exclude_keywords or [])
+    aggressive_keywords = set(k.lower() for k in aggressive_keywords or [])
 
     def try_parse_feed(url):
         feed = feedparser.parse(url)
@@ -236,14 +267,14 @@ def fetch_articles_sync_fallback(feed_url, start_date, end_date, max_length_desc
 
     try:
         feed = try_parse_feed(feed_url)
-        return process_feed_entries(feed, feed_url, start_date, end_date, exclude_keywords, max_length_description)
+        return process_feed_entries(feed, feed_url, start_date, end_date, exclude_keywords, aggressive_keywords, max_length_description)
 
     except ssl.SSLError as e:
         if feed_url.startswith("https://"):
             fallback_url = "http://" + feed_url[len("https://"):]
             try:
                 feed = try_parse_feed(fallback_url)
-                return process_feed_entries(feed, fallback_url, start_date, end_date, exclude_keywords, max_length_description)
+                return process_feed_entries(feed, fallback_url, start_date, end_date, exclude_keywords, aggressive_keywords, max_length_description)
             except Exception:
                 # final fallback: requests + cleaning on original URL
                 try:
@@ -253,7 +284,7 @@ def fetch_articles_sync_fallback(feed_url, start_date, end_date, max_length_desc
                     feed = feedparser.parse(cleaned_content)
                     if feed.bozo:
                         raise RuntimeError(f"Requests fallback feed parsing error: {feed.bozo_exception}")
-                    return process_feed_entries(feed, feed_url, start_date, end_date, exclude_keywords, max_length_description)
+                    return process_feed_entries(feed, feed_url, start_date, end_date, exclude_keywords, aggressive_keywords, max_length_description)
                 except Exception as req_e:
                     raise RuntimeError(f"SSL error on {feed_url}, fallback to {fallback_url} and requests fallback all failed: {e}; {req_e}")
         else:
@@ -263,7 +294,7 @@ def fetch_articles_sync_fallback(feed_url, start_date, end_date, max_length_desc
         raise RuntimeError(f"Fallback sync fetch failed for {feed_url}: {e}")
 
 
-async def process_feed_async(session, feedtitle, feed_url, start_date, end_date, max_length_description, exclude_keywords):
+async def process_feed_async(session, feedtitle, feed_url, start_date, end_date, max_length_description, exclude_keywords, aggressive_keywords):
     try:
         recent_articles, skipped_articles = await fetch_articles_async(
             session,
@@ -271,7 +302,8 @@ async def process_feed_async(session, feedtitle, feed_url, start_date, end_date,
             start_date,
             end_date,
             max_length_description,
-            exclude_keywords
+            exclude_keywords,
+            aggressive_keywords
         )
 
         for entry in recent_articles:
@@ -293,13 +325,13 @@ async def process_feed_async(session, feedtitle, feed_url, start_date, end_date,
         print(f"Error processing: {feedtitle} ({feed_url})")
         return [], [], (feedtitle, feed_url, e)
 
-async def process_all_feeds(feeds, start_date, end_date, max_length_description, exclude_keywords, max_concurrent=10):
+async def process_all_feeds(feeds, start_date, end_date, max_length_description, exclude_keywords, aggressive_keywords, max_concurrent=10):
     semaphore = asyncio.Semaphore(max_concurrent)
     async with aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=HTTP_REQUEST_TIMEOUT)) as session:
 
         async def sem_task(feedtitle, feed_url):
             async with semaphore:
-                return await process_feed_async(session, feedtitle, feed_url, start_date, end_date, max_length_description, exclude_keywords)
+                return await process_feed_async(session, feedtitle, feed_url, start_date, end_date, max_length_description, exclude_keywords, aggressive_keywords)
 
         tasks = [sem_task(title, url) for title, url in feeds]
         results = await asyncio.gather(*tasks)

@@ -78,6 +78,10 @@ KEYWORD_EXCEPTIONS = {
     'sponsored': ['state-sponsored']
 }
 
+CYBERSECURITY_KEYWORDS = {
+    'security'
+}
+
 # Keys used in RSS feed entries
 SUMMARY_KEY = "summary"
 PUBLISHED_PARSED_KEY = "published_parsed"
