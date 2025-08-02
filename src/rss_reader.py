@@ -22,21 +22,17 @@ from datetime import datetime, timezone
 import aiohttp
 import asyncio
 import feedparser
-import ssl
 import requests
 import re
-from asyncio.proactor_events import _ProactorBasePipeTransport
 
 from utils import get_description, clean_articles, format_title_for_print, get_published_date
 from config import (
     XMLURL_KEY, UPDATED_PARSED_KEY, FEED_URL_KEY, BODY_KEY, OUTLINE_KEY, 
     TEXT_KEY, TITLE_KEY, LINK_KEY, DESCRIPTION_KEY, PUBLISHED_DATE_KEY, 
-    CHANNEL_IMAGE_KEY, ICON_URL_KEY, FEED_TITLE_KEY, IMAGE_KEY, ICON_KEY, 
+    CHANNEL_IMAGE_KEY, ICON_URL_KEY, IMAGE_KEY, ICON_KEY, FEED_TITLE_KEY,
     LOGO_KEY, HREF_KEY, URL_KEY, CATEGORY_KEY, DEFAULT_REQUEST_HEADERS, 
-    HTTP_REQUEST_TIMEOUT, KEYWORD_EXCEPTIONS, SKIPPED_REASON, CYBERSECURITY_KEYWORDS
+    HTTP_REQUEST_TIMEOUT, KEYWORD_EXCEPTIONS, SKIPPED_REASON, MAX_CONCURRENT_TASKS
 )
-
-_original_call_connection_lost = _ProactorBasePipeTransport._call_connection_lost
 
 def process_rss_feed(opml_filename, start_date, end_date, max_length_description, exclude_keywords, aggressive_keywords):
     """Handles the RSS feed processing asynchronously via run_feeds."""
@@ -52,21 +48,11 @@ def process_rss_feed(opml_filename, start_date, end_date, max_length_description
 
     sorted_feeds = sorted(feeds, key=lambda feed: feed[0])
     
-    # Call async runner
     all_entries, skipped_entries, errors = asyncio.run(
         process_all_feeds (sorted_feeds, start_date, end_date, max_length_description, exclude_keywords, aggressive_keywords)
     )
     
     return all_entries, skipped_entries, icon_map, opml_text, opml_title, opml_category, errors
-
-def _patched_call_connection_lost(self, exc):
-    try:
-        _original_call_connection_lost(self, exc)
-    except OSError:
-        # Ignore OSError from shutdown if socket already closed
-        pass
-
-_ProactorBasePipeTransport._call_connection_lost = _patched_call_connection_lost
 
 def read_opml(file_path):
     """Reads OPML file and extracts feed URLs and icons."""
@@ -75,7 +61,6 @@ def read_opml(file_path):
     
     tree = ET.parse(file_path)
     root = tree.getroot()
-
     body = root.find(BODY_KEY)
     top_outline = body.find(OUTLINE_KEY) if body is not None else None
     opml_text = top_outline.attrib.get(TEXT_KEY) if top_outline is not None else None
@@ -155,10 +140,9 @@ def matches_exclude_keywords(text: str, exclude_keywords: set[str], exceptions: 
 
     for keyword in exclude_keywords:
         if keyword in text_lower:
-            # Check exceptions for this keyword
             exception_phrases = exceptions.get(keyword, [])
             if any(exc in text_lower for exc in exception_phrases):
-                continue  # exception matched, skip exclusion for this keyword
+                continue
             return keyword
     return None
 
@@ -201,7 +185,7 @@ def process_feed_entries(feed, feed_url, start_date, end_date, exclude_keywords,
             }
 
             if not aggressive_keyword:
-                article_data[SKIPPED_REASON] = f"Not cybersecurity keyword found:"
+                article_data[SKIPPED_REASON] = f"No cybersecurity keyword found:"
                 skipped_articles.append(article_data)
             elif matched_keyword:
                 article_data[SKIPPED_REASON] = f"Matched keyword: {matched_keyword}"
@@ -217,15 +201,12 @@ def process_feed_entries(feed, feed_url, start_date, end_date, exclude_keywords,
 def handle_asyncio_exception(loop, context):
     msg = context.get("message", "")
     if "ProactorBasePipeTransport" in msg:
-        # Suppress this specific warning
         return
     loop.default_exception_handler(context)
 
-loop = asyncio.get_event_loop()
-loop.set_exception_handler(handle_asyncio_exception)
-
 async def fetch_articles_async(session, feed_url, start_date, end_date, max_length_description, exclude_keywords=None, aggressive_keywords=None):
     exclude_keywords = set(k.lower() for k in exclude_keywords or [])
+    aggressive_keywords = set(k.lower() for k in aggressive_keywords or [])
     headers = DEFAULT_REQUEST_HEADERS
 
     try:
@@ -234,18 +215,43 @@ async def fetch_articles_async(session, feed_url, start_date, end_date, max_leng
             content = await response.read()
         cleaned_content = clean_feed_content(content)
         feed = feedparser.parse(cleaned_content)
+
         if feed.bozo:
             raise RuntimeError(f"Feed parsing error: {feed.bozo_exception}")
+
+        return process_feed_entries(feed, feed_url, start_date, end_date, exclude_keywords, aggressive_keywords, max_length_description)
 
     except aiohttp.ClientResponseError as e:
         if e.status == 403:
             loop = asyncio.get_running_loop()
-            return await loop.run_in_executor(None, fetch_articles_sync_fallback, feed_url, start_date, end_date, max_length_description, exclude_keywords, aggressive_keywords)
+            return await loop.run_in_executor(
+                None,
+                fetch_articles_sync_fallback,
+                feed_url,
+                start_date,
+                end_date,
+                max_length_description,
+                exclude_keywords,
+                aggressive_keywords
+            )
         else:
             raise RuntimeError(f"Failed to fetch or parse feed {feed_url}: {e}")
 
-    return process_feed_entries(feed, feed_url, start_date, end_date, exclude_keywords, aggressive_keywords, max_length_description)
+    except (aiohttp.ClientError, aiohttp.ClientConnectorSSLError, asyncio.TimeoutError) as e:
+        loop = asyncio.get_running_loop()
+        return await loop.run_in_executor(
+            None,
+            fetch_articles_sync_fallback,
+            feed_url,
+            start_date,
+            end_date,
+            max_length_description,
+            exclude_keywords,
+            aggressive_keywords
+        )
 
+    except Exception as e:
+        raise RuntimeError(f"Failed to process feed {feed_url}: {e}")
 
 def fetch_articles_sync_fallback(feed_url, start_date, end_date, max_length_description, exclude_keywords, aggressive_keywords):
     headers = DEFAULT_REQUEST_HEADERS
@@ -253,46 +259,19 @@ def fetch_articles_sync_fallback(feed_url, start_date, end_date, max_length_desc
     exclude_keywords = set(k.lower() for k in exclude_keywords or [])
     aggressive_keywords = set(k.lower() for k in aggressive_keywords or [])
 
-    def try_parse_feed(url):
-        feed = feedparser.parse(url)
-        if feed.bozo:
-            # fallback to requests + cleaning
-            response = requests.get(url, headers=headers, timeout=timeout)
-            response.raise_for_status()
-            cleaned_content = clean_feed_content(response.content)
-            feed = feedparser.parse(cleaned_content)
-            if feed.bozo:
-                raise RuntimeError(f"Cleaned feed parsing error: {feed.bozo_exception}")
-        return feed
-
     try:
-        feed = try_parse_feed(feed_url)
+        response = requests.get(feed_url, headers=headers, timeout=timeout)
+        response.raise_for_status()
+        cleaned_content = clean_feed_content(response.content)
+        feed = feedparser.parse(cleaned_content)
+
+        if feed.bozo:
+            raise RuntimeError(f"Feed parsing error after cleaning: {feed.bozo_exception}")
+
         return process_feed_entries(feed, feed_url, start_date, end_date, exclude_keywords, aggressive_keywords, max_length_description)
 
-    except ssl.SSLError as e:
-        if feed_url.startswith("https://"):
-            fallback_url = "http://" + feed_url[len("https://"):]
-            try:
-                feed = try_parse_feed(fallback_url)
-                return process_feed_entries(feed, fallback_url, start_date, end_date, exclude_keywords, aggressive_keywords, max_length_description)
-            except Exception:
-                # final fallback: requests + cleaning on original URL
-                try:
-                    response = requests.get(feed_url, headers=headers, timeout=timeout)
-                    response.raise_for_status()
-                    cleaned_content = clean_feed_content(response.content)
-                    feed = feedparser.parse(cleaned_content)
-                    if feed.bozo:
-                        raise RuntimeError(f"Requests fallback feed parsing error: {feed.bozo_exception}")
-                    return process_feed_entries(feed, feed_url, start_date, end_date, exclude_keywords, aggressive_keywords, max_length_description)
-                except Exception as req_e:
-                    raise RuntimeError(f"SSL error on {feed_url}, fallback to {fallback_url} and requests fallback all failed: {e}; {req_e}")
-        else:
-            raise RuntimeError(f"SSL error while accessing {feed_url}: {e}")
-
     except Exception as e:
-        raise RuntimeError(f"Fallback sync fetch failed for {feed_url}: {e}")
-
+        raise RuntimeError(f"Synchronous fallback failed for {feed_url}: {e}")
 
 async def process_feed_async(session, feedtitle, feed_url, start_date, end_date, max_length_description, exclude_keywords, aggressive_keywords):
     try:
@@ -314,7 +293,7 @@ async def process_feed_async(session, feedtitle, feed_url, start_date, end_date,
             entry[FEED_TITLE_KEY] = feedtitle
             entry[FEED_URL_KEY] = feed_url
 
-        print(f"Processed {format_title_for_print(feedtitle)} {len(recent_articles)} article{'s' if len(recent_articles) != 1 else ''}")
+        print(f"Processed {format_title_for_print(feedtitle)} {len(recent_articles)} article{'s' if len(recent_articles) != 1 else ''} \t [{len(skipped_articles)}]")
         return recent_articles, skipped_articles, None
 
     except ConnectionResetError:
@@ -325,9 +304,12 @@ async def process_feed_async(session, feedtitle, feed_url, start_date, end_date,
         print(f"Error processing: {feedtitle} ({feed_url})")
         return [], [], (feedtitle, feed_url, e)
 
-async def process_all_feeds(feeds, start_date, end_date, max_length_description, exclude_keywords, aggressive_keywords, max_concurrent=10):
+async def process_all_feeds(feeds, start_date, end_date, max_length_description, exclude_keywords, aggressive_keywords, max_concurrent=MAX_CONCURRENT_TASKS):
     semaphore = asyncio.Semaphore(max_concurrent)
-    async with aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=HTTP_REQUEST_TIMEOUT)) as session:
+    async with aiohttp.ClientSession(
+        timeout=aiohttp.ClientTimeout(total=HTTP_REQUEST_TIMEOUT),
+        connector=aiohttp.TCPConnector()
+    ) as session:
 
         async def sem_task(feedtitle, feed_url):
             async with semaphore:

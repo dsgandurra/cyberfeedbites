@@ -283,7 +283,6 @@ def print_summary(
         print("\nFeeds that failed to fetch:")
         for feedtitle, feed_url, exception in errors:
             print(f"\t- {feedtitle}: {feed_url}")
-            traceback.print_exception(type(exception), exception, exception.__traceback__)
 
     print(f"\nTotal execution time: {end_time - start_time:.2f} seconds")
     print(f"{FEED_SEPARATOR}")
