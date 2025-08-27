@@ -10,6 +10,9 @@ data/json_reports/
 # Ignore everything in rss_sources_private folder
 data/rss_sources_private
 
+# Ignore everything in cache folder
+data/cache
+
 # Ignore Python bytecode files
 *.pyc
 __pycache__/

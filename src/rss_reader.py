@@ -22,8 +22,9 @@ from datetime import datetime, timezone
 import aiohttp
 import asyncio
 import feedparser
-import requests
 import re
+import hashlib
+from pathlib import Path
 
 from utils import get_description, clean_articles, format_title_for_print, get_published_date
 from config import (
@@ -31,10 +32,24 @@ from config import (
     TEXT_KEY, TITLE_KEY, LINK_KEY, DESCRIPTION_KEY, PUBLISHED_DATE_KEY, 
     CHANNEL_IMAGE_KEY, ICON_URL_KEY, IMAGE_KEY, ICON_KEY, FEED_TITLE_KEY,
     LOGO_KEY, HREF_KEY, URL_KEY, CATEGORY_KEY, DEFAULT_REQUEST_HEADERS, 
-    HTTP_REQUEST_TIMEOUT, KEYWORD_EXCEPTIONS, SKIPPED_REASON, MAX_CONCURRENT_TASKS
+    HTTP_REQUEST_TIMEOUT, KEYWORD_EXCEPTIONS, SKIPPED_REASON, MAX_CONCURRENT_TASKS,
+    CACHE_FOLDER, CACHE_MAX_AGE_SECONDS
 )
 
-def process_rss_feed(opml_filename, start_date, end_date, max_length_description, exclude_keywords, aggressive_keywords):
+from dataclasses import dataclass
+from typing import Set
+
+@dataclass
+class FeedOptions:
+    start_date: datetime
+    end_date: datetime
+    max_length_description: int
+    exclude_keywords: Set[str]
+    aggressive_keywords: Set[str]
+    ignore_cache: bool
+    no_conditional_cache: bool
+
+def process_rss_feed(opml_filename: str, options: FeedOptions):
     """Handles the RSS feed processing asynchronously via run_feeds."""
     try:
         feeds, icon_map, opml_text, opml_title, opml_category = read_opml(opml_filename)
@@ -49,7 +64,7 @@ def process_rss_feed(opml_filename, start_date, end_date, max_length_description
     sorted_feeds = sorted(feeds, key=lambda feed: feed[0])
     
     all_entries, skipped_entries, errors = asyncio.run(
-        process_all_feeds (sorted_feeds, start_date, end_date, max_length_description, exclude_keywords, aggressive_keywords)
+        process_all_feeds(sorted_feeds, options)
     )
     
     return all_entries, skipped_entries, icon_map, opml_text, opml_title, opml_category, errors
@@ -204,128 +219,156 @@ def handle_asyncio_exception(loop, context):
         return
     loop.default_exception_handler(context)
 
-async def fetch_articles_async(session, feed_url, start_date, end_date, max_length_description, exclude_keywords=None, aggressive_keywords=None):
-    exclude_keywords = set(k.lower() for k in exclude_keywords or [])
-    aggressive_keywords = set(k.lower() for k in aggressive_keywords or [])
-    headers = DEFAULT_REQUEST_HEADERS
+CACHE_DIR = Path(CACHE_FOLDER)
+CACHE_DIR.mkdir(exist_ok=True)
+
+async def fetch_feed_with_cache(
+    session,
+    feed_url,
+    ignore_cache,
+    no_conditional,
+    max_age_seconds=CACHE_MAX_AGE_SECONDS
+):
+    """
+    Fetches RSS feed content with optional caching and conditional HTTP requests.
+    
+    Flags:
+    - ignore_cache: skip using cache, always fetch remotely.
+    - no_conditional: disable If-Modified-Since / ETag headers even if metadata exists.
+    """
+    cache_file = CACHE_DIR / (hashlib.md5(feed_url.encode()).hexdigest() + ".xml")
+    meta_file = CACHE_DIR / (hashlib.md5(feed_url.encode()).hexdigest() + ".meta")
+
+    headers = DEFAULT_REQUEST_HEADERS.copy()
+    last_modified = None
+    etag = None
+
+    # Load metadata if exists
+    if meta_file.exists() and not no_conditional:
+        import json
+        with open(meta_file, "r", encoding="utf-8") as f:
+            meta = json.load(f)
+            last_modified = meta.get("last_modified")
+            etag = meta.get("etag")
+
+    # Only use cache immediately if ignoring conditional requests
+    if not ignore_cache and no_conditional and cache_file.exists():
+        age = (datetime.now() - datetime.fromtimestamp(cache_file.stat().st_mtime)).seconds
+        if age < max_age_seconds:
+            with open(cache_file, "rb") as f:
+                return f.read(), True
+
+    # Add conditional headers only if allowed
+    if not no_conditional:
+        if last_modified:
+            headers["If-Modified-Since"] = last_modified
+        if etag:
+            headers["If-None-Match"] = etag
 
     try:
         async with session.get(feed_url, headers=headers) as response:
+            if response.status == 304 and cache_file.exists():
+                # Feed unchanged, use cache
+                with open(cache_file, "rb") as f:
+                    return f.read(), True
+
             response.raise_for_status()
             content = await response.read()
-        cleaned_content = clean_feed_content(content)
+
+            # Save cache
+            if not ignore_cache:
+                with open(cache_file, "wb") as f:
+                    f.write(content)
+                # Save metadata
+                if not no_conditional:
+                    meta = {
+                        "last_modified": response.headers.get("Last-Modified"),
+                        "etag": response.headers.get("ETag")
+                    }
+                    import json
+                    with open(meta_file, "w", encoding="utf-8") as f:
+                        json.dump(meta, f)
+
+            return content, False
+
+    except Exception as e:
+        # Fallback: return cache if exists
+        if cache_file.exists():
+            with open(cache_file, "rb") as f:
+                return f.read(), True
+        raise e
+
+async def retrieve_and_process_feed(session, feedtitle, feed_url, options: FeedOptions):
+    """
+    Splits retrieval (with caching) from processing, using unified FeedOptions.
+    """
+    try:
+        # Step 1: Retrieval
+        raw_content, is_cached = await fetch_feed_with_cache(
+            session,
+            feed_url,
+            options.ignore_cache,
+            options.no_conditional_cache
+        )
+
+        # Step 2: Cleaning + parsing
+        cleaned_content = clean_feed_content(raw_content)
         feed = feedparser.parse(cleaned_content)
 
         if feed.bozo:
             raise RuntimeError(f"Feed parsing error: {feed.bozo_exception}")
 
-        return process_feed_entries(feed, feed_url, start_date, end_date, exclude_keywords, aggressive_keywords, max_length_description)
-
-    except aiohttp.ClientResponseError as e:
-        if e.status == 403:
-            loop = asyncio.get_running_loop()
-            return await loop.run_in_executor(
-                None,
-                fetch_articles_sync_fallback,
-                feed_url,
-                start_date,
-                end_date,
-                max_length_description,
-                exclude_keywords,
-                aggressive_keywords
-            )
-        else:
-            raise RuntimeError(f"Failed to fetch or parse feed {feed_url}: {e}")
-
-    except (aiohttp.ClientError, aiohttp.ClientConnectorSSLError, asyncio.TimeoutError) as e:
-        loop = asyncio.get_running_loop()
-        return await loop.run_in_executor(
-            None,
-            fetch_articles_sync_fallback,
+        # Step 3: Processing
+        recent_articles, skipped_articles = await asyncio.to_thread(
+            process_feed_entries,
+            feed,
             feed_url,
-            start_date,
-            end_date,
-            max_length_description,
-            exclude_keywords,
-            aggressive_keywords
+            options.start_date,
+            options.end_date,
+            set(k.lower() for k in options.exclude_keywords or []),
+            set(k.lower() for k in options.aggressive_keywords or []),
+            options.max_length_description,
         )
 
-    except Exception as e:
-        raise RuntimeError(f"Failed to process feed {feed_url}: {e}")
-
-def fetch_articles_sync_fallback(feed_url, start_date, end_date, max_length_description, exclude_keywords, aggressive_keywords):
-    headers = DEFAULT_REQUEST_HEADERS
-    timeout = HTTP_REQUEST_TIMEOUT
-    exclude_keywords = set(k.lower() for k in exclude_keywords or [])
-    aggressive_keywords = set(k.lower() for k in aggressive_keywords or [])
-
-    try:
-        response = requests.get(feed_url, headers=headers, timeout=timeout)
-        response.raise_for_status()
-        cleaned_content = clean_feed_content(response.content)
-        feed = feedparser.parse(cleaned_content)
-
-        if feed.bozo:
-            raise RuntimeError(f"Feed parsing error after cleaning: {feed.bozo_exception}")
-
-        return process_feed_entries(feed, feed_url, start_date, end_date, exclude_keywords, aggressive_keywords, max_length_description)
-
-    except Exception as e:
-        raise RuntimeError(f"Synchronous fallback failed for {feed_url}: {e}")
-
-async def process_feed_async(session, feedtitle, feed_url, start_date, end_date, max_length_description, exclude_keywords, aggressive_keywords):
-    try:
-        recent_articles, skipped_articles = await fetch_articles_async(
-            session,
-            feed_url,
-            start_date,
-            end_date,
-            max_length_description,
-            exclude_keywords,
-            aggressive_keywords
-        )
-
-        for entry in recent_articles:
+        # Annotate with feed metadata
+        for entry in recent_articles + skipped_articles:
             entry[FEED_TITLE_KEY] = feedtitle
             entry[FEED_URL_KEY] = feed_url
 
-        for entry in skipped_articles:
-            entry[FEED_TITLE_KEY] = feedtitle
-            entry[FEED_URL_KEY] = feed_url
+        cached_str = " [CACHED]" if is_cached else ""
+        print(f"Processed {format_title_for_print(feedtitle)} {len(recent_articles)} article{'s' if len(recent_articles) != 1 else ''} \t [{len(skipped_articles)}]{cached_str}")
 
-        print(f"Processed {format_title_for_print(feedtitle)} {len(recent_articles)} article{'s' if len(recent_articles) != 1 else ''} \t [{len(skipped_articles)}]")
         return recent_articles, skipped_articles, None
 
-    except ConnectionResetError:
-        print(f"Connection reset while processing: {feedtitle} ({feed_url})")
-        return [], [], (feedtitle, feed_url, ConnectionResetError("Connection reset"))
-
     except Exception as e:
-        print(f"Error processing: {feedtitle} ({feed_url})")
+        print(f"Error retrieving/processing: {feedtitle} ({feed_url}): {e}")
         return [], [], (feedtitle, feed_url, e)
 
-async def process_all_feeds(feeds, start_date, end_date, max_length_description, exclude_keywords, aggressive_keywords, max_concurrent=MAX_CONCURRENT_TASKS):
+async def process_all_feeds(feeds, options: FeedOptions, max_concurrent=MAX_CONCURRENT_TASKS):
     semaphore = asyncio.Semaphore(max_concurrent)
+    all_entries, skipped_entries, errors = [], [], []
+
     async with aiohttp.ClientSession(
         timeout=aiohttp.ClientTimeout(total=HTTP_REQUEST_TIMEOUT),
         connector=aiohttp.TCPConnector()
     ) as session:
 
-        async def sem_task(feedtitle, feed_url):
-            async with semaphore:
-                return await process_feed_async(session, feedtitle, feed_url, start_date, end_date, max_length_description, exclude_keywords, aggressive_keywords)
+        async def handle_feed(feedtitle, feed_url):
+            try:
+                async with semaphore:
+                    # Use unified function instead of repeating logic
+                    return await retrieve_and_process_feed(session, feedtitle, feed_url, options)
+            except Exception as e:
+                print(f"Error retrieving/processing: {feedtitle} ({feed_url}): {e}")
+                return [], [], (feedtitle, feed_url, e)
 
-        tasks = [sem_task(title, url) for title, url in feeds]
+        tasks = [handle_feed(title, url) for title, url in feeds]
         results = await asyncio.gather(*tasks)
-
-    all_entries = []
-    skipped_entries = []
-    errors = []
 
     for recent, skipped, error in results:
         all_entries.extend(recent)
         skipped_entries.extend(skipped)
-        if error is not None:
+        if error:
             errors.append(error)
 
     return all_entries, skipped_entries, errors

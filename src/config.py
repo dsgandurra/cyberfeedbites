@@ -29,6 +29,7 @@ CSV_REPORT_FOLDER = os.path.join(DATA_FOLDER, "csv_reports")
 JSON_REPORT_FOLDER = os.path.join(DATA_FOLDER, "json_reports")
 RSS_SOURCES = os.path.join(DATA_FOLDER, "rss_sources")
 OPML_FILENAME = os.path.join(RSS_SOURCES, "cybersecnews-sources.opml")
+CACHE_FOLDER = os.path.join(DATA_FOLDER, "cache")
 
 TEMPLATE_HTML_FILE = os.path.abspath(TEMPLATE_HTML_FILE)
 HTML_REPORT_FOLDER = os.path.abspath(HTML_REPORT_FOLDER)
@@ -56,6 +57,7 @@ MAX_LENGTH_SKIPPED_REASON = 500
 FEED_SEPARATOR = "-" * 40
 MAX_FEEDTITLE_LEN_PRINT = 40
 MAX_CONCURRENT_TASKS = 15
+CACHE_MAX_AGE_SECONDS = 600  # 10 minutes
 
 DEFAULT_REQUEST_HEADERS = {
     'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/115.0 Safari/537.36',

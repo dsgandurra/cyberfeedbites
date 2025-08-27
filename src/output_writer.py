@@ -146,14 +146,15 @@ def write_feed_to_csv(posts_to_print, outfilename, start_date_str, end_date_str,
         with open(outfilename, 'w', encoding='utf-8', newline='') as file:
             writer = csv.writer(file)
             
-            # Write metadata
+            """ # Write metadata
             writer.writerow([f"Time range: {start_date_str} to {end_date_str}"])
             writer.writerow([f"Report Title: {opml_title}"])
             writer.writerow([f"Report Description: {opml_text}"])
             writer.writerow([f"Report Category: {opml_category}"])
             
             # Write the header for the CSV data
-            writer.writerow([])  # Blank line before header
+            writer.writerow([])  # Blank line before header """
+            
             writer.writerow(csv_header)  # Write header
             writer.writerows(csv_rows)   # Write all rows
     except Exception as e:

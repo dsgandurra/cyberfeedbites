@@ -25,7 +25,7 @@ import traceback
 import sys
 from collections import defaultdict
 
-from rss_reader import process_rss_feed
+from rss_reader import process_rss_feed, FeedOptions
 from output_writer import write_feed_to_html, write_feed_to_csv, write_feed_to_json
 from config import (
     MAX_DAYS_BACK,
@@ -205,6 +205,20 @@ def parse_arguments():
         help="Order for HTML output: 'date' (default) or 'title_date'."
     )
 
+    parser.add_argument(
+        "--ignore-cache",
+        action="store_true",
+        default=False,
+        help="Disable cache completely (always fetch online). Default is False."
+    )
+
+    parser.add_argument(
+        "--no-conditional-cache",
+        action="store_true",
+        default=False,
+        help="Always use cached copy without conditional headers (If-Modified-Since / ETag). Default is False."
+    )
+
     args = parser.parse_args()
 
     if args.start < args.end:
@@ -215,17 +229,9 @@ def parse_arguments():
 
     return args
 
-def parse_args():
-    """Returns parsed command-line arguments as simple values."""
-    return parse_arguments()
-
 def prepare_output_folder(folder_path):
     if folder_path:
         os.makedirs(folder_path, exist_ok=True)
-
-def run_processing(opml_filename, start_date, end_date, max_length_description, exclude_keywords, aggressive_keywords):
-    """Processes the RSS feed and returns the results needed for output."""
-    return process_rss_feed(opml_filename, start_date, end_date, max_length_description, exclude_keywords, aggressive_keywords)
 
 def print_summary(
     start_date_print,
@@ -289,7 +295,7 @@ def print_summary(
 
 def main():
     try:
-        args = parse_args()
+        args = parse_arguments()
         opml_filename = args.opml
         max_length_description = args.max_length_description
         output_formats = {fmt.strip().lower() for fmt in args.output_format.split(",")}
@@ -330,6 +336,8 @@ def main():
         print_retrieved_entries = args.print_retrieved
         print_skipped_entries = args.print_skipped
         order_by = args.order_by
+        ignore_cache = args.ignore_cache
+        no_conditional_cache = args.no_conditional_cache
 
         start_time = time.time()
         current_date = datetime.now(timezone.utc)        
@@ -351,8 +359,18 @@ def main():
         start_date_string_print_json = start_date.strftime(TEXT_DATE_FORMAT_JSON)
         end_date_string_print_json =  end_date.strftime(TEXT_DATE_FORMAT_JSON)
 
-        all_entries, skipped_entries, icon_map, opml_text, opml_title, opml_category, errors = run_processing(opml_filename, start_date, end_date, max_length_description, exclude_keywords, aggressive_keywords)
-        
+        options = FeedOptions(
+            start_date=start_date,
+            end_date=end_date,
+            max_length_description=max_length_description,
+            exclude_keywords=exclude_keywords,
+            aggressive_keywords=aggressive_keywords,
+            ignore_cache=ignore_cache,
+            no_conditional_cache=no_conditional_cache
+        )
+
+        all_entries, skipped_entries, icon_map, opml_text, opml_title, opml_category, errors = process_rss_feed(opml_filename, options)
+
         base = opml_category or opml_text
         if not base:
             raise ValueError("Missing both 'category' and 'text' fields — cannot generate prefix.")

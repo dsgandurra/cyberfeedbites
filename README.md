@@ -69,7 +69,7 @@ The required packages are:
 2. Run CyberFeedBites with optional parameters:
 
     ```bash
-    python src/main.py [--start <start_days_ago>] [--end <end_days_ago>] [--opml <opml_file_path>] [--output-format <formats>] [--output-html-folder <folder>] [--output-csv-folder <folder>] [--output-json-folder <folder>] [--align-start-to-midnight] [--align-end-to-midnight] [--html-img] [--max-length-description <length>] [--exclude-keywords] [--exclude-keywords-file <file>] [--print-retrieved] [--print-skipped] [--order-by {date,title_date}]
+    python src/main.py [--start <start_days_ago>] [--end <end_days_ago>] [--opml <opml_file_path>] [--output-format <formats>] [--output-html-folder <folder>] [--output-csv-folder <folder>] [--output-json-folder <folder>] [--align-start-to-midnight] [--align-end-to-midnight] [--html-img] [--max-length-description <length>] [--exclude-keywords] [--exclude-keywords-file <file>] [--aggressive-filtering] [--aggressive-keywords-file <file>] [--print-retrieved] [--print-skipped] [--order-by {date,title_date}] [--ignore-cache] [--no-conditional-cache]
     ```
 
 - `--start`: Number of days ago to start fetching news (default: 1).
@@ -90,6 +90,8 @@ The required packages are:
 - `--html-img`: Include images in the HTML output (default is False).
 - `--aggressive-filtering`: Enable removal of articles that do NOT include any security keywords. Default is False.
 - `--aggressive-keywords-file`: Path to a file containing security keywords to keep, one per line. Overrides default cybersecurity keywords.
+- `--ignore-cache`: Disable cache completely (always fetch online). Default is False.
+- `--no-conditional-cache`: Always use cached copy without conditional headers (If-Modified-Since / ETag). Default is False.
 
 Examples:
 - Fetch news from the last 1 day (default):
