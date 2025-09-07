@@ -25,9 +25,9 @@ import traceback
 import sys
 from collections import defaultdict
 
-from rss_reader import process_rss_feed, FeedOptions
-from output_writer import write_feed_to_html, write_feed_to_csv, write_feed_to_json
-from config import (
+from .rss_reader import process_rss_feed, FeedOptions
+from .output_writer import write_feed_to_html, write_feed_to_csv, write_feed_to_json, convert_feed_to_json_obj
+from .config import (
     MAX_DAYS_BACK,
     MAX_START_DAYS,
     MAX_END_DAYS,
@@ -49,7 +49,7 @@ from config import (
     FEED_URL_KEY,
     CYBERSECURITY_KEYWORDS
 )
-from utils import print_feed_details
+from .utils import print_feed_details
 
 def validate_start(value):
     """Ensure that start is less than or equal to MAX_DAYS_BACK to limit output."""
@@ -71,7 +71,7 @@ def validate_max_length_description(value):
         raise argparse.ArgumentTypeError(f"max-length-description must be between 1 and {MAX_ALLOWED_LENGTH_DESCRIPTION}.")
     return value
 
-def parse_arguments():
+def parse_arguments(argv=None):
     description = (
         "Cyberfeedbites collects and summarises the latest cybersecurity news from "
         f"RSS feeds listed in the default OPML file ({OPML_FILENAME}), generating HTML, CSV, and JSON reports. "
@@ -214,12 +214,12 @@ def parse_arguments():
 
     parser.add_argument(
         "--no-conditional-cache",
-        action="store_true",
-        default=False,
-        help="Always use cached copy without conditional headers (If-Modified-Since / ETag). Default is False."
+        action="store_false",
+        default=True,
+        help="Always use cached copy without conditional headers (If-Modified-Since / ETag). Default is True."
     )
 
-    args = parser.parse_args()
+    args = parser.parse_args(argv)
 
     if args.start < args.end:
         raise argparse.ArgumentTypeError("Start day offset must be greater than or equal to end day offset.")
@@ -293,9 +293,21 @@ def print_summary(
     print(f"\nTotal execution time: {end_time - start_time:.2f} seconds")
     print(f"{FEED_SEPARATOR}")
 
-def main():
+def run_cyberfeedbites(argv=None, return_raw_json=False):
+    """
+    Entry point for in-process invocation.
+    argv: list of strings, e.g. ["--opml", "file.opml", "--start", "1"]
+    """
     try:
-        args = parse_arguments()
+        args = parse_arguments(argv)
+        return run_main_logic(args, return_raw_json)
+    except Exception as e:
+        print(f"Error: {e}")
+        traceback.print_exc()
+        return 1  # non-zero exit code
+
+def run_main_logic(args, return_raw_json=False):
+    try:
         opml_filename = args.opml
         max_length_description = args.max_length_description
         output_formats = {fmt.strip().lower() for fmt in args.output_format.split(",")}
@@ -314,7 +326,7 @@ def main():
                         aggressive_keywords = [line.strip().lower() for line in f if line.strip()]
                 except Exception as e:
                     print(f"Error reading aggressive keywords file '{args.aggressive_keywords_file}': {e}")
-                    sys.exit(1)
+                    return 1
             else:
                 aggressive_keywords = [kw.lower() for kw in CYBERSECURITY_KEYWORDS]
         else:
@@ -328,7 +340,7 @@ def main():
                         exclude_keywords = [line.strip().lower() for line in f if line.strip()]
                 except Exception as e:
                     print(f"Error reading exclude keywords file '{args.exclude_keywords_file}': {e}")
-                    sys.exit(1)
+                    return 1
             else:
                 # Use default EXCLUDE_KEYWORDS from config if no file provided
                 exclude_keywords = [kw.lower() for kw in EXCLUDE_KEYWORDS]
@@ -380,6 +392,19 @@ def main():
         csv_outfilename = None
         json_outfilename = None
 
+        json_data = None
+
+        if "json" in output_formats or return_raw_json:
+            json_data = convert_feed_to_json_obj(
+                all_entries,
+                current_date_string_print_json,
+                start_date_string_print_json,
+                end_date_string_print_json,
+                opml_text,
+                opml_title,
+                opml_category
+            )
+
         if "html" in output_formats:
             prepare_output_folder(html_folder)
             html_outfilename = os.path.join(html_folder, f"{out_filename_prefix}_{current_date_string_filename_suffix}.html")
@@ -420,6 +445,7 @@ def main():
 
         if "json" in output_formats:
             write_feed_to_json(
+            json_data,
             all_entries,
             json_outfilename,
             current_date_string_print_json,
@@ -451,7 +477,11 @@ def main():
     except Exception as e:
         print(f"Error: {e}")
         traceback.print_exc()
-        sys.exit(1)
+        return 1
+    
+    if return_raw_json:
+        return json_data
+    return 0
 
 if __name__ == "__main__":
-    main()
+    sys.exit(run_cyberfeedbites())

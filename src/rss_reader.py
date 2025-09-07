@@ -25,9 +25,11 @@ import feedparser
 import re
 import hashlib
 from pathlib import Path
+from dataclasses import dataclass
+from typing import Set
 
-from utils import get_description, clean_articles, format_title_for_print, get_published_date
-from config import (
+from .utils import get_description, clean_articles, format_title_for_print, get_published_date
+from .config import (
     XMLURL_KEY, UPDATED_PARSED_KEY, FEED_URL_KEY, BODY_KEY, OUTLINE_KEY, 
     TEXT_KEY, TITLE_KEY, LINK_KEY, DESCRIPTION_KEY, PUBLISHED_DATE_KEY, 
     CHANNEL_IMAGE_KEY, ICON_URL_KEY, IMAGE_KEY, ICON_KEY, FEED_TITLE_KEY,
@@ -35,9 +37,6 @@ from config import (
     HTTP_REQUEST_TIMEOUT, KEYWORD_EXCEPTIONS, SKIPPED_REASON, MAX_CONCURRENT_TASKS,
     CACHE_FOLDER, CACHE_MAX_AGE_SECONDS
 )
-
-from dataclasses import dataclass
-from typing import Set
 
 @dataclass
 class FeedOptions:
@@ -162,12 +161,26 @@ def matches_exclude_keywords(text: str, exclude_keywords: set[str], exceptions: 
     return None
 
 def process_feed_entries(feed, feed_url, start_date, end_date, exclude_keywords, aggressive_keywords, max_length_description):
+    exclude_keywords_lower = {kw.lower() for kw in exclude_keywords or []}
+    aggressive_keywords_lower = {kw.lower() for kw in aggressive_keywords or []}
+
+    exclude_pattern = (
+        re.compile(r'\b(?:' + '|'.join(re.escape(kw) for kw in exclude_keywords_lower) + r')\b')
+        if exclude_keywords_lower else None
+    )
+    aggressive_pattern = (
+        re.compile(r'\b(?:' + '|'.join(re.escape(kw) for kw in aggressive_keywords_lower) + r')\b')
+        if aggressive_keywords_lower else None
+    )
+
+    # Channel last updated date
     channel_updated = feed.feed.get(UPDATED_PARSED_KEY)
     if channel_updated:
         channel_updated_date = datetime(*channel_updated[:6], tzinfo=timezone.utc)
         if channel_updated_date < start_date:
             return [], []
 
+    # Channel image
     image_info = feed.feed.get(IMAGE_KEY) or feed.feed.get(ICON_KEY) or feed.feed.get(LOGO_KEY) or {}
     channel_image = None
     if isinstance(image_info, dict):
@@ -180,33 +193,47 @@ def process_feed_entries(feed, feed_url, start_date, end_date, exclude_keywords,
 
     for entry in feed.entries:
         published_date = get_published_date(entry, fallback_to_now=False)
-        if published_date and start_date <= published_date <= end_date:
-            title = entry.get(TITLE_KEY, '')
-            link = entry.get(LINK_KEY, '')
-            category = entry.get(CATEGORY_KEY, '')
-            full_text_description = get_description(entry)
-            combined_text = (title + " " + category + " " + full_text_description).lower()
-            tags = entry.get('tags', [])
-            matched_keyword = matches_exclude_keywords(combined_text, exclude_keywords, KEYWORD_EXCEPTIONS)
-            aggressive_keyword = matches_aggressive_keywords(tags, combined_text, aggressive_keywords)
+        if not published_date or not (start_date <= published_date <= end_date):
+            continue
 
-            article_data = {
-                FEED_URL_KEY: feed_url,
-                TITLE_KEY: title,
-                LINK_KEY: link,
-                DESCRIPTION_KEY: full_text_description,
-                PUBLISHED_DATE_KEY: published_date,
-                CHANNEL_IMAGE_KEY: channel_image
-            }
+        title = entry.get(TITLE_KEY, '')
+        category = entry.get(CATEGORY_KEY, '')
+        description = get_description(entry)
+        tags = entry.get('tags', [])
 
-            if not aggressive_keyword:
-                article_data[SKIPPED_REASON] = f"No cybersecurity keyword found:"
-                skipped_articles.append(article_data)
-            elif matched_keyword:
-                article_data[SKIPPED_REASON] = f"Matched keyword: {matched_keyword}"
-                skipped_articles.append(article_data)
-            else:
-                recent_articles.append(article_data)
+        # Lowercase combined text once
+        combined_text = (title + " " + category + " " + description).lower()
+
+        # Aggressive keyword check
+        if aggressive_pattern:
+            aggressive_keyword_found = bool(aggressive_pattern.search(combined_text))
+        else:
+            aggressive_keyword_found = True  # no filtering if no aggressive keywords
+
+        # Exclude keyword check
+        if exclude_pattern:
+            match = exclude_pattern.search(combined_text)
+            matched_keyword = match.group(0) if match else None
+        else:
+            matched_keyword = None
+
+        article_data = {
+            FEED_URL_KEY: feed_url,
+            TITLE_KEY: title,
+            LINK_KEY: entry.get(LINK_KEY, ''),
+            DESCRIPTION_KEY: description,
+            PUBLISHED_DATE_KEY: published_date,
+            CHANNEL_IMAGE_KEY: channel_image
+        }
+
+        if not aggressive_keyword_found:
+            article_data[SKIPPED_REASON] = "No cybersecurity keyword found"
+            skipped_articles.append(article_data)
+        elif matched_keyword:
+            article_data[SKIPPED_REASON] = f"Matched keyword: {matched_keyword}"
+            skipped_articles.append(article_data)
+        else:
+            recent_articles.append(article_data)
 
     recent_articles_cleaned = clean_articles(recent_articles, max_length_description)
     skipped_articles_cleaned = clean_articles(skipped_articles, max_length_description)
@@ -319,16 +346,29 @@ async def retrieve_and_process_feed(session, feedtitle, feed_url, options: FeedO
             raise RuntimeError(f"Feed parsing error: {feed.bozo_exception}")
 
         # Step 3: Processing
-        recent_articles, skipped_articles = await asyncio.to_thread(
-            process_feed_entries,
-            feed,
-            feed_url,
-            options.start_date,
-            options.end_date,
-            set(k.lower() for k in options.exclude_keywords or []),
-            set(k.lower() for k in options.aggressive_keywords or []),
-            options.max_length_description,
-        )
+        if is_cached:
+            # Process synchronously, no new thread
+            recent_articles, skipped_articles = process_feed_entries(
+                feed,
+                feed_url,
+                options.start_date,
+                options.end_date,
+                set(k.lower() for k in options.exclude_keywords or []),
+                set(k.lower() for k in options.aggressive_keywords or []),
+                options.max_length_description,
+            )
+        else:
+            # Network-bound, use thread to avoid blocking event loop
+            recent_articles, skipped_articles = await asyncio.to_thread(
+                process_feed_entries,
+                feed,
+                feed_url,
+                options.start_date,
+                options.end_date,
+                set(k.lower() for k in options.exclude_keywords or []),
+                set(k.lower() for k in options.aggressive_keywords or []),
+                options.max_length_description,
+            )
 
         # Annotate with feed metadata
         for entry in recent_articles + skipped_articles:

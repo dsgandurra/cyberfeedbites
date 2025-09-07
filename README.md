@@ -13,13 +13,12 @@ CyberFeedBites is a lightweight Python tool that provides an overview of recent 
 - Supports asynchronous HTTP fetching using `aiohttp` for improved performance.
 
 ## Quick Start
-CyberFeedBites is ready to use once dependencies are installed. To run it as is, follow these steps to fetch the latest 24-hour articles from the sources listed in the provided `cybersecnews-sources.opml` file and generate a summary as HTML, JSON and CSV files saved in the `data/html_reports/` and `data/csv_reports/` directories:
+CyberFeedBites is ready to use once dependencies are installed. To run it as is, follow these steps to fetch the latest 24-hour articles from the sources listed in the provided `cybersecnews-sources.opml` file and generate a summary as HTML, JSON and CSV files saved in the `cyberfeedbites/data/html_reports/` and `cyberfeedbites/data/csv_reports/` directories:
 
 1. Clone the repository: `git clone https://github.com/dsgandurra/cyberfeedbites.git`
-2. Move to the root folder: `cd cyberfeedbites`
-3. Install dependencies: `pip install -r requirements.txt`
-4. Run CyberFeedBites: `python src/main.py`
-5. Check the generated HTML file in the `data/html_reports/` directory.
+2. Install dependencies: `pip install -r cyberfeedbites/requirements.txt`
+3. Run CyberFeedBites: `python -m cyberfeedbites.src.main`
+4. Check the generated HTML file in the `cyberfeedbites/data/html_reports/` directory.
 
 ## Installation
 
@@ -27,7 +26,6 @@ CyberFeedBites is ready to use once dependencies are installed. To run it as is,
 
     ```bash
     git clone https://github.com/dsgandurra/cyberfeedbites.git
-    cd cyberfeedbites
     ```
 
 2. Before running CyberFeedBites, it's recommended to use a virtual environment to keep your project's dependencies isolated. To do so, create and activate a virtual environment:
@@ -47,7 +45,7 @@ CyberFeedBites is ready to use once dependencies are installed. To run it as is,
 3. Install the required dependencies:
 
     ```bash
-    pip install -r requirements.txt
+    pip install -r cyberfeedbites/requirements.txt
     ```
 
 The required packages are:
@@ -60,16 +58,10 @@ The required packages are:
 
 ## Usage
 
-1. Navigate to the root folder of the project:
+Run CyberFeedBites with optional parameters:
 
     ```bash
-    cd path/to/cyberfeedbites
-    ```
-
-2. Run CyberFeedBites with optional parameters:
-
-    ```bash
-    python src/main.py [--start <start_days_ago>] [--end <end_days_ago>] [--opml <opml_file_path>] [--output-format <formats>] [--output-html-folder <folder>] [--output-csv-folder <folder>] [--output-json-folder <folder>] [--align-start-to-midnight] [--align-end-to-midnight] [--html-img] [--max-length-description <length>] [--exclude-keywords] [--exclude-keywords-file <file>] [--aggressive-filtering] [--aggressive-keywords-file <file>] [--print-retrieved] [--print-skipped] [--order-by {date,title_date}] [--ignore-cache] [--no-conditional-cache]
+    python -m cyberfeedbites.src.main [--start <start_days_ago>] [--end <end_days_ago>] [--opml <opml_file_path>] [--output-format <formats>] [--output-html-folder <folder>] [--output-csv-folder <folder>] [--output-json-folder <folder>] [--align-start-to-midnight] [--align-end-to-midnight] [--html-img] [--max-length-description <length>] [--exclude-keywords] [--exclude-keywords-file <file>] [--aggressive-filtering] [--aggressive-keywords-file <file>] [--print-retrieved] [--print-skipped] [--order-by {date,title_date}] [--ignore-cache] [--no-conditional-cache]
     ```
 
 - `--start`: Number of days ago to start fetching news (default: 1).
@@ -97,22 +89,22 @@ Examples:
 - Fetch news from the last 1 day (default):
 
   ```bash
-  python src/main.py
+  python -m cyberfeedbites.src.main
   ```
 
 - Fetch news from 5 to 2 days ago:
 
   ```bash
-  python src/main.py --start 5 --end 2
+  python -m cyberfeedbites.src.main --start 5 --end 2
   ```
 - Generate only CSV output:
   ```bash
-  python src/main.py --output-format csv
+  python -m cyberfeedbites.src.main --output-format csv
   ```
 
 - Exclude entries containing keywords (using default or file):
   ```bash
-  python src/main.py --exclude-keywords --exclude-keywords-file exclude.txt
+  python -m cyberfeedbites.src.main --exclude-keywords --exclude-keywords-file exclude.txt
   ```
 
 ## Output
@@ -154,7 +146,7 @@ Each CSV file contains a table with the following columns:
 
 ## Sample OPML File
 
-The repository includes a sample OPML file (`data/rss_sources/cybersecnews-sources.opml`) containing a curated list of relevant RSS sources. You can edit this file to add or remove RSS feed URLs according to your preferences or use a custom OPML file by passing its path via the `--opml` option.
+The repository includes a sample OPML file (`cyberfeedbites/data/rss_sources/cybersecnews-sources.opml`) containing a curated list of relevant RSS sources. You can edit this file to add or remove RSS feed URLs according to your preferences or use a custom OPML file by passing its path via the `--opml` option.
 
 ## OPML File Structure
 

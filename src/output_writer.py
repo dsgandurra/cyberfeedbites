@@ -20,14 +20,14 @@ import csv
 import json
 import html
 
-from config import (
+from .config import (
     TEMPLATE_HTML_FILE, TITLE_KEY, LINK_KEY, DESCRIPTION_KEY, PUBLISHED_DATE_KEY,
     CHANNEL_IMAGE_KEY, FEED_TITLE_KEY, TEXT_DATE_FORMAT_PRINT_SHORT, TIMEZONE_PRINT, TEXT_DATE_FORMAT_JSON
 )
-from utils import sanitize_for_html, get_website_name
+from .utils import sanitize_for_html, get_website_name
 
-def write_feed_to_json(posts, output_path, current_date, start_date, end_date, opml_text, opml_title, opml_category):
-    """Writes all RSS feed entries to a JSON file."""
+def convert_feed_to_json_obj(posts, current_date, start_date, end_date, opml_text, opml_title, opml_category):
+    """Converts RSS entries to a JSON-serialisable object."""
     try:
         json_items = [
             {
@@ -42,17 +42,31 @@ def write_feed_to_json(posts, output_path, current_date, start_date, end_date, o
 
         data = {
             "start_date": start_date,
-            "end_date" : end_date,
+            "end_date": end_date,
             "published": current_date,
             "title": opml_title,
             "text": opml_text,
-            "category" : opml_category,
+            "category": opml_category,
             "items": json_items,
         }
 
+        return data
+
+    except Exception as e:
+        print(f"Error converting feed to JSON object: {e}")
+        return None
+
+def write_feed_to_json(data=None, posts=None, output_path=None, current_date=None, start_date=None, end_date=None, opml_text=None, opml_title=None, opml_category=None):
+    """Writes all RSS feed entries to a JSON file."""
+    
+    if data is None:
+        data = convert_feed_to_json_obj(posts, current_date, start_date, end_date, opml_text, opml_title, opml_category)
+        if data is None:
+            return
+
+    try:
         with open(output_path, "w", encoding="utf-8") as f:
             json.dump(data, f, indent=2, ensure_ascii=False)
-
     except Exception as e:
         print(f"Error writing {output_path}: {e}")
 

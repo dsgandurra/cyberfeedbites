@@ -23,7 +23,7 @@ from datetime import datetime, timezone
 import re
 import tldextract
 
-from config import (
+from .config import (
     FEED_SEPARATOR, SUMMARY_KEY, TITLE_KEY, LINK_KEY, FEED_URL_KEY, CHANNEL_IMAGE_KEY,
     DESCRIPTION_KEY, PUBLISHED_DATE_KEY, SKIPPED_REASON, MAX_FEEDTITLE_LEN_PRINT,
     CONTENT_KEY, MAX_LENGTH_TITLE, MAX_LENGTH_LINK, MAX_LENGTH_FEED_URL, 
