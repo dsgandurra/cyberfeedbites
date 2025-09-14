@@ -34,7 +34,7 @@ from .config import (
     TEXT_KEY, TITLE_KEY, LINK_KEY, DESCRIPTION_KEY, PUBLISHED_DATE_KEY, 
     CHANNEL_IMAGE_KEY, ICON_URL_KEY, IMAGE_KEY, ICON_KEY, FEED_TITLE_KEY,
     LOGO_KEY, HREF_KEY, URL_KEY, CATEGORY_KEY, DEFAULT_REQUEST_HEADERS, 
-    HTTP_REQUEST_TIMEOUT, KEYWORD_EXCEPTIONS, SKIPPED_REASON, MAX_CONCURRENT_TASKS,
+    HTTP_REQUEST_TIMEOUT, SKIPPED_REASON, MAX_CONCURRENT_TASKS,
     CACHE_FOLDER, CACHE_MAX_AGE_SECONDS
 )
 
@@ -59,11 +59,9 @@ def process_rss_feed(opml_filename: str, options: FeedOptions):
         raise ET.ParseError(msg) from e
     except Exception as e:
         raise RuntimeError(f"Error reading OPML file '{opml_filename}': {e}") from e
-
-    sorted_feeds = sorted(feeds, key=lambda feed: feed[0])
-    
+  
     all_entries, skipped_entries, errors = asyncio.run(
-        process_all_feeds(sorted_feeds, options)
+        process_all_feeds(feeds, options)
     )
     
     return all_entries, skipped_entries, icon_map, opml_text, opml_title, opml_category, errors
@@ -412,3 +410,55 @@ async def process_all_feeds(feeds, options: FeedOptions, max_concurrent=MAX_CONC
             errors.append(error)
 
     return all_entries, skipped_entries, errors
+
+STALE_DAYS_THRESHOLD = 30  # feeds older than this are considered stale
+
+def check_rss_health(opml_filename: str):
+    """
+    Simple RSS health check: fetches feeds from OPML file,
+    prints total items and the date/time of the most recent entry.
+    Flags feeds as [STALE!] if the latest entry is older than STALE_DAYS_THRESHOLD.
+    """
+    try:
+        feeds, icon_map, opml_text, opml_title, opml_category = read_opml(opml_filename)
+    except FileNotFoundError as e:
+        raise FileNotFoundError(f"The OPML file '{opml_filename}' does not exist.") from e
+    except ET.ParseError as e:
+        raise ET.ParseError(f"The OPML file '{opml_filename}' is not well-formed XML: {e}") from e
+
+    now = datetime.now(timezone.utc)
+
+    async def _check():
+        async with aiohttp.ClientSession(
+            timeout=aiohttp.ClientTimeout(total=HTTP_REQUEST_TIMEOUT),
+            connector=aiohttp.TCPConnector()
+        ) as session:
+            for title, url in feeds:
+                try:
+                    content, _ = await fetch_feed_with_cache(session, url, ignore_cache=True, no_conditional=True)
+                    cleaned = clean_feed_content(content)
+                    feed = feedparser.parse(cleaned)
+
+                    total_items = len(feed.entries)
+                    latest_entry = None
+                    if total_items > 0:
+                        latest_entry = max(
+                            (get_published_date(e, fallback_to_now=False) for e in feed.entries if get_published_date(e, fallback_to_now=False)),
+                            default=None
+                        )
+
+                    if latest_entry:
+                        # Format: date + optional hour:minute
+                        latest_str = latest_entry.strftime("%Y-%m-%d %H:%M")
+                        # Check staleness
+                        if (now - latest_entry).days > STALE_DAYS_THRESHOLD:
+                            latest_str += " [STALE!]"
+                    else:
+                        latest_str = "N/A"
+
+                    print(f"Processed {format_title_for_print(title):<40} {total_items} item{'s' if total_items != 1 else ''}  |  Last entry: {latest_str}")
+
+                except Exception as e:
+                    print(f"Error checking feed {title} ({url}): {e}")
+
+    asyncio.run(_check())

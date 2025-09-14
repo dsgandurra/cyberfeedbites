@@ -84,6 +84,7 @@ Run CyberFeedBites with optional parameters:
 - `--aggressive-keywords-file`: Path to a file containing security keywords to keep, one per line. Overrides default cybersecurity keywords.
 - `--ignore-cache`: Disable cache completely (always fetch online). Default is False.
 - `--no-conditional-cache`: Always use cached copy without conditional headers (If-Modified-Since / ETag). Default is False.
+- `--check-feeds`: Perform a quick RSS health check (total items and latest entry date) without full processing.
 
 Examples:
 - Fetch news from the last 1 day (default):
@@ -106,6 +107,17 @@ Examples:
   ```bash
   python -m cyberfeedbites.src.main --exclude-keywords --exclude-keywords-file exclude.txt
   ```
+
+- CyberFeedBites can quickly check whether RSS feeds in an OPML file are healthy without downloading all articles:
+
+  ```bash
+  python -m cyberfeedbites.src.main --opml <opml_file_path> --check-feeds
+  ```
+
+  - Prints a summary for each feed with:
+    - Total items available.
+    - Date and time of the most recent entry.
+    - `[STALE!]` alert if the latest entry is older than the configured threshold (`STALE_DAYS_THRESHOLD`, default 30 days).
 
 ## Output
 

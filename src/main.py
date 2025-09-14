@@ -25,7 +25,7 @@ import traceback
 import sys
 from collections import defaultdict
 
-from .rss_reader import process_rss_feed, FeedOptions
+from .rss_reader import process_rss_feed, check_rss_health, FeedOptions
 from .output_writer import write_feed_to_html, write_feed_to_csv, write_feed_to_json, convert_feed_to_json_obj
 from .config import (
     MAX_DAYS_BACK,
@@ -101,13 +101,19 @@ def parse_arguments(argv=None):
         help=f"Path to the OPML file. Default is '{OPML_FILENAME}'."
     )
 
+    def output_format_type(value):
+        if value is None or value.lower() == "none":
+            return None
+        return value
+
     parser.add_argument(
         "--output-format",
-        type=str,
+        type=output_format_type,
+        nargs='?',
+        const=None,  # if --output-format is provided without value, treat as None
         default="html",
-        help="Comma-separated list of output formats to generate: html, csv, json. Default is html."
+        help="Comma-separated list of output formats to generate: html, csv, json. Use 'None' or omit value for no output. Default is html."
     )
-
     parser.add_argument(
         "--output-html-folder",
         type=str,
@@ -219,6 +225,13 @@ def parse_arguments(argv=None):
         help="Always use cached copy without conditional headers (If-Modified-Since / ETag). Default is True."
     )
 
+    parser.add_argument(
+        "--check-feeds",
+        action="store_true",
+        default=False,
+        help="Perform a quick RSS health check (total items and latest entry date) without full processing."
+    )
+
     args = parser.parse_args(argv)
 
     if args.start < args.end:
@@ -300,6 +313,11 @@ def run_cyberfeedbites(argv=None, return_raw_json=False):
     """
     try:
         args = parse_arguments(argv)
+
+        if args.check_feeds:
+            check_rss_health(args.opml)
+            return 0
+
         return run_main_logic(args, return_raw_json)
     except Exception as e:
         print(f"Error: {e}")
@@ -310,7 +328,10 @@ def run_main_logic(args, return_raw_json=False):
     try:
         opml_filename = args.opml
         max_length_description = args.max_length_description
-        output_formats = {fmt.strip().lower() for fmt in args.output_format.split(",")}
+        if args.output_format is None:
+            output_formats = set()
+        else:
+            output_formats = {fmt.strip().lower() for fmt in args.output_format.split(",")}
         # Decide output folders (use defaults if not provided)
         html_folder = args.output_html_folder or HTML_REPORT_FOLDER
         csv_folder = args.output_csv_folder or CSV_REPORT_FOLDER
