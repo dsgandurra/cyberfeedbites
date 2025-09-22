@@ -22,6 +22,9 @@ from urllib.parse import urlparse
 from datetime import datetime, timezone
 import re
 import tldextract
+import os
+from typing import Any, Dict, Optional
+import yaml
 
 from .config import (
     FEED_SEPARATOR, SUMMARY_KEY, TITLE_KEY, LINK_KEY, FEED_URL_KEY, CHANNEL_IMAGE_KEY,
@@ -65,11 +68,6 @@ def truncate_string(text, max_length):
     return text
 
 def get_description(entry):
-    """
-    Returns the plain description.
-    Falls back to summary if description is missing,
-    and finally extracts plain text from HTML content if both are unavailable.
-    """
     description = entry.get(DESCRIPTION_KEY)
 
     if not description:
@@ -86,7 +84,6 @@ def get_description(entry):
     return html_to_plain_text(description).strip().replace('\n', ' ')
 
 def truncate_description(plain_text_description, max_length_description):
-    """Formats the description of the RSS entry."""
     truncated_plain_text_description = ""
            
     if plain_text_description:
@@ -143,7 +140,6 @@ def get_website_name(url):
         return "Unknown"
 
 def print_feed_details(feedtitle, feed_url, recent_articles):
-    """Helper function to print feed details."""
     print(f"\n{FEED_SEPARATOR}")
     print(f"[{feedtitle}] [{feed_url}]")
     if recent_articles:
@@ -154,7 +150,6 @@ def print_feed_details(feedtitle, feed_url, recent_articles):
     print(f"{FEED_SEPARATOR}")
 
 def print_article(entry):
-    """Helper function to print article details."""
     if(not entry[SKIPPED_REASON]):
         print(f"\t[{entry[TITLE_KEY]}] [{entry[DESCRIPTION_KEY]}] [{entry[LINK_KEY]}] [{entry[PUBLISHED_DATE_KEY]}]")
     else:
@@ -164,3 +159,56 @@ def format_title_for_print(title):
     if len(title) > MAX_FEEDTITLE_LEN_PRINT:
         return title[:MAX_FEEDTITLE_LEN_PRINT - 1] + '…'
     return title.ljust(MAX_FEEDTITLE_LEN_PRINT)
+
+def load_yaml_config(
+    path: Optional[str] = None,
+    user_options: Optional[Dict[str, Any]] = None,
+) -> Dict[str, Any]:
+    """
+    Load YAML config from 'path' and ensure all keys match allowed USER_OPTIONS.yaml_name.
+
+    :param path: Path to YAML file.
+    :param user_options: dict of UserOption objects (keys are macro names).
+    :return: dict with YAML settings.
+    """
+    result: Dict[str, Any] = {}
+
+    if not path:
+        print("No YAML path provided; using defaults.")
+        return result
+
+    expanded = os.path.expanduser(path)
+    abspath = os.path.abspath(expanded)
+
+    if not os.path.isfile(abspath):
+        print(f"YAML file does not exist at: {abspath}; using defaults.")
+        return result
+
+    try:
+        with open(abspath, "r", encoding="utf-8") as fh:
+            loaded = yaml.safe_load(fh) or {}
+
+        if not isinstance(loaded, dict):
+            raise ValueError(f"Top-level structure in YAML must be a mapping/object: {abspath}")
+
+        # --- Validation ---
+        if user_options:
+            valid_keys = {opt.yaml_name for opt in user_options.values() if opt.yaml_name}
+            invalid_keys = [k for k in loaded.keys() if k not in valid_keys]
+            if invalid_keys:
+                raise ValueError(
+                    f"Unrecognised YAML option(s): {', '.join(invalid_keys)}\n"
+                    f"Valid options are: {', '.join(sorted(valid_keys))}"
+                )
+
+        result.update(loaded)
+
+        # --- Debug info ---
+        print(f"Loaded YAML configuration from: {abspath}")
+        for key, value in loaded.items():
+            print(f"  {key}: {value}")
+
+        return result
+
+    except yaml.YAMLError as ye:
+        raise ValueError(f"Failed to parse YAML file {abspath}: {ye}") from ye

@@ -35,7 +35,7 @@ from .config import (
     CHANNEL_IMAGE_KEY, ICON_URL_KEY, IMAGE_KEY, ICON_KEY, FEED_TITLE_KEY,
     LOGO_KEY, HREF_KEY, URL_KEY, CATEGORY_KEY, DEFAULT_REQUEST_HEADERS, 
     HTTP_REQUEST_TIMEOUT, SKIPPED_REASON, MAX_CONCURRENT_TASKS,
-    CACHE_FOLDER, CACHE_MAX_AGE_SECONDS
+    CACHE_FOLDER, CACHE_MAX_AGE_SECONDS, STALE_DAYS_THRESHOLD
 )
 
 @dataclass
@@ -338,35 +338,22 @@ async def retrieve_and_process_feed(session, feedtitle, feed_url, options: FeedO
 
         # Step 2: Cleaning + parsing
         cleaned_content = clean_feed_content(raw_content)
-        feed = feedparser.parse(cleaned_content)
+        feed = await asyncio.to_thread(feedparser.parse, cleaned_content)
 
         if feed.bozo:
             raise RuntimeError(f"Feed parsing error: {feed.bozo_exception}")
 
         # Step 3: Processing
-        if is_cached:
-            # Process synchronously, no new thread
-            recent_articles, skipped_articles = process_feed_entries(
-                feed,
-                feed_url,
-                options.start_date,
-                options.end_date,
-                set(k.lower() for k in options.exclude_keywords or []),
-                set(k.lower() for k in options.aggressive_keywords or []),
-                options.max_length_description,
-            )
-        else:
-            # Network-bound, use thread to avoid blocking event loop
-            recent_articles, skipped_articles = await asyncio.to_thread(
-                process_feed_entries,
-                feed,
-                feed_url,
-                options.start_date,
-                options.end_date,
-                set(k.lower() for k in options.exclude_keywords or []),
-                set(k.lower() for k in options.aggressive_keywords or []),
-                options.max_length_description,
-            )
+        recent_articles, skipped_articles = await asyncio.to_thread(
+            process_feed_entries,
+            feed,
+            feed_url,
+            options.start_date,
+            options.end_date,
+            set(k.lower() for k in options.exclude_keywords or []),
+            set(k.lower() for k in options.aggressive_keywords or []),
+            options.max_length_description,
+        )
 
         # Annotate with feed metadata
         for entry in recent_articles + skipped_articles:
@@ -394,7 +381,6 @@ async def process_all_feeds(feeds, options: FeedOptions, max_concurrent=MAX_CONC
         async def handle_feed(feedtitle, feed_url):
             try:
                 async with semaphore:
-                    # Use unified function instead of repeating logic
                     return await retrieve_and_process_feed(session, feedtitle, feed_url, options)
             except Exception as e:
                 print(f"Error retrieving/processing: {feedtitle} ({feed_url}): {e}")
@@ -411,8 +397,6 @@ async def process_all_feeds(feeds, options: FeedOptions, max_concurrent=MAX_CONC
 
     return all_entries, skipped_entries, errors
 
-STALE_DAYS_THRESHOLD = 30  # feeds older than this are considered stale
-
 def check_rss_health(opml_filename: str):
     """
     Simple RSS health check: fetches feeds from OPML file,
@@ -426,6 +410,7 @@ def check_rss_health(opml_filename: str):
     except ET.ParseError as e:
         raise ET.ParseError(f"The OPML file '{opml_filename}' is not well-formed XML: {e}") from e
 
+    print(f"Checking file {opml_filename}")
     now = datetime.now(timezone.utc)
 
     async def _check():

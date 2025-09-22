@@ -6,10 +6,13 @@ CyberFeedBites is a lightweight Python tool that provides an overview of recent 
 
 ## Features
 
-- Collects and processes cybersecurity news from various RSS feeds (curated list already included in an OPML file).  
-- Fetches cybersecurity news from the past N days (default: 7 days).
+- Collects and processes cybersecurity news from various RSS feeds.  
+- Includes a customisable OPML file with a list of curated cybersecurity RSS sources.  
 - Generates HTML, JSON and CSV files with news titles, brief descriptions, and links to articles, sorted by date, providing an overview of the latest cybersecurity news.  
-- Includes a customisable OPML file with a list of notable cybersecurity RSS sources.
+- Provides configurable date range for fetching news.  
+- Allows filtering of articles by keywords or excluding unwanted content (e.g., sponsored or clickbait articles).  
+- Supports quick RSS feed health checks without downloading all articles.  
+- Uses caching to reduce repeated HTTP requests and speed up fetching.  
 - Supports asynchronous HTTP fetching using `aiohttp` for improved performance.
 
 ## Quick Start
@@ -17,7 +20,7 @@ CyberFeedBites is ready to use once dependencies are installed. To run it as is,
 
 1. Clone the repository: `git clone https://github.com/dsgandurra/cyberfeedbites.git`
 2. Install dependencies: `pip install -r cyberfeedbites/requirements.txt`
-3. Run CyberFeedBites: `python -m cyberfeedbites.src.main`
+3. Run CyberFeedBites with default options: `python -m cyberfeedbites.src.main`
 4. Check the generated HTML file in the `cyberfeedbites/data/html_reports/` directory.
 
 ## Installation
@@ -54,37 +57,39 @@ The required packages are:
 - `beautifulsoup4`: For HTML parsing and manipulation.
 - `aiohttp`: For asynchronous HTTP requests to speed up feed fetching.
 - `requests`: For robust HTTP fetching with custom headers.
-- `tldextract` — extracting domain names from URLs
+- `tldextract`: For extracting domain names from URLs
+- `pyyaml`: For reading YAML configuration file
 
 ## Usage
 
 Run CyberFeedBites with optional parameters:
 
     ```bash
-    python -m cyberfeedbites.src.main [--start <start_days_ago>] [--end <end_days_ago>] [--opml <opml_file_path>] [--output-format <formats>] [--output-html-folder <folder>] [--output-csv-folder <folder>] [--output-json-folder <folder>] [--align-start-to-midnight] [--align-end-to-midnight] [--html-img] [--max-length-description <length>] [--exclude-keywords] [--exclude-keywords-file <file>] [--aggressive-filtering] [--aggressive-keywords-file <file>] [--print-retrieved] [--print-skipped] [--order-by {date,title_date}] [--ignore-cache] [--no-conditional-cache]
+    python -m cyberfeedbites.src.main [-h] [--start START] [--end END] [--opml-filename OPML_FILENAME] [--output-format [OUTPUT_FORMAT]] [--output-html-folder OUTPUT_HTML_FOLDER] [--output-csv-folder OUTPUT_CSV_FOLDER] [--output-json-folder OUTPUT_JSON_FOLDER] [--align-start-to-midnight] [--align-end-to-midnight] [--html-img] [--max-length-description MAX_LENGTH_DESCRIPTION] [--exclude-keywords] [--exclude-keywords-file EXCLUDE_KEYWORDS_FILE] [--aggressive-filtering] [--aggressive-keywords-file AGGRESSIVE_KEYWORDS_FILE] [--print-retrieved] [--print-skipped] [--order-by {date,title_date}] [--ignore-cache] [--no-conditional-cache] [--check-feeds] [--settings-yaml SETTINGS_YAML]
     ```
 
 - `--start`: Number of days ago to start fetching news (default: 1).
 - `--end`: Number of days ago to end fetching news (default: 0).
-- `--opml`: Path to the OPML file to use (default as configured).
-- `--output-format`: Comma-separated list of output formats (html, csv, json). Default is all.
+- `--opml-filename`: Path to the OPML file to use (default as configured).
+- `--output-format`: Comma-separated list of output formats (`html`, `csv`, `json`). Default is `html`.
 - `--output-html-folder`: Folder for HTML output (default configured).
 - `--output-csv-folder`: Folder for CSV output (default configured).
 - `--output-json-folder`: Folder for JSON output (default configured).
 - `--align-start-to-midnight`: Align start date to midnight.
 - `--align-end-to-midnight`: Align end date to 23:59:59.
 - `--max-length-description`: Maximum length for RSS feed descriptions (default: 200).
-- `--exclude-keywords`: Enable exclusion of entries containing specific keywords.
+- `--exclude-keywords`: Enable exclusion of entries containing default keywords such as "sponsored", "advertisement", "clickbait", etc. Combine with `--exclude-keywords-file` to override with a custom list.
 - `--exclude-keywords-file`: Path to a file containing keywords to exclude, one per line. Overrides default keywords.
 - `--print-retrieved`: Print retrieved articles summary at the end.
 - `--print-skipped`: Print skipped articles summary at the end.
 - `--order-by`: Order HTML output by `date` (default) or `title_date`.
 - `--html-img`: Include images in the HTML output (default is False).
-- `--aggressive-filtering`: Enable removal of articles that do NOT include any security keywords. Default is False.
+- `--aggressive-filtering`: Remove articles that do NOT contain any cybersecurity keywords (default keyword: "security"). Can be customised using `--aggressive-keywords-file`.
 - `--aggressive-keywords-file`: Path to a file containing security keywords to keep, one per line. Overrides default cybersecurity keywords.
 - `--ignore-cache`: Disable cache completely (always fetch online). Default is False.
 - `--no-conditional-cache`: Always use cached copy without conditional headers (If-Modified-Since / ETag). Default is False.
 - `--check-feeds`: Perform a quick RSS health check (total items and latest entry date) without full processing.
+- `--settings-yaml`: Enable loading parameters from a YAML configuration file. 
 
 Examples:
 - Fetch news from the last 1 day (default):
@@ -111,7 +116,7 @@ Examples:
 - CyberFeedBites can quickly check whether RSS feeds in an OPML file are healthy without downloading all articles:
 
   ```bash
-  python -m cyberfeedbites.src.main --opml <opml_file_path> --check-feeds
+  python -m cyberfeedbites.src.main --opml-filename <opml_file_path> --check-feeds
   ```
 
   - Prints a summary for each feed with:
@@ -133,12 +138,10 @@ In the provided OPML file, the top-level `<outline>` element contains `category=
 
 Each HTML file contains a table with the following columns:
 
-- **ID**: The article's position in the list.  
-- **Date**: The date the article was published.  
-- **Website**: The name of the website and logo of the channel (if available or if stored in the OPML file).  
-- **Title**: The title of the article.  
-- **Description**: A brief description of the article.  
-- **Link**: The URL to the full article.
+- **Date**: The date the article was published.
+- **Website**: The name of the website and its logo or channel image (from OPML or feed).
+- **Title**: The article's title as a clickable link.
+- **Description**: A brief description of the article.
 
 Each JSON file has the following format:
 
@@ -158,17 +161,28 @@ Each CSV file contains a table with the following columns:
 
 ## Sample OPML File
 
-The repository includes a sample OPML file (`cyberfeedbites/data/rss_sources/cybersecnews-sources.opml`) containing a curated list of relevant RSS sources. You can edit this file to add or remove RSS feed URLs according to your preferences or use a custom OPML file by passing its path via the `--opml` option.
+The repository includes a sample OPML file (`cyberfeedbites/data/rss_sources/cybersecnews-sources.opml`) containing a curated list of relevant RSS sources. You can edit this file to add or remove RSS feed URLs according to your preferences or use a custom OPML file by passing its path via the `--opml-filename` option.
 
 ## OPML File Structure
 
 CyberFeedBites expects **each OPML file to include only one top-level `<outline>` element** (i.e., one section or feed group, e.g., `<outline text="Cybersecurity News" title="Cybersecurity News Feeds" category="Cybersecurity News">`). Based on this, the program generates report files (HTML, JSON, CSV) using the top-level outline's `category` attribute (or `text`, if missing) as the filename prefix. If multiple top-level outlines are present in one OPML file, only the first will be processed; others will be ignored. Hence, to organise feeds into multiple categories or sections, split them into separate OPML files—one per category—and run CyberFeedBites separately for each. This keeps the program simple and avoids handling multiple output files or combined reports, while allowing different look-back periods for different categories or sections.
+
+**Important:** CyberFeedBites expects **only one top-level `<outline>` element per OPML file**. The program uses the `category` attribute (or `text` if missing) of this top-level outline for filenames. If multiple top-level outlines exist, only the first is processed; others are ignored.
 
 ## Customisation
 
 - The `MAX_DAYS_BACK` parameter in `config.py` limits the maximum number of days allowed as input to prevent fetching an excessive number of RSS entries. You can increase this limit by editing the variable in `config.py`.
 - You can also add or remove RSS feed sources by editing the `cybersecnews-sources.opml` file. Alternatively, you can use a different OPML file as parameter, allowing multiple feed sets to be maintained separately.
 - CyberFeedBites generates HTML output based on a template located in the `data/templates` folder. The template also includes `sorttable.js` to enable sortable tables. You can modify `template.html` and the accompanying `style.css` for customisation. If you choose a different directory to store the HTML reports, ensure the style CSS and `sorttable.js` references are updated accordingly.
+- The HTML output can include channel images if `--html-img` is enabled. By default, images are not included.
+- The HTML template (`data/templates/template.html`) can be customised along with `style.css` and `sorttable.js`. Ensure references remain correct if the output folder is changed.
+
+### Caching Behaviour
+
+- Cached feed data is stored in `data/cache`.  
+- `--ignore-cache`: always fetch feeds from the web, ignoring cache.  
+- `--no-conditional-cache`: use cached feed without sending HTTP conditional headers (If-Modified-Since / ETag).
+
 
 ## License
 

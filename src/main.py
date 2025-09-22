@@ -47,19 +47,32 @@ from .config import (
     EXCLUDE_KEYWORDS,
     FEED_TITLE_KEY,
     FEED_URL_KEY,
-    CYBERSECURITY_KEYWORDS
+    CYBERSECURITY_KEYWORDS,
+    USER_OPTIONS,
+    OUTPUT_FORMAT,
+    ALIGN_START_TO_MIDNIGHT,
+    ALIGN_END_TO_MIDNIGHT,
+    HTML_IMG,
+    EXCLUDE_KEYWORDS_FILE,
+    AGGRESSIVE_FILTERING,
+    AGGRESSIVE_KEYWORDS_FILE,
+    PRINT_RETRIEVED,
+    PRINT_SKIPPED,
+    ORDER_BY,
+    IGNORE_CACHE,
+    NO_CONDITIONAL_CACHE,
+    CHECK_FEEDS,
+    SETTINGS_YAML
 )
-from .utils import print_feed_details
+from .utils import print_feed_details, load_yaml_config
 
 def validate_start(value):
-    """Ensure that start is less than or equal to MAX_DAYS_BACK to limit output."""
     value = int(value)
     if value > MAX_START_DAYS:
         raise argparse.ArgumentTypeError(f"Start day offset must be less than or equal to {MAX_START_DAYS}.")
     return value
 
 def validate_end(value):
-    """Ensure that the number of days is less than or equal to MAX_DAYS_BACK to limit output."""
     value = int(value)
     if value > MAX_END_DAYS:
         raise argparse.ArgumentTypeError(f"End day offset must be less than or equal to {MAX_END_DAYS}.")
@@ -74,32 +87,11 @@ def validate_max_length_description(value):
 def parse_arguments(argv=None):
     description = (
         "Cyberfeedbites collects and summarises the latest cybersecurity news from "
-        f"RSS feeds listed in the default OPML file ({OPML_FILENAME}), generating HTML, CSV, and JSON reports. "
-        f"By default, reports are saved in these folders: HTML ({HTML_REPORT_FOLDER}), "
-        f"CSV ({CSV_REPORT_FOLDER}), and JSON ({JSON_REPORT_FOLDER})."
+        f"RSS feeds listed in the default OPML file ({USER_OPTIONS['OPML_FILENAME'].value}), generating HTML, CSV, and JSON reports. "
+        f"By default, reports are saved in these folders: HTML ({USER_OPTIONS['HTML_REPORT_FOLDER'].value}), "
+        f"CSV ({USER_OPTIONS['CSV_REPORT_FOLDER'].value}), and JSON ({USER_OPTIONS['JSON_REPORT_FOLDER'].value})."
     )
     parser = argparse.ArgumentParser(description=description)
-
-    parser.add_argument(
-        "--start",
-        type=validate_start,
-        default=DEFAULT_START,
-        help=f"Start day offset (days ago) to look back from today. Default is {DEFAULT_START}."
-    )
-
-    parser.add_argument(
-        "--end",
-        type=validate_end,
-        default=DEFAULT_END,
-        help=f"End day offset (days ago) to end looking back. Default is {DEFAULT_END} (today)."
-    )
-        
-    parser.add_argument(
-        "--opml", 
-        type=str, 
-        default=OPML_FILENAME, 
-        help=f"Path to the OPML file. Default is '{OPML_FILENAME}'."
-    )
 
     def output_format_type(value):
         if value is None or value.lower() == "none":
@@ -107,129 +99,161 @@ def parse_arguments(argv=None):
         return value
 
     parser.add_argument(
-        "--output-format",
+        f"--{USER_OPTIONS['DEFAULT_START'].cli_name}",
+        type=validate_start,
+        default=USER_OPTIONS['DEFAULT_START'].value,
+        help=f"Start day offset (days ago) to look back from today. Default is {USER_OPTIONS['DEFAULT_START'].value}."
+    )
+
+    parser.add_argument(
+        f"--{USER_OPTIONS['DEFAULT_END'].cli_name}",
+        type=validate_end,
+        default=USER_OPTIONS['DEFAULT_END'].value,
+        help=f"End day offset (days ago) to end looking back. Default is {USER_OPTIONS['DEFAULT_END'].value} (today)."
+    )
+
+    parser.add_argument(
+        f"--{USER_OPTIONS['OPML_FILENAME'].cli_name}",
+        type=str,
+        default=USER_OPTIONS['OPML_FILENAME'].value,
+        help=f"Path to the OPML file. Default is '{USER_OPTIONS['OPML_FILENAME'].value}'."
+    )
+
+    parser.add_argument(
+        f"--{USER_OPTIONS['OUTPUT_FORMAT'].cli_name}",
         type=output_format_type,
         nargs='?',
-        const=None,  # if --output-format is provided without value, treat as None
-        default="html",
-        help="Comma-separated list of output formats to generate: html, csv, json. Use 'None' or omit value for no output. Default is html."
-    )
-    parser.add_argument(
-        "--output-html-folder",
-        type=str,
-        default=HTML_REPORT_FOLDER,
-        help="Output folder for HTML reports. Default is configured default folder."
+        const=None,
+        default=USER_OPTIONS['OUTPUT_FORMAT'].value,
+        help=f"Comma-separated list of output formats to generate: html, csv, json. "
+             f"Use 'None' or omit value for no output. Default is {USER_OPTIONS['OUTPUT_FORMAT'].value}."
     )
 
     parser.add_argument(
-        "--output-csv-folder",
+        f"--{USER_OPTIONS['HTML_REPORT_FOLDER'].cli_name}",
         type=str,
-        default=CSV_REPORT_FOLDER,
-        help="Output folder for CSV reports. Default is configured default folder."
+        default=USER_OPTIONS['HTML_REPORT_FOLDER'].value,
+        help=f"Output folder for HTML reports. Default is {USER_OPTIONS['HTML_REPORT_FOLDER'].value}."
     )
 
     parser.add_argument(
-        "--output-json-folder",
+        f"--{USER_OPTIONS['CSV_REPORT_FOLDER'].cli_name}",
         type=str,
-        default=JSON_REPORT_FOLDER,
-        help="Output folder for JSON reports. Default is configured default folder."
+        default=USER_OPTIONS['CSV_REPORT_FOLDER'].value,
+        help=f"Output folder for CSV reports. Default is {USER_OPTIONS['CSV_REPORT_FOLDER'].value}."
     )
 
     parser.add_argument(
-        "--align-start-to-midnight",
+        f"--{USER_OPTIONS['JSON_REPORT_FOLDER'].cli_name}",
+        type=str,
+        default=USER_OPTIONS['JSON_REPORT_FOLDER'].value,
+        help=f"Output folder for JSON reports. Default is {USER_OPTIONS['JSON_REPORT_FOLDER'].value}."
+    )
+
+    parser.add_argument(
+        f"--{USER_OPTIONS['ALIGN_START_TO_MIDNIGHT'].cli_name}",
         action="store_true",
+        default=USER_OPTIONS['ALIGN_START_TO_MIDNIGHT'].value,
         help="Align the start date to midnight of the first day instead of counting exact hours back."
     )
 
     parser.add_argument(
-        "--align-end-to-midnight",
+        f"--{USER_OPTIONS['ALIGN_END_TO_MIDNIGHT'].cli_name}",
         action="store_true",
+        default=USER_OPTIONS['ALIGN_END_TO_MIDNIGHT'].value,
         help="Align the end date to 23:59:59 of the end day instead of current time."
     )
 
     parser.add_argument(
-        "--html-img",
+        f"--{USER_OPTIONS['HTML_IMG'].cli_name}",
         action="store_true",
-        default=False,
-        help="Include images in the HTML output. Default is False."
+        default=USER_OPTIONS['HTML_IMG'].value,
+        help=f"Include images in the HTML output. Default is {USER_OPTIONS['HTML_IMG'].value}."
     )
 
     parser.add_argument(
-        "--max-length-description",
+        f"--{USER_OPTIONS['MAX_LENGTH_DESCRIPTION'].cli_name}",
         type=validate_max_length_description,
-        default=MAX_LENGTH_DESCRIPTION,
-        help=f"Maximum length for RSS feed descriptions. Default is {MAX_LENGTH_DESCRIPTION}."
+        default=USER_OPTIONS['MAX_LENGTH_DESCRIPTION'].value,
+        help=f"Maximum length for RSS feed descriptions. Default is {USER_OPTIONS['MAX_LENGTH_DESCRIPTION'].value}."
     )
 
     parser.add_argument(
-        "--exclude-keywords",
+        f"--{USER_OPTIONS['EXCLUDE_KEYWORDS'].cli_name}",
         action="store_true",
-        default=False,
-        help="Enable exclusion of articles containing specific keywords. Default is False."
+        default=USER_OPTIONS['EXCLUDE_KEYWORDS'].value,
+        help=f"Enable exclusion of articles containing specific keywords. Default is {USER_OPTIONS['EXCLUDE_KEYWORDS'].value}."
     )
 
     parser.add_argument(
-        "--exclude-keywords-file",
+        f"--{USER_OPTIONS['EXCLUDE_KEYWORDS_FILE'].cli_name}",
         type=str,
-        default=None,
-        help="Path to a file containing keywords to exclude, one per line. If provided, overrides default keywords."
+        default=USER_OPTIONS['EXCLUDE_KEYWORDS_FILE'].value,
+        help=f"Path to a file containing keywords to exclude, one per line. Default is {USER_OPTIONS['EXCLUDE_KEYWORDS_FILE'].value}."
     )
 
     parser.add_argument(
-        "--aggressive-filtering",
+        f"--{USER_OPTIONS['AGGRESSIVE_FILTERING'].cli_name}",
         action="store_true",
-        default=False,
-        help="Enable removal of articles that do NOT include any security keywords."
+        default=USER_OPTIONS['AGGRESSIVE_FILTERING'].value,
+        help=f"Enable removal of articles that do NOT include any security keywords. Default is {USER_OPTIONS['AGGRESSIVE_FILTERING'].value}."
     )
 
     parser.add_argument(
-        "--aggressive-keywords-file",
+        f"--{USER_OPTIONS['AGGRESSIVE_KEYWORDS_FILE'].cli_name}",
         type=str,
-        default=None,
-        help="Path to a file containing security keywords to keep, one per line. Overrides default cybersecurity keywords."
+        default=USER_OPTIONS['AGGRESSIVE_KEYWORDS_FILE'].value,
+        help=f"Path to a file containing security keywords to keep, one per line. Default is {USER_OPTIONS['AGGRESSIVE_KEYWORDS_FILE'].value}."
     )
 
     parser.add_argument(
-        "--print-retrieved",
+        f"--{USER_OPTIONS['PRINT_RETRIEVED'].cli_name}",
         action="store_true",
-        default=False,
-        help="Print retrieved articles at the end of processing. Default is False."
+        default=USER_OPTIONS['PRINT_RETRIEVED'].value,
+        help=f"Print retrieved articles at the end of processing. Default is {USER_OPTIONS['PRINT_RETRIEVED'].value}."
     )
 
     parser.add_argument(
-        "--print-skipped",
+        f"--{USER_OPTIONS['PRINT_SKIPPED'].cli_name}",
         action="store_true",
-        default=False,
-        help="Print skipped articles at the end of processing. Default is False."
+        default=USER_OPTIONS['PRINT_SKIPPED'].value,
+        help=f"Print skipped articles at the end of processing. Default is {USER_OPTIONS['PRINT_SKIPPED'].value}."
     )
 
     parser.add_argument(
-        "--order-by",
+        f"--{USER_OPTIONS['ORDER_BY'].cli_name}",
         type=str,
         choices=["date", "title_date"],
-        default="date",
-        help="Order for HTML output: 'date' (default) or 'title_date'."
+        default=USER_OPTIONS['ORDER_BY'].value,
+        help=f"Order for HTML output: 'date' (default) or 'title_date'. Default is {USER_OPTIONS['ORDER_BY'].value}."
     )
 
     parser.add_argument(
-        "--ignore-cache",
+        f"--{USER_OPTIONS['IGNORE_CACHE'].cli_name}",
         action="store_true",
-        default=False,
-        help="Disable cache completely (always fetch online). Default is False."
+        default=USER_OPTIONS['IGNORE_CACHE'].value,
+        help=f"Disable cache completely (always fetch online). Default is {USER_OPTIONS['IGNORE_CACHE'].value}."
     )
 
     parser.add_argument(
-        "--no-conditional-cache",
+        f"--{USER_OPTIONS['NO_CONDITIONAL_CACHE'].cli_name}",
         action="store_false",
-        default=True,
-        help="Always use cached copy without conditional headers (If-Modified-Since / ETag). Default is True."
+        default=USER_OPTIONS['NO_CONDITIONAL_CACHE'].value,
+        help=f"Always use cached copy without conditional headers (If-Modified-Since / ETag). Default is {USER_OPTIONS['NO_CONDITIONAL_CACHE'].value}."
     )
 
     parser.add_argument(
-        "--check-feeds",
+        f"--{USER_OPTIONS['CHECK_FEEDS'].cli_name}",
         action="store_true",
-        default=False,
-        help="Perform a quick RSS health check (total items and latest entry date) without full processing."
+        default=USER_OPTIONS['CHECK_FEEDS'].value,
+        help=f"Perform a quick RSS health check. Default is {USER_OPTIONS['CHECK_FEEDS'].value}."
+    )
+
+    parser.add_argument(
+        f"--{USER_OPTIONS['SETTINGS_YAML'].cli_name}",
+        type=str,
+        default=USER_OPTIONS['SETTINGS_YAML'].value,
+        help=f"Path to a YAML configuration file. Default is '{USER_OPTIONS['SETTINGS_YAML'].value}'."
     )
 
     args = parser.parse_args(argv)
@@ -307,92 +331,126 @@ def print_summary(
     print(f"{FEED_SEPARATOR}")
 
 def run_cyberfeedbites(argv=None, return_raw_json=False):
-    """
-    Entry point for in-process invocation.
-    argv: list of strings, e.g. ["--opml", "file.opml", "--start", "1"]
-    """
     try:
+        # 1. Parse CLI arguments
         args = parse_arguments(argv)
 
-        if args.check_feeds:
-            check_rss_health(args.opml)
+        # 2. Determine OPML file and CHECK_FEEDS flag 
+        check_feeds_flag = getattr(args, "check_feeds", False)
+        if check_feeds_flag:
+            opml_file = getattr(args, "opml", USER_OPTIONS["OPML_FILENAME"].value)
+            check_rss_health(opml_file)
             return 0
+        
+        # 3. Load YAML config
+        yaml_path = getattr(args, "settings_yaml", USER_OPTIONS["SETTINGS_YAML"].value)
+        yaml_settings = load_yaml_config(yaml_path, USER_OPTIONS)
 
-        return run_main_logic(args, return_raw_json)
+        # 4. Update USER_OPTIONS from YAML
+        for option in USER_OPTIONS.values():
+            if not option.cli_only and option.yaml_name in yaml_settings:
+                option.set_from_yaml(yaml_settings)
+
+        # 5. Override USER_OPTIONS with CLI arguments if explicitly passed
+        cli_args = argv if argv is not None else sys.argv[1:]
+        cli_flags = {arg.split("=")[0] for arg in cli_args if arg.startswith("--")}
+
+        for option in USER_OPTIONS.values():
+            if not option.yaml_only:
+                cli_flag = f"--{option.cli_name}"
+                if cli_flag in cli_flags:
+                    option.value = getattr(args, option.yaml_name)
+
+        # 6. Print resolved values
+        for option in USER_OPTIONS.values():
+            if option.yaml_only:
+                # Print only if YAML actually changed it
+                if option.value != option.default:
+                    print(f"{option.macro_name}: {option.value}")
+            else:
+                print(f"{option.macro_name}: {option.value}")
+
+        # 7. Ensure OUTPUT_FORMAT is lowercased and comma-separated
+        output_format_option = USER_OPTIONS['OUTPUT_FORMAT'].value
+        if output_format_option:
+            USER_OPTIONS['OUTPUT_FORMAT'].value = ",".join(fmt.strip().lower() for fmt in output_format_option.split(","))
+
+        # 7. Run main logic
+        return run_main_logic(USER_OPTIONS, return_raw_json)
+
     except Exception as e:
         print(f"Error: {e}")
         traceback.print_exc()
-        return 1  # non-zero exit code
+        return 1
 
-def run_main_logic(args, return_raw_json=False):
+def run_main_logic(options_dict, return_raw_json=False):
     try:
-        opml_filename = args.opml
-        max_length_description = args.max_length_description
-        if args.output_format is None:
+        opml_filename = options_dict["OPML_FILENAME"].value
+
+        max_length_description = options_dict["MAX_LENGTH_DESCRIPTION"].value
+        output_format_option = options_dict["OUTPUT_FORMAT"].value
+        if output_format_option is None:
             output_formats = set()
         else:
-            output_formats = {fmt.strip().lower() for fmt in args.output_format.split(",")}
-        # Decide output folders (use defaults if not provided)
-        html_folder = args.output_html_folder or HTML_REPORT_FOLDER
-        csv_folder = args.output_csv_folder or CSV_REPORT_FOLDER
-        json_folder = args.output_json_folder or JSON_REPORT_FOLDER
+            output_formats = {fmt.strip().lower() for fmt in output_format_option.split(",")}
 
-        aggressive_filtering = args.aggressive_filtering
+        html_folder = options_dict["HTML_REPORT_FOLDER"].value or HTML_REPORT_FOLDER
+        csv_folder = options_dict["CSV_REPORT_FOLDER"].value or CSV_REPORT_FOLDER
+        json_folder = options_dict["JSON_REPORT_FOLDER"].value or JSON_REPORT_FOLDER
+
+        aggressive_filtering = options_dict["AGGRESSIVE_FILTERING"].value
         aggressive_keywords = []
 
         if aggressive_filtering:
-            if args.aggressive_keywords_file:
+            aggressive_file = options_dict["AGGRESSIVE_KEYWORDS_FILE"].value
+            if aggressive_file:
                 try:
-                    with open(args.aggressive_keywords_file, "r", encoding="utf-8") as f:
+                    with open(aggressive_file, "r", encoding="utf-8") as f:
                         aggressive_keywords = [line.strip().lower() for line in f if line.strip()]
                 except Exception as e:
-                    print(f"Error reading aggressive keywords file '{args.aggressive_keywords_file}': {e}")
+                    print(f"Error reading aggressive keywords file '{aggressive_file}': {e}")
                     return 1
             else:
                 aggressive_keywords = [kw.lower() for kw in CYBERSECURITY_KEYWORDS]
-        else:
-            aggressive_keywords = []
 
         exclude_keywords = []
-        if args.exclude_keywords:
-            if args.exclude_keywords_file:
+        if options_dict["EXCLUDE_KEYWORDS"].value:
+            exclude_file = options_dict["EXCLUDE_KEYWORDS_FILE"].value
+            if exclude_file:
                 try:
-                    with open(args.exclude_keywords_file, "r", encoding="utf-8") as f:
+                    with open(exclude_file, "r", encoding="utf-8") as f:
                         exclude_keywords = [line.strip().lower() for line in f if line.strip()]
                 except Exception as e:
-                    print(f"Error reading exclude keywords file '{args.exclude_keywords_file}': {e}")
+                    print(f"Error reading exclude keywords file '{exclude_file}': {e}")
                     return 1
             else:
-                # Use default EXCLUDE_KEYWORDS from config if no file provided
                 exclude_keywords = [kw.lower() for kw in EXCLUDE_KEYWORDS]
 
-        print_retrieved_entries = args.print_retrieved
-        print_skipped_entries = args.print_skipped
-        order_by = args.order_by
-        ignore_cache = args.ignore_cache
-        no_conditional_cache = args.no_conditional_cache
+        print_retrieved_entries = options_dict["PRINT_RETRIEVED"].value
+        print_skipped_entries = options_dict["PRINT_SKIPPED"].value
+        order_by = options_dict["ORDER_BY"].value
+        ignore_cache = options_dict["IGNORE_CACHE"].value
+        no_conditional_cache = options_dict["NO_CONDITIONAL_CACHE"].value
 
         start_time = time.time()
-        current_date = datetime.now(timezone.utc)        
-        start_date = current_date - timedelta(days=args.start)
-        end_date = current_date - timedelta(days=args.end)
+        current_date = datetime.now(timezone.utc)
+        start_date = current_date - timedelta(days=options_dict["DEFAULT_START"].value)
+        end_date = current_date - timedelta(days=options_dict["DEFAULT_END"].value)
 
-        if args.align_start_to_midnight:
+        if options_dict["ALIGN_START_TO_MIDNIGHT"].value:
             start_date = start_date.replace(hour=0, minute=0, second=0, microsecond=0)
 
-        if args.align_end_to_midnight:
+        if options_dict["ALIGN_END_TO_MIDNIGHT"].value:
             end_date = end_date.replace(hour=23, minute=59, second=59, microsecond=999999)
 
         current_date_string_filename_suffix = current_date.strftime(TEXT_DATE_FORMAT_FILE)
-
         start_date_string_print = start_date.strftime(TEXT_DATE_FORMAT_PRINT)
         end_date_string_print = end_date.strftime(TEXT_DATE_FORMAT_PRINT)
-
-        current_date_string_print_json = current_date.strftime(TEXT_DATE_FORMAT_JSON) 
+        current_date_string_print_json = current_date.strftime(TEXT_DATE_FORMAT_JSON)
         start_date_string_print_json = start_date.strftime(TEXT_DATE_FORMAT_JSON)
-        end_date_string_print_json =  end_date.strftime(TEXT_DATE_FORMAT_JSON)
+        end_date_string_print_json = end_date.strftime(TEXT_DATE_FORMAT_JSON)
 
-        options = FeedOptions(
+        feed_options = FeedOptions(
             start_date=start_date,
             end_date=end_date,
             max_length_description=max_length_description,
@@ -402,7 +460,7 @@ def run_main_logic(args, return_raw_json=False):
             no_conditional_cache=no_conditional_cache
         )
 
-        all_entries, skipped_entries, icon_map, opml_text, opml_title, opml_category, errors = process_rss_feed(opml_filename, options)
+        all_entries, skipped_entries, icon_map, opml_text, opml_title, opml_category, errors = process_rss_feed(opml_filename, feed_options)
 
         base = opml_category or opml_text
         if not base:
@@ -412,7 +470,6 @@ def run_main_logic(args, return_raw_json=False):
         html_outfilename = None
         csv_outfilename = None
         json_outfilename = None
-
         json_data = None
 
         if "json" in output_formats or return_raw_json:
@@ -439,67 +496,67 @@ def run_main_logic(args, return_raw_json=False):
             json_outfilename = os.path.join(json_folder, f"{out_filename_prefix}_{current_date_string_filename_suffix}.json")
 
         if "html" in output_formats:
-            include_images = args.html_img
+            include_images = options_dict["HTML_IMG"].value
             write_feed_to_html(
-            all_entries,
-            html_outfilename,
-            start_date_string_print,
-            end_date_string_print,
-            icon_map,
-            opml_text,
-            opml_title,
-            opml_category,
-            order_by,
-            include_images
-        )
+                all_entries,
+                html_outfilename,
+                start_date_string_print,
+                end_date_string_print,
+                icon_map,
+                opml_text,
+                opml_title,
+                opml_category,
+                order_by,
+                include_images
+            )
 
         if "csv" in output_formats:
             write_feed_to_csv(
-            all_entries, 
-            csv_outfilename, 
-            start_date_string_print,
-            end_date_string_print,  
-            opml_text, 
-            opml_title,
-            opml_category
-        )
+                all_entries,
+                csv_outfilename,
+                start_date_string_print,
+                end_date_string_print,
+                opml_text,
+                opml_title,
+                opml_category
+            )
 
         if "json" in output_formats:
             write_feed_to_json(
-            json_data,
-            all_entries,
-            json_outfilename,
-            current_date_string_print_json,
-            start_date_string_print_json,
-            end_date_string_print_json,
-            opml_text, 
-            opml_title,
-            opml_category
-        )  
+                json_data,
+                all_entries,
+                json_outfilename,
+                current_date_string_print_json,
+                start_date_string_print_json,
+                end_date_string_print_json,
+                opml_text,
+                opml_title,
+                opml_category
+            )
 
         end_time = time.time()
 
         print_summary(
-            start_date_print = start_date_string_print,
-            end_date_print = end_date_string_print,
-            opml_filename = opml_filename,
-            entries = all_entries,
-            skipped_entries = skipped_entries,
-            print_retrieved_entries = print_retrieved_entries,
-            print_skipped_entries = print_skipped_entries,
-            html_outfilename = html_outfilename,
-            csv_outfilename = csv_outfilename,
-            json_outfilename = json_outfilename,
-            errors = errors,
-            start_time = start_time,
-            end_time = end_time
+            start_date_print=start_date_string_print,
+            end_date_print=end_date_string_print,
+            opml_filename=opml_filename,
+            entries=all_entries,
+            skipped_entries=skipped_entries,
+            print_retrieved_entries=print_retrieved_entries,
+            print_skipped_entries=print_skipped_entries,
+            html_outfilename=html_outfilename,
+            csv_outfilename=csv_outfilename,
+            json_outfilename=json_outfilename,
+            errors=errors,
+            start_time=start_time,
+            end_time=end_time
         )
 
     except Exception as e:
         print(f"Error: {e}")
         traceback.print_exc()
         return 1
-    
+
     if return_raw_json:
         return json_data
     return 0

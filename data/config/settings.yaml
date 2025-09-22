@@ -1,0 +1,66 @@
+# ------------------------
+# Cyberfeedbites Settings
+# ------------------------
+
+# DEFAULT_START: Number of days before today to start fetching
+#start: 1
+
+# DEFAULT_END: Number of days before today to end fetching
+#end: 0
+
+# Path to the OPML file containing RSS feeds
+#opml_filename: "cyberfeedbites/data/rss_sources/cybersecnews-sources.opml"
+
+# Output formats (comma-separated: html, csv, json)
+#output_format: "html"
+
+# HTML report output folder
+#output_html_folder: "cyberfeedbites/data/html_reports"
+
+# CSV report output folder
+#output_csv_folder: "cyberfeedbites/data/csv_reports"
+
+# JSON report output folder
+#output_json_folder: "cyberfeedbites/data/json_reports"
+
+# Align start date to midnight
+#align_start_to_midnight: false
+
+# Align end date to midnight
+#align_end_to_midnight: false
+
+# Include images in HTML output
+#html_img: false
+
+# Maximum length of entry description
+#max_length_description: 200
+
+# Exclude entries containing these keywords
+#exclude_keywords: false
+
+# File containing exclude keywords
+#exclude_keywords_file: null
+
+# Aggressive filtering
+#aggressive_filtering: false
+
+# File containing aggressive keywords
+#aggressive_keywords_file: null
+
+# Print retrieved entries
+#print_retrieved: false
+
+# Print skipped entries
+#print_skipped: false
+
+# Order entries by: 'date' or 'title'
+#order_by: "date"
+
+# Ignore cached entries
+#ignore_cache: false
+
+# Disable conditional cache
+#no_conditional_cache: true
+
+# Max number of concurrent tasks -- keep default
+#max_concurrent_tasks: 15
