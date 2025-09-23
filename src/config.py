@@ -157,35 +157,37 @@ class UserOption:
     def reset(self):
         self.value = self.default
 
-# USER_OPTIONS is a centralised dictionary defining all configurable options
-# Each UserOption contains:
-#   - macro_name: the internal constant/macro name used in code (e.g., OUTPUT_HTML_FOLDER)
-#   - value: the current active value (default unless overridden by YAML or CLI)
-#   - yaml_name: the key used in YAML configuration files
-#   - cli_name: the command-line flag name used when running the program (e.g., --output-html-folder)
 
-USER_OPTIONS = {
-    "DEFAULT_START": UserOption("DEFAULT_START", DEFAULT_START, "start", "start"),
-    "DEFAULT_END": UserOption("DEFAULT_END", DEFAULT_END, "end", "end"),
-    "OPML_FILENAME": UserOption("OPML_FILENAME", OPML_FILENAME, "opml_filename", "opml-filename"),
-    "OUTPUT_FORMAT": UserOption("OUTPUT_FORMAT", OUTPUT_FORMAT, "output_format", "output-format"),
-    "HTML_REPORT_FOLDER": UserOption("HTML_REPORT_FOLDER", HTML_REPORT_FOLDER, "output_html_folder", "output-html-folder"),
-    "CSV_REPORT_FOLDER": UserOption("CSV_REPORT_FOLDER", CSV_REPORT_FOLDER, "output_csv_folder", "output-csv-folder"),
-    "JSON_REPORT_FOLDER": UserOption("JSON_REPORT_FOLDER", JSON_REPORT_FOLDER, "output_json_folder", "output-json-folder"),
-    "ALIGN_START_TO_MIDNIGHT": UserOption("ALIGN_START_TO_MIDNIGHT", ALIGN_START_TO_MIDNIGHT, "align_start_to_midnight", "align-start-to-midnight"),
-    "ALIGN_END_TO_MIDNIGHT": UserOption("ALIGN_END_TO_MIDNIGHT", ALIGN_END_TO_MIDNIGHT, "align_end_to_midnight", "align-end-to-midnight"),
-    "HTML_IMG": UserOption("HTML_IMG", HTML_IMG, "html_img", "html-img"),
-    "MAX_LENGTH_DESCRIPTION": UserOption("MAX_LENGTH_DESCRIPTION", MAX_LENGTH_DESCRIPTION, "max_length_description", "max-length-description"),
-    "EXCLUDE_KEYWORDS": UserOption("EXCLUDE_KEYWORDS", EXCLUDE_KEYWORDS, "exclude_keywords", "exclude-keywords"),
-    "EXCLUDE_KEYWORDS_FILE": UserOption("EXCLUDE_KEYWORDS_FILE", EXCLUDE_KEYWORDS_FILE, "exclude_keywords_file", "exclude-keywords-file"),
-    "AGGRESSIVE_FILTERING": UserOption("AGGRESSIVE_FILTERING", AGGRESSIVE_FILTERING, "aggressive_filtering", "aggressive-filtering"),
-    "AGGRESSIVE_KEYWORDS_FILE": UserOption("AGGRESSIVE_KEYWORDS_FILE", AGGRESSIVE_KEYWORDS_FILE, "aggressive_keywords_file", "aggressive-keywords-file"),
-    "PRINT_RETRIEVED": UserOption("PRINT_RETRIEVED", PRINT_RETRIEVED, "print_retrieved", "print-retrieved"),
-    "PRINT_SKIPPED": UserOption("PRINT_SKIPPED", PRINT_SKIPPED, "print_skipped", "print-skipped"),
-    "ORDER_BY": UserOption("ORDER_BY", ORDER_BY, "order_by", "order-by"),
-    "IGNORE_CACHE": UserOption("IGNORE_CACHE", IGNORE_CACHE, "ignore_cache", "ignore-cache"),
-    "NO_CONDITIONAL_CACHE": UserOption("NO_CONDITIONAL_CACHE", NO_CONDITIONAL_CACHE, "no_conditional_cache", "no-conditional-cache"),
-    "CHECK_FEEDS": UserOption("CHECK_FEEDS", CHECK_FEEDS, "check_feeds", "check-feeds", cli_only=True),
-    "SETTINGS_YAML": UserOption("SETTINGS_YAML", SETTINGS_YAML, "settings_yaml", "settings-yaml", cli_only=True),
-    "MAX_CONCURRENT_TASKS": UserOption("MAX_CONCURRENT_TASKS", MAX_CONCURRENT_TASKS, "max_concurrent_tasks", None, yaml_only=True)
-}
+def build_user_options():
+    """Return a fresh dictionary of all configurable UserOption objects."""
+    # Each UserOption contains:
+    #   - macro_name: the internal constant/macro name used in code (e.g., OUTPUT_HTML_FOLDER)
+    #   - value: the current active value (default unless overridden by YAML or CLI)
+    #   - yaml_name: the key used in YAML configuration files
+    #   - cli_name: the command-line flag name used when running the program (e.g., --output-html-folder)
+
+    return {
+        "DEFAULT_START": UserOption("DEFAULT_START", DEFAULT_START, "start", "start"),
+        "DEFAULT_END": UserOption("DEFAULT_END", DEFAULT_END, "end", "end"),
+        "OPML_FILENAME": UserOption("OPML_FILENAME", OPML_FILENAME, "opml_filename", "opml-filename"),
+        "OUTPUT_FORMAT": UserOption("OUTPUT_FORMAT", OUTPUT_FORMAT, "output_format", "output-format"),
+        "HTML_REPORT_FOLDER": UserOption("HTML_REPORT_FOLDER", HTML_REPORT_FOLDER, "output_html_folder", "output-html-folder"),
+        "CSV_REPORT_FOLDER": UserOption("CSV_REPORT_FOLDER", CSV_REPORT_FOLDER, "output_csv_folder", "output-csv-folder"),
+        "JSON_REPORT_FOLDER": UserOption("JSON_REPORT_FOLDER", JSON_REPORT_FOLDER, "output_json_folder", "output-json-folder"),
+        "ALIGN_START_TO_MIDNIGHT": UserOption("ALIGN_START_TO_MIDNIGHT", ALIGN_START_TO_MIDNIGHT, "align_start_to_midnight", "align-start-to-midnight"),
+        "ALIGN_END_TO_MIDNIGHT": UserOption("ALIGN_END_TO_MIDNIGHT", ALIGN_END_TO_MIDNIGHT, "align_end_to_midnight", "align-end-to-midnight"),
+        "HTML_IMG": UserOption("HTML_IMG", HTML_IMG, "html_img", "html-img"),
+        "MAX_LENGTH_DESCRIPTION": UserOption("MAX_LENGTH_DESCRIPTION", MAX_LENGTH_DESCRIPTION, "max_length_description", "max-length-description"),
+        "EXCLUDE_KEYWORDS": UserOption("EXCLUDE_KEYWORDS", EXCLUDE_KEYWORDS, "exclude_keywords", "exclude-keywords"),
+        "EXCLUDE_KEYWORDS_FILE": UserOption("EXCLUDE_KEYWORDS_FILE", EXCLUDE_KEYWORDS_FILE, "exclude_keywords_file", "exclude-keywords-file"),
+        "AGGRESSIVE_FILTERING": UserOption("AGGRESSIVE_FILTERING", AGGRESSIVE_FILTERING, "aggressive_filtering", "aggressive-filtering"),
+        "AGGRESSIVE_KEYWORDS_FILE": UserOption("AGGRESSIVE_KEYWORDS_FILE", AGGRESSIVE_KEYWORDS_FILE, "aggressive_keywords_file", "aggressive-keywords-file"),
+        "PRINT_RETRIEVED": UserOption("PRINT_RETRIEVED", PRINT_RETRIEVED, "print_retrieved", "print-retrieved"),
+        "PRINT_SKIPPED": UserOption("PRINT_SKIPPED", PRINT_SKIPPED, "print_skipped", "print-skipped"),
+        "ORDER_BY": UserOption("ORDER_BY", ORDER_BY, "order_by", "order-by"),
+        "IGNORE_CACHE": UserOption("IGNORE_CACHE", IGNORE_CACHE, "ignore_cache", "ignore-cache"),
+        "NO_CONDITIONAL_CACHE": UserOption("NO_CONDITIONAL_CACHE", NO_CONDITIONAL_CACHE, "no_conditional_cache", "no-conditional-cache"),
+        "CHECK_FEEDS": UserOption("CHECK_FEEDS", CHECK_FEEDS, "check_feeds", "check-feeds", cli_only=True),
+        "SETTINGS_YAML": UserOption("SETTINGS_YAML", SETTINGS_YAML, "settings_yaml", "settings-yaml", cli_only=True),
+        "MAX_CONCURRENT_TASKS": UserOption("MAX_CONCURRENT_TASKS", MAX_CONCURRENT_TASKS, "max_concurrent_tasks", None, yaml_only=True)
+    }

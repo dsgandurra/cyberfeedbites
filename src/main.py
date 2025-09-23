@@ -48,7 +48,6 @@ from .config import (
     FEED_TITLE_KEY,
     FEED_URL_KEY,
     CYBERSECURITY_KEYWORDS,
-    USER_OPTIONS,
     OUTPUT_FORMAT,
     ALIGN_START_TO_MIDNIGHT,
     ALIGN_END_TO_MIDNIGHT,
@@ -62,7 +61,8 @@ from .config import (
     IGNORE_CACHE,
     NO_CONDITIONAL_CACHE,
     CHECK_FEEDS,
-    SETTINGS_YAML
+    SETTINGS_YAML,
+    build_user_options
 )
 from .utils import print_feed_details, load_yaml_config
 
@@ -84,12 +84,12 @@ def validate_max_length_description(value):
         raise argparse.ArgumentTypeError(f"max-length-description must be between 1 and {MAX_ALLOWED_LENGTH_DESCRIPTION}.")
     return value
 
-def parse_arguments(argv=None):
+def parse_arguments(user_options, argv=None):
     description = (
         "Cyberfeedbites collects and summarises the latest cybersecurity news from "
-        f"RSS feeds listed in the default OPML file ({USER_OPTIONS['OPML_FILENAME'].value}), generating HTML, CSV, and JSON reports. "
-        f"By default, reports are saved in these folders: HTML ({USER_OPTIONS['HTML_REPORT_FOLDER'].value}), "
-        f"CSV ({USER_OPTIONS['CSV_REPORT_FOLDER'].value}), and JSON ({USER_OPTIONS['JSON_REPORT_FOLDER'].value})."
+        f"RSS feeds listed in the default OPML file ({user_options['OPML_FILENAME'].value}), generating HTML, CSV, and JSON reports. "
+        f"By default, reports are saved in these folders: HTML ({user_options['HTML_REPORT_FOLDER'].value}), "
+        f"CSV ({user_options['CSV_REPORT_FOLDER'].value}), and JSON ({user_options['JSON_REPORT_FOLDER'].value})."
     )
     parser = argparse.ArgumentParser(description=description)
 
@@ -99,161 +99,161 @@ def parse_arguments(argv=None):
         return value
 
     parser.add_argument(
-        f"--{USER_OPTIONS['DEFAULT_START'].cli_name}",
+        f"--{user_options['DEFAULT_START'].cli_name}",
         type=validate_start,
-        default=USER_OPTIONS['DEFAULT_START'].value,
-        help=f"Start day offset (days ago) to look back from today. Default is {USER_OPTIONS['DEFAULT_START'].value}."
+        default=user_options['DEFAULT_START'].value,
+        help=f"Start day offset (days ago) to look back from today. Default is {user_options['DEFAULT_START'].value}."
     )
 
     parser.add_argument(
-        f"--{USER_OPTIONS['DEFAULT_END'].cli_name}",
+        f"--{user_options['DEFAULT_END'].cli_name}",
         type=validate_end,
-        default=USER_OPTIONS['DEFAULT_END'].value,
-        help=f"End day offset (days ago) to end looking back. Default is {USER_OPTIONS['DEFAULT_END'].value} (today)."
+        default=user_options['DEFAULT_END'].value,
+        help=f"End day offset (days ago) to end looking back. Default is {user_options['DEFAULT_END'].value} (today)."
     )
 
     parser.add_argument(
-        f"--{USER_OPTIONS['OPML_FILENAME'].cli_name}",
+        f"--{user_options['OPML_FILENAME'].cli_name}",
         type=str,
-        default=USER_OPTIONS['OPML_FILENAME'].value,
-        help=f"Path to the OPML file. Default is '{USER_OPTIONS['OPML_FILENAME'].value}'."
+        default=user_options['OPML_FILENAME'].value,
+        help=f"Path to the OPML file. Default is '{user_options['OPML_FILENAME'].value}'."
     )
 
     parser.add_argument(
-        f"--{USER_OPTIONS['OUTPUT_FORMAT'].cli_name}",
+        f"--{user_options['OUTPUT_FORMAT'].cli_name}",
         type=output_format_type,
         nargs='?',
         const=None,
-        default=USER_OPTIONS['OUTPUT_FORMAT'].value,
+        default=user_options['OUTPUT_FORMAT'].value,
         help=f"Comma-separated list of output formats to generate: html, csv, json. "
-             f"Use 'None' or omit value for no output. Default is {USER_OPTIONS['OUTPUT_FORMAT'].value}."
+             f"Use 'None' or omit value for no output. Default is {user_options['OUTPUT_FORMAT'].value}."
     )
 
     parser.add_argument(
-        f"--{USER_OPTIONS['HTML_REPORT_FOLDER'].cli_name}",
+        f"--{user_options['HTML_REPORT_FOLDER'].cli_name}",
         type=str,
-        default=USER_OPTIONS['HTML_REPORT_FOLDER'].value,
-        help=f"Output folder for HTML reports. Default is {USER_OPTIONS['HTML_REPORT_FOLDER'].value}."
+        default=user_options['HTML_REPORT_FOLDER'].value,
+        help=f"Output folder for HTML reports. Default is {user_options['HTML_REPORT_FOLDER'].value}."
     )
 
     parser.add_argument(
-        f"--{USER_OPTIONS['CSV_REPORT_FOLDER'].cli_name}",
+        f"--{user_options['CSV_REPORT_FOLDER'].cli_name}",
         type=str,
-        default=USER_OPTIONS['CSV_REPORT_FOLDER'].value,
-        help=f"Output folder for CSV reports. Default is {USER_OPTIONS['CSV_REPORT_FOLDER'].value}."
+        default=user_options['CSV_REPORT_FOLDER'].value,
+        help=f"Output folder for CSV reports. Default is {user_options['CSV_REPORT_FOLDER'].value}."
     )
 
     parser.add_argument(
-        f"--{USER_OPTIONS['JSON_REPORT_FOLDER'].cli_name}",
+        f"--{user_options['JSON_REPORT_FOLDER'].cli_name}",
         type=str,
-        default=USER_OPTIONS['JSON_REPORT_FOLDER'].value,
-        help=f"Output folder for JSON reports. Default is {USER_OPTIONS['JSON_REPORT_FOLDER'].value}."
+        default=user_options['JSON_REPORT_FOLDER'].value,
+        help=f"Output folder for JSON reports. Default is {user_options['JSON_REPORT_FOLDER'].value}."
     )
 
     parser.add_argument(
-        f"--{USER_OPTIONS['ALIGN_START_TO_MIDNIGHT'].cli_name}",
+        f"--{user_options['ALIGN_START_TO_MIDNIGHT'].cli_name}",
         action="store_true",
-        default=USER_OPTIONS['ALIGN_START_TO_MIDNIGHT'].value,
+        default=user_options['ALIGN_START_TO_MIDNIGHT'].value,
         help="Align the start date to midnight of the first day instead of counting exact hours back."
     )
 
     parser.add_argument(
-        f"--{USER_OPTIONS['ALIGN_END_TO_MIDNIGHT'].cli_name}",
+        f"--{user_options['ALIGN_END_TO_MIDNIGHT'].cli_name}",
         action="store_true",
-        default=USER_OPTIONS['ALIGN_END_TO_MIDNIGHT'].value,
+        default=user_options['ALIGN_END_TO_MIDNIGHT'].value,
         help="Align the end date to 23:59:59 of the end day instead of current time."
     )
 
     parser.add_argument(
-        f"--{USER_OPTIONS['HTML_IMG'].cli_name}",
+        f"--{user_options['HTML_IMG'].cli_name}",
         action="store_true",
-        default=USER_OPTIONS['HTML_IMG'].value,
-        help=f"Include images in the HTML output. Default is {USER_OPTIONS['HTML_IMG'].value}."
+        default=user_options['HTML_IMG'].value,
+        help=f"Include images in the HTML output. Default is {user_options['HTML_IMG'].value}."
     )
 
     parser.add_argument(
-        f"--{USER_OPTIONS['MAX_LENGTH_DESCRIPTION'].cli_name}",
+        f"--{user_options['MAX_LENGTH_DESCRIPTION'].cli_name}",
         type=validate_max_length_description,
-        default=USER_OPTIONS['MAX_LENGTH_DESCRIPTION'].value,
-        help=f"Maximum length for RSS feed descriptions. Default is {USER_OPTIONS['MAX_LENGTH_DESCRIPTION'].value}."
+        default=user_options['MAX_LENGTH_DESCRIPTION'].value,
+        help=f"Maximum length for RSS feed descriptions. Default is {user_options['MAX_LENGTH_DESCRIPTION'].value}."
     )
 
     parser.add_argument(
-        f"--{USER_OPTIONS['EXCLUDE_KEYWORDS'].cli_name}",
+        f"--{user_options['EXCLUDE_KEYWORDS'].cli_name}",
         action="store_true",
-        default=USER_OPTIONS['EXCLUDE_KEYWORDS'].value,
-        help=f"Enable exclusion of articles containing specific keywords. Default is {USER_OPTIONS['EXCLUDE_KEYWORDS'].value}."
+        default=user_options['EXCLUDE_KEYWORDS'].value,
+        help=f"Enable exclusion of articles containing specific keywords. Default is {user_options['EXCLUDE_KEYWORDS'].value}."
     )
 
     parser.add_argument(
-        f"--{USER_OPTIONS['EXCLUDE_KEYWORDS_FILE'].cli_name}",
+        f"--{user_options['EXCLUDE_KEYWORDS_FILE'].cli_name}",
         type=str,
-        default=USER_OPTIONS['EXCLUDE_KEYWORDS_FILE'].value,
-        help=f"Path to a file containing keywords to exclude, one per line. Default is {USER_OPTIONS['EXCLUDE_KEYWORDS_FILE'].value}."
+        default=user_options['EXCLUDE_KEYWORDS_FILE'].value,
+        help=f"Path to a file containing keywords to exclude, one per line. Default is {user_options['EXCLUDE_KEYWORDS_FILE'].value}."
     )
 
     parser.add_argument(
-        f"--{USER_OPTIONS['AGGRESSIVE_FILTERING'].cli_name}",
+        f"--{user_options['AGGRESSIVE_FILTERING'].cli_name}",
         action="store_true",
-        default=USER_OPTIONS['AGGRESSIVE_FILTERING'].value,
-        help=f"Enable removal of articles that do NOT include any security keywords. Default is {USER_OPTIONS['AGGRESSIVE_FILTERING'].value}."
+        default=user_options['AGGRESSIVE_FILTERING'].value,
+        help=f"Enable removal of articles that do NOT include any security keywords. Default is {user_options['AGGRESSIVE_FILTERING'].value}."
     )
 
     parser.add_argument(
-        f"--{USER_OPTIONS['AGGRESSIVE_KEYWORDS_FILE'].cli_name}",
+        f"--{user_options['AGGRESSIVE_KEYWORDS_FILE'].cli_name}",
         type=str,
-        default=USER_OPTIONS['AGGRESSIVE_KEYWORDS_FILE'].value,
-        help=f"Path to a file containing security keywords to keep, one per line. Default is {USER_OPTIONS['AGGRESSIVE_KEYWORDS_FILE'].value}."
+        default=user_options['AGGRESSIVE_KEYWORDS_FILE'].value,
+        help=f"Path to a file containing security keywords to keep, one per line. Default is {user_options['AGGRESSIVE_KEYWORDS_FILE'].value}."
     )
 
     parser.add_argument(
-        f"--{USER_OPTIONS['PRINT_RETRIEVED'].cli_name}",
+        f"--{user_options['PRINT_RETRIEVED'].cli_name}",
         action="store_true",
-        default=USER_OPTIONS['PRINT_RETRIEVED'].value,
-        help=f"Print retrieved articles at the end of processing. Default is {USER_OPTIONS['PRINT_RETRIEVED'].value}."
+        default=user_options['PRINT_RETRIEVED'].value,
+        help=f"Print retrieved articles at the end of processing. Default is {user_options['PRINT_RETRIEVED'].value}."
     )
 
     parser.add_argument(
-        f"--{USER_OPTIONS['PRINT_SKIPPED'].cli_name}",
+        f"--{user_options['PRINT_SKIPPED'].cli_name}",
         action="store_true",
-        default=USER_OPTIONS['PRINT_SKIPPED'].value,
-        help=f"Print skipped articles at the end of processing. Default is {USER_OPTIONS['PRINT_SKIPPED'].value}."
+        default=user_options['PRINT_SKIPPED'].value,
+        help=f"Print skipped articles at the end of processing. Default is {user_options['PRINT_SKIPPED'].value}."
     )
 
     parser.add_argument(
-        f"--{USER_OPTIONS['ORDER_BY'].cli_name}",
+        f"--{user_options['ORDER_BY'].cli_name}",
         type=str,
         choices=["date", "title_date"],
-        default=USER_OPTIONS['ORDER_BY'].value,
-        help=f"Order for HTML output: 'date' (default) or 'title_date'. Default is {USER_OPTIONS['ORDER_BY'].value}."
+        default=user_options['ORDER_BY'].value,
+        help=f"Order for HTML output: 'date' (default) or 'title_date'. Default is {user_options['ORDER_BY'].value}."
     )
 
     parser.add_argument(
-        f"--{USER_OPTIONS['IGNORE_CACHE'].cli_name}",
+        f"--{user_options['IGNORE_CACHE'].cli_name}",
         action="store_true",
-        default=USER_OPTIONS['IGNORE_CACHE'].value,
-        help=f"Disable cache completely (always fetch online). Default is {USER_OPTIONS['IGNORE_CACHE'].value}."
+        default=user_options['IGNORE_CACHE'].value,
+        help=f"Disable cache completely (always fetch online). Default is {user_options['IGNORE_CACHE'].value}."
     )
 
     parser.add_argument(
-        f"--{USER_OPTIONS['NO_CONDITIONAL_CACHE'].cli_name}",
+        f"--{user_options['NO_CONDITIONAL_CACHE'].cli_name}",
         action="store_false",
-        default=USER_OPTIONS['NO_CONDITIONAL_CACHE'].value,
-        help=f"Always use cached copy without conditional headers (If-Modified-Since / ETag). Default is {USER_OPTIONS['NO_CONDITIONAL_CACHE'].value}."
+        default=user_options['NO_CONDITIONAL_CACHE'].value,
+        help=f"Always use cached copy without conditional headers (If-Modified-Since / ETag). Default is {user_options['NO_CONDITIONAL_CACHE'].value}."
     )
 
     parser.add_argument(
-        f"--{USER_OPTIONS['CHECK_FEEDS'].cli_name}",
+        f"--{user_options['CHECK_FEEDS'].cli_name}",
         action="store_true",
-        default=USER_OPTIONS['CHECK_FEEDS'].value,
-        help=f"Perform a quick RSS health check. Default is {USER_OPTIONS['CHECK_FEEDS'].value}."
+        default=user_options['CHECK_FEEDS'].value,
+        help=f"Perform a quick RSS health check. Default is {user_options['CHECK_FEEDS'].value}."
     )
 
     parser.add_argument(
-        f"--{USER_OPTIONS['SETTINGS_YAML'].cli_name}",
+        f"--{user_options['SETTINGS_YAML'].cli_name}",
         type=str,
-        default=USER_OPTIONS['SETTINGS_YAML'].value,
-        help=f"Path to a YAML configuration file. Default is '{USER_OPTIONS['SETTINGS_YAML'].value}'."
+        default=user_options['SETTINGS_YAML'].value,
+        help=f"Path to a YAML configuration file. Default is '{user_options['SETTINGS_YAML'].value}'."
     )
 
     args = parser.parse_args(argv)
@@ -332,37 +332,39 @@ def print_summary(
 
 def run_cyberfeedbites(argv=None, return_raw_json=False):
     try:
+        user_options = build_user_options()
+
         # 1. Parse CLI arguments
-        args = parse_arguments(argv)
+        args = parse_arguments(user_options, argv)
 
         # 2. Determine OPML file and CHECK_FEEDS flag 
         check_feeds_flag = getattr(args, "check_feeds", False)
         if check_feeds_flag:
-            opml_file = getattr(args, "opml", USER_OPTIONS["OPML_FILENAME"].value)
+            opml_file = getattr(args, "opml_filename", user_options["OPML_FILENAME"].value)
             check_rss_health(opml_file)
             return 0
         
         # 3. Load YAML config
-        yaml_path = getattr(args, "settings_yaml", USER_OPTIONS["SETTINGS_YAML"].value)
-        yaml_settings = load_yaml_config(yaml_path, USER_OPTIONS)
+        yaml_path = getattr(args, "settings_yaml", user_options["SETTINGS_YAML"].value)
+        yaml_settings = load_yaml_config(yaml_path, user_options)
 
-        # 4. Update USER_OPTIONS from YAML
-        for option in USER_OPTIONS.values():
+        # 4. Update user_options from YAML
+        for option in user_options.values():
             if not option.cli_only and option.yaml_name in yaml_settings:
                 option.set_from_yaml(yaml_settings)
 
-        # 5. Override USER_OPTIONS with CLI arguments if explicitly passed
+        # 5. Override user_options with CLI arguments if explicitly passed
         cli_args = argv if argv is not None else sys.argv[1:]
         cli_flags = {arg.split("=")[0] for arg in cli_args if arg.startswith("--")}
 
-        for option in USER_OPTIONS.values():
+        for option in user_options.values():
             if not option.yaml_only:
                 cli_flag = f"--{option.cli_name}"
                 if cli_flag in cli_flags:
                     option.value = getattr(args, option.yaml_name)
 
         # 6. Print resolved values
-        for option in USER_OPTIONS.values():
+        for option in user_options.values():
             if option.yaml_only:
                 # Print only if YAML actually changed it
                 if option.value != option.default:
@@ -371,38 +373,38 @@ def run_cyberfeedbites(argv=None, return_raw_json=False):
                 print(f"{option.macro_name}: {option.value}")
 
         # 7. Ensure OUTPUT_FORMAT is lowercased and comma-separated
-        output_format_option = USER_OPTIONS['OUTPUT_FORMAT'].value
+        output_format_option = user_options['OUTPUT_FORMAT'].value
         if output_format_option:
-            USER_OPTIONS['OUTPUT_FORMAT'].value = ",".join(fmt.strip().lower() for fmt in output_format_option.split(","))
+            user_options['OUTPUT_FORMAT'].value = ",".join(fmt.strip().lower() for fmt in output_format_option.split(","))
 
         # 7. Run main logic
-        return run_main_logic(USER_OPTIONS, return_raw_json)
+        return run_main_logic(user_options, return_raw_json)
 
     except Exception as e:
         print(f"Error: {e}")
         traceback.print_exc()
         return 1
 
-def run_main_logic(options_dict, return_raw_json=False):
+def run_main_logic(user_options, return_raw_json=False):
     try:
-        opml_filename = options_dict["OPML_FILENAME"].value
+        opml_filename = user_options["OPML_FILENAME"].value
 
-        max_length_description = options_dict["MAX_LENGTH_DESCRIPTION"].value
-        output_format_option = options_dict["OUTPUT_FORMAT"].value
+        max_length_description = user_options["MAX_LENGTH_DESCRIPTION"].value
+        output_format_option = user_options["OUTPUT_FORMAT"].value
         if output_format_option is None:
             output_formats = set()
         else:
             output_formats = {fmt.strip().lower() for fmt in output_format_option.split(",")}
 
-        html_folder = options_dict["HTML_REPORT_FOLDER"].value or HTML_REPORT_FOLDER
-        csv_folder = options_dict["CSV_REPORT_FOLDER"].value or CSV_REPORT_FOLDER
-        json_folder = options_dict["JSON_REPORT_FOLDER"].value or JSON_REPORT_FOLDER
+        html_folder = user_options["HTML_REPORT_FOLDER"].value or HTML_REPORT_FOLDER
+        csv_folder = user_options["CSV_REPORT_FOLDER"].value or CSV_REPORT_FOLDER
+        json_folder = user_options["JSON_REPORT_FOLDER"].value or JSON_REPORT_FOLDER
 
-        aggressive_filtering = options_dict["AGGRESSIVE_FILTERING"].value
+        aggressive_filtering = user_options["AGGRESSIVE_FILTERING"].value
         aggressive_keywords = []
 
         if aggressive_filtering:
-            aggressive_file = options_dict["AGGRESSIVE_KEYWORDS_FILE"].value
+            aggressive_file = user_options["AGGRESSIVE_KEYWORDS_FILE"].value
             if aggressive_file:
                 try:
                     with open(aggressive_file, "r", encoding="utf-8") as f:
@@ -414,8 +416,8 @@ def run_main_logic(options_dict, return_raw_json=False):
                 aggressive_keywords = [kw.lower() for kw in CYBERSECURITY_KEYWORDS]
 
         exclude_keywords = []
-        if options_dict["EXCLUDE_KEYWORDS"].value:
-            exclude_file = options_dict["EXCLUDE_KEYWORDS_FILE"].value
+        if user_options["EXCLUDE_KEYWORDS"].value:
+            exclude_file = user_options["EXCLUDE_KEYWORDS_FILE"].value
             if exclude_file:
                 try:
                     with open(exclude_file, "r", encoding="utf-8") as f:
@@ -426,21 +428,21 @@ def run_main_logic(options_dict, return_raw_json=False):
             else:
                 exclude_keywords = [kw.lower() for kw in EXCLUDE_KEYWORDS]
 
-        print_retrieved_entries = options_dict["PRINT_RETRIEVED"].value
-        print_skipped_entries = options_dict["PRINT_SKIPPED"].value
-        order_by = options_dict["ORDER_BY"].value
-        ignore_cache = options_dict["IGNORE_CACHE"].value
-        no_conditional_cache = options_dict["NO_CONDITIONAL_CACHE"].value
+        print_retrieved_entries = user_options["PRINT_RETRIEVED"].value
+        print_skipped_entries = user_options["PRINT_SKIPPED"].value
+        order_by = user_options["ORDER_BY"].value
+        ignore_cache = user_options["IGNORE_CACHE"].value
+        no_conditional_cache = user_options["NO_CONDITIONAL_CACHE"].value
 
         start_time = time.time()
         current_date = datetime.now(timezone.utc)
-        start_date = current_date - timedelta(days=options_dict["DEFAULT_START"].value)
-        end_date = current_date - timedelta(days=options_dict["DEFAULT_END"].value)
+        start_date = current_date - timedelta(days=user_options["DEFAULT_START"].value)
+        end_date = current_date - timedelta(days=user_options["DEFAULT_END"].value)
 
-        if options_dict["ALIGN_START_TO_MIDNIGHT"].value:
+        if user_options["ALIGN_START_TO_MIDNIGHT"].value:
             start_date = start_date.replace(hour=0, minute=0, second=0, microsecond=0)
 
-        if options_dict["ALIGN_END_TO_MIDNIGHT"].value:
+        if user_options["ALIGN_END_TO_MIDNIGHT"].value:
             end_date = end_date.replace(hour=23, minute=59, second=59, microsecond=999999)
 
         current_date_string_filename_suffix = current_date.strftime(TEXT_DATE_FORMAT_FILE)
@@ -496,7 +498,7 @@ def run_main_logic(options_dict, return_raw_json=False):
             json_outfilename = os.path.join(json_folder, f"{out_filename_prefix}_{current_date_string_filename_suffix}.json")
 
         if "html" in output_formats:
-            include_images = options_dict["HTML_IMG"].value
+            include_images = user_options["HTML_IMG"].value
             write_feed_to_html(
                 all_entries,
                 html_outfilename,
