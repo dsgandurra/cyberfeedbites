@@ -65,7 +65,7 @@ The required packages are:
 Run CyberFeedBites with optional parameters:
 
     ```bash
-    python -m cyberfeedbites.src.main [-h] [--start START] [--end END] [--opml-filename OPML_FILENAME] [--output-format [OUTPUT_FORMAT]] [--output-html-folder OUTPUT_HTML_FOLDER] [--output-csv-folder OUTPUT_CSV_FOLDER] [--output-json-folder OUTPUT_JSON_FOLDER] [--align-start-to-midnight] [--align-end-to-midnight] [--html-img] [--max-length-description MAX_LENGTH_DESCRIPTION] [--exclude-keywords] [--exclude-keywords-file EXCLUDE_KEYWORDS_FILE] [--aggressive-filtering] [--aggressive-keywords-file AGGRESSIVE_KEYWORDS_FILE] [--print-retrieved] [--print-skipped] [--order-by {date,title_date}] [--ignore-cache] [--no-conditional-cache] [--check-feeds] [--print-rss-processing_status] [--settings-yaml SETTINGS_YAML]
+    python -m cyberfeedbites.src.main [-h] [--start START] [--end END] [--opml-filename OPML_FILENAME] [--output-format [OUTPUT_FORMAT]] [--output-html-folder OUTPUT_HTML_FOLDER] [--output-csv-folder OUTPUT_CSV_FOLDER] [--output-json-folder OUTPUT_JSON_FOLDER] [--align-start-to-midnight] [--align-end-to-midnight] [--html-img] [--max-length-description MAX_LENGTH_DESCRIPTION] [--exclude-keywords] [--exclude-keywords-file EXCLUDE_KEYWORDS_FILE] [--aggressive-filtering] [--aggressive-keywords-file AGGRESSIVE_KEYWORDS_FILE] [--print-retrieved] [--print-skipped] [--order-by {date,title_date}] [--ignore-cache] [--no-conditional-cache] [--check-feeds] [--print-rss-processing_status] [--settings-yaml SETTINGS_YAML] [--single-feed-check FEED_URL]
     ```
 
 - `--start`: Number of days ago to start fetching news (default: 1).
@@ -91,6 +91,7 @@ Run CyberFeedBites with optional parameters:
 - `--check-feeds`: Perform a quick RSS health check (total items and latest entry date) without full processing.
 - `--print-rss-processing_status`: Print status of RSS processing for each entry. Default is False.
 - `--settings-yaml`: Enable loading parameters from a YAML configuration file. 
+- `--single-feed-check FEED_URL`: Perform a quick health check for a single RSS feed URL.
 
 Examples:
 - Fetch news from the last 1 day (default):
