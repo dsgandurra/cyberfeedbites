@@ -62,5 +62,8 @@
 # Disable conditional cache
 #no_conditional_cache: true
 
+# Disable print RSS process entries status
+#print_rss_processing_status: False
+
 # Max number of concurrent tasks -- keep default
 #max_concurrent_tasks: 15

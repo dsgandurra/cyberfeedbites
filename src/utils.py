@@ -204,10 +204,10 @@ def load_yaml_config(
         result.update(loaded)
 
         # --- Debug info ---
-        print(f"Loaded YAML configuration from: {abspath}")
+        """ print(f"Loaded YAML configuration from: {abspath}")
         for key, value in loaded.items():
             print(f"  {key}: {value}")
-        print(f"End loaded values from YAML file")
+        print(f"End loaded values from YAML file") """
 
         return result
 

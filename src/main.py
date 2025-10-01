@@ -24,8 +24,9 @@ import argparse
 import traceback
 import sys
 from collections import defaultdict
+from urllib.parse import urlparse
 
-from .rss_reader import process_rss_feed, check_rss_health, FeedOptions
+from .rss_reader import process_rss_feed, check_rss_health, check_single_feed, FeedOptions
 from .output_writer import write_feed_to_html, write_feed_to_csv, write_feed_to_json, convert_feed_to_json_obj
 from .config import (
     MAX_DAYS_BACK,
@@ -82,6 +83,15 @@ def validate_max_length_description(value):
     value = int(value)
     if value <= 0 or value > MAX_ALLOWED_LENGTH_DESCRIPTION:
         raise argparse.ArgumentTypeError(f"max-length-description must be between 1 and {MAX_ALLOWED_LENGTH_DESCRIPTION}.")
+    return value
+
+def validate_feed_url(value: str) -> str:
+    """Ensure the provided feed URL is a non-empty, valid URL."""
+    if not value:
+        raise argparse.ArgumentTypeError("Feed URL cannot be empty.")
+    parsed = urlparse(value)
+    if not parsed.scheme or not parsed.netloc:
+        raise argparse.ArgumentTypeError(f"Invalid URL: {value}")
     return value
 
 def parse_arguments(user_options, argv=None):
@@ -250,10 +260,29 @@ def parse_arguments(user_options, argv=None):
     )
 
     parser.add_argument(
+        f"--{user_options['PRINT_RSS_PROCESSING_STATUS'].cli_name}",
+        action="store_true",
+        default=user_options['PRINT_RSS_PROCESSING_STATUS'].value,
+        help=f"Print status of RSS processing for each entry. Default is {user_options['PRINT_RSS_PROCESSING_STATUS'].value}."
+    )
+
+    parser.add_argument(
         f"--{user_options['SETTINGS_YAML'].cli_name}",
         type=str,
         default=user_options['SETTINGS_YAML'].value,
         help=f"Path to a YAML configuration file. Default is '{user_options['SETTINGS_YAML'].value}'."
+    )
+
+    parser.add_argument(
+        f"--{user_options['SINGLE_FEED_CHECK'].cli_name}",  # e.g., "single_feed_check"
+        type=validate_feed_url,
+        default="",
+        metavar="FEED_URL",
+        help=(
+            "Perform a quick health check for a single RSS feed URL. "
+            "Provide the feed URL as argument. Example: "
+            "--single-feed-check https://example.com/feed"
+        )
     )
 
     args = parser.parse_args(argv)
@@ -287,13 +316,11 @@ def print_summary(
 ):
     """Prints a summary of the run."""
     print(f"{FEED_SEPARATOR}")
-    print("Summary")
-    print(f"{FEED_SEPARATOR}")
 
     print(f"Time range: {start_date_print} {TIMEZONE_PRINT} to {end_date_print} {TIMEZONE_PRINT}")
-    print(f"\nOPML file: {opml_filename}")
+    print(f"OPML file: {opml_filename}")
 
-    print(f"\nRetrieved articles: {len(entries)}")
+    print(f"Retrieved articles: {len(entries)}")
     if print_retrieved_entries:
         grouped_entries = defaultdict(list)
         for entry in entries:
@@ -304,7 +331,7 @@ def print_summary(
             articles = grouped_entries[(feedtitle, feed_url)]
             print_feed_details(feedtitle, feed_url, articles)
 
-    print(f"\nSkipped articles: {len(skipped_entries)}")
+    print(f"Skipped articles: {len(skipped_entries)}")
     if print_skipped_entries:
         grouped_skipped_entries = defaultdict(list)
         for skipped in skipped_entries:
@@ -316,18 +343,18 @@ def print_summary(
             print_feed_details(feedtitle, feed_url, articles)
 
     if html_outfilename:
-        print(f"\nHTML written to file: {html_outfilename}")
+        print(f"HTML written to file: {html_outfilename}")
     if csv_outfilename:
-        print(f"\nCSV written to file: {csv_outfilename}")
+        print(f"CSV written to file: {csv_outfilename}")
     if json_outfilename:
-        print(f"\njson written to file: {json_outfilename}")
+        print(f"json written to file: {json_outfilename}")
 
     if errors:
-        print("\nFeeds that failed to fetch:")
+        print("Feeds that failed to fetch:")
         for feedtitle, feed_url, exception in errors:
             print(f"\t- {feedtitle}: {feed_url}")
 
-    print(f"\nTotal execution time: {end_time - start_time:.2f} seconds")
+    print(f"Total execution time: {end_time - start_time:.2f} seconds")
     print(f"{FEED_SEPARATOR}")
 
 def run_cyberfeedbites(argv=None, return_raw_json=False):
@@ -337,11 +364,17 @@ def run_cyberfeedbites(argv=None, return_raw_json=False):
         # 1. Parse CLI arguments
         args = parse_arguments(user_options, argv)
 
-        # 2. Determine OPML file and CHECK_FEEDS flag 
+        # 2. Determine OPML file and any “check” flags
         check_feeds_flag = getattr(args, "check_feeds", False)
+        single_feed_url = getattr(args, "single_feed_check", None)
+
         if check_feeds_flag:
             opml_file = getattr(args, "opml_filename", user_options["OPML_FILENAME"].value)
             check_rss_health(opml_file)
+            return 0
+
+        if single_feed_url:
+            check_single_feed(single_feed_url)
             return 0
         
         # 3. Load YAML config
@@ -364,13 +397,13 @@ def run_cyberfeedbites(argv=None, return_raw_json=False):
                     option.value = getattr(args, option.yaml_name)
 
         # 6. Print resolved values
-        for option in user_options.values():
+        """ for option in user_options.values():
             if option.yaml_only:
                 # Print only if YAML actually changed it
                 if option.value != option.default:
                     print(f"{option.macro_name}: {option.value}")
             else:
-                print(f"{option.macro_name}: {option.value}")
+                print(f"{option.macro_name}: {option.value}") """
 
         # 7. Ensure OUTPUT_FORMAT is lowercased and comma-separated
         output_format_option = user_options['OUTPUT_FORMAT'].value
@@ -433,6 +466,7 @@ def run_main_logic(user_options, return_raw_json=False):
         order_by = user_options["ORDER_BY"].value
         ignore_cache = user_options["IGNORE_CACHE"].value
         no_conditional_cache = user_options["NO_CONDITIONAL_CACHE"].value
+        print_rss_processing_status = user_options["PRINT_RSS_PROCESSING_STATUS"].value
 
         start_time = time.time()
         current_date = datetime.now(timezone.utc)
@@ -459,7 +493,8 @@ def run_main_logic(user_options, return_raw_json=False):
             exclude_keywords=exclude_keywords,
             aggressive_keywords=aggressive_keywords,
             ignore_cache=ignore_cache,
-            no_conditional_cache=no_conditional_cache
+            no_conditional_cache=no_conditional_cache,
+            print_rss_processing_status = print_rss_processing_status
         )
 
         all_entries, skipped_entries, icon_map, opml_text, opml_title, opml_category, errors = process_rss_feed(opml_filename, feed_options)
@@ -561,6 +596,7 @@ def run_main_logic(user_options, return_raw_json=False):
 
     if return_raw_json:
         return json_data
+    
     return 0
 
 if __name__ == "__main__":

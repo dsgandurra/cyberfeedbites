@@ -47,6 +47,7 @@ class FeedOptions:
     aggressive_keywords: Set[str]
     ignore_cache: bool
     no_conditional_cache: bool
+    print_rss_processing_status: bool
 
 def process_rss_feed(opml_filename: str, options: FeedOptions):
     """Handles the RSS feed processing asynchronously via run_feeds."""
@@ -361,7 +362,8 @@ async def retrieve_and_process_feed(session, feedtitle, feed_url, options: FeedO
             entry[FEED_URL_KEY] = feed_url
 
         cached_str = " [CACHED]" if is_cached else ""
-        print(f"Processed {format_title_for_print(feedtitle)} {len(recent_articles)} article{'s' if len(recent_articles) != 1 else ''} \t [{len(skipped_articles)}]{cached_str}")
+        if options.print_rss_processing_status:
+            print(f"Processed {format_title_for_print(feedtitle)} {len(recent_articles)} article{'s' if len(recent_articles) != 1 else ''} \t [{len(skipped_articles)}]{cached_str}")
 
         return recent_articles, skipped_articles, None
 
@@ -447,3 +449,63 @@ def check_rss_health(opml_filename: str):
                     print(f"Error checking feed {title} ({url}): {e}")
 
     asyncio.run(_check())
+
+def check_single_feed(feed_url: str, feed_title: str = None, ignore_cache: bool = True):
+    """Fetch a single RSS feed and print titles with dates."""
+    
+    async def _fetch_and_print():
+        import aiohttp
+
+        async with aiohttp.ClientSession(
+            timeout=aiohttp.ClientTimeout(total=HTTP_REQUEST_TIMEOUT),
+            connector=aiohttp.TCPConnector()
+        ) as session:
+            raw_content, _ = await fetch_feed_with_cache(
+                session,
+                feed_url,
+                ignore_cache=ignore_cache,
+                no_conditional=True
+            )
+
+        cleaned_content = clean_feed_content(raw_content)
+        feed = await asyncio.to_thread(feedparser.parse, cleaned_content)
+
+        if feed.bozo:
+            print(f"Feed parsing error: {feed.bozo_exception}")
+            return
+
+        feed_title_resolved = feed_title or feed.feed.get('title', feed_url)
+        print(f"Checking feed: {format_title_for_print(feed_title_resolved)}")
+        now = datetime.now(timezone.utc)
+
+        if not feed.entries:
+            print("No entries found.")
+            return
+
+        for entry in feed.entries:
+            published = get_published_date(entry, fallback_to_now=False)
+            title = entry.get('title', 'No Title')
+
+            if published:
+                latest_str = published.strftime("%Y-%m-%d %H:%M")
+                if (now - published).days > STALE_DAYS_THRESHOLD:
+                    latest_str += " [STALE!]"
+            else:
+                latest_str = "N/A"
+
+            print(f"{latest_str} | {title}")
+
+        feed_link = feed.feed.get('link')
+        if not feed_link:
+            # fallback: extract domain from feed URL
+            from urllib.parse import urlparse
+            parsed = urlparse(feed_url)
+            feed_link = f"{parsed.scheme}://{parsed.netloc}" if parsed.netloc else feed_url
+
+        # Print OPML-style outline
+        print(
+            f'\n<outline type="rss" text="{feed_title_resolved}" '
+            f'xmlUrl="{feed_url}" htmlUrl="{feed_link}" />'
+        )
+
+    asyncio.run(_fetch_and_print())

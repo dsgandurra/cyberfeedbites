@@ -62,6 +62,8 @@ MAX_FEEDTITLE_LEN_PRINT = 40
 MAX_CONCURRENT_TASKS = 15
 CACHE_MAX_AGE_SECONDS = 600  # 10 minutes
 STALE_DAYS_THRESHOLD = 30
+PRINT_RSS_PROCESSING_STATUS = False
+SINGLE_FEED_CHECK = None
 
 DEFAULT_REQUEST_HEADERS = {
     'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/115.0 Safari/537.36',
@@ -188,6 +190,8 @@ def build_user_options():
         "IGNORE_CACHE": UserOption("IGNORE_CACHE", IGNORE_CACHE, "ignore_cache", "ignore-cache"),
         "NO_CONDITIONAL_CACHE": UserOption("NO_CONDITIONAL_CACHE", NO_CONDITIONAL_CACHE, "no_conditional_cache", "no-conditional-cache"),
         "CHECK_FEEDS": UserOption("CHECK_FEEDS", CHECK_FEEDS, "check_feeds", "check-feeds", cli_only=True),
+        "PRINT_RSS_PROCESSING_STATUS": UserOption("PRINT_RSS_PROCESSING_STATUS", PRINT_RSS_PROCESSING_STATUS, "print_rss_processing_status", "print-rss-processing-status"),
+        "SINGLE_FEED_CHECK": UserOption("SINGLE_FEED_CHECK", SINGLE_FEED_CHECK, "single_feed_check", "single-feed-check", cli_only=True),
         "SETTINGS_YAML": UserOption("SETTINGS_YAML", SETTINGS_YAML, "settings_yaml", "settings-yaml", cli_only=True),
         "MAX_CONCURRENT_TASKS": UserOption("MAX_CONCURRENT_TASKS", MAX_CONCURRENT_TASKS, "max_concurrent_tasks", None, yaml_only=True)
     }
