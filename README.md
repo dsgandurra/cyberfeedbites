@@ -64,9 +64,9 @@ The required packages are:
 
 Run CyberFeedBites with optional parameters:
 
-    ```bash
-    python -m cyberfeedbites.src.main [-h] [--start START] [--end END] [--opml-filename OPML_FILENAME] [--output-format [OUTPUT_FORMAT]] [--output-html-folder OUTPUT_HTML_FOLDER] [--output-csv-folder OUTPUT_CSV_FOLDER] [--output-json-folder OUTPUT_JSON_FOLDER] [--align-start-to-midnight] [--align-end-to-midnight] [--html-img] [--max-length-description MAX_LENGTH_DESCRIPTION] [--exclude-keywords] [--exclude-keywords-file EXCLUDE_KEYWORDS_FILE] [--aggressive-filtering] [--aggressive-keywords-file AGGRESSIVE_KEYWORDS_FILE] [--print-retrieved] [--print-skipped] [--order-by {date,title_date}] [--ignore-cache] [--no-conditional-cache] [--check-feeds] [--print-rss-processing_status] [--settings-yaml SETTINGS_YAML] [--single-feed-check FEED_URL]
-    ```
+  ```bash
+  python -m cyberfeedbites.src.main [-h] [--start START] [--end END] [--opml-filename OPML_FILENAME] [--output-format [OUTPUT_FORMAT]] [--output-html-folder OUTPUT_HTML_FOLDER] [--output-csv-folder OUTPUT_CSV_FOLDER] [--output-json-folder OUTPUT_JSON_FOLDER] [--align-start-to-midnight] [--align-end-to-midnight] [--html-img] [--max-length-description MAX_LENGTH_DESCRIPTION] [--exclude-keywords] [--exclude-keywords-file EXCLUDE_KEYWORDS_FILE] [--aggressive-filtering] [--aggressive-keywords-file AGGRESSIVE_KEYWORDS_FILE] [--print-retrieved] [--print-skipped] [--order-by {date,title_date}] [--ignore-cache] [--no-conditional-cache] [--check-feeds] [--print-rss-processing_status] [--settings-yaml SETTINGS_YAML] [--single-feed-check FEED_URL]
+  ```
 
 - `--start`: Number of days ago to start fetching news (default: 1).
 - `--end`: Number of days ago to end fetching news (default: 0).

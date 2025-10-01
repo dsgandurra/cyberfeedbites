@@ -274,9 +274,9 @@ def parse_arguments(user_options, argv=None):
     )
 
     parser.add_argument(
-        f"--{user_options['SINGLE_FEED_CHECK'].cli_name}",  # e.g., "single_feed_check"
+        f"--{user_options['SINGLE_FEED_CHECK'].cli_name}",
         type=validate_feed_url,
-        default="",
+        default=user_options['SINGLE_FEED_CHECK'].value,
         metavar="FEED_URL",
         help=(
             "Perform a quick health check for a single RSS feed URL. "
