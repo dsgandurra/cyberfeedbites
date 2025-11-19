@@ -320,6 +320,9 @@ async def fetch_feed_with_cache(
     except Exception as e:
         # Fallback: return cache if exists
         if cache_file.exists():
+            err_type = type(e).__name__
+            detail = e.args[0] if e.args else ""
+            print(f"Fetch failed for {feed_url} ({err_type}: {detail}); using cached copy.")
             with open(cache_file, "rb") as f:
                 return f.read(), True
         raise e
