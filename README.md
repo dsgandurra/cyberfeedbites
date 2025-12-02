@@ -4,6 +4,10 @@ CyberFeedBites is a lightweight Python tool that provides an overview of recent 
 
 ![CyberFeedBites Demo](data/assets/demo-cyberfeedbites.png)
 
+## Why CyberFeedBites?
+
+CyberFeedBites is suited to cases where a lightweight, cybersecurity-focused RSS retriever is enough. It runs locally, requires no server, and produces fast summaries without the overhead of user management, databases, or a full RSS platform. It serves anyone who wants quick security reports, targeted filtering, and flexible OPML handling without maintaining an always-on service. When continuous background fetching, long-term archiving, a full web interface, or management of wider, non-cybersecurity feeds is required, a complete system such as FreshRSS becomes the better choice.
+
 ## Features
 
 - Collects and processes cybersecurity news from various RSS feeds.  

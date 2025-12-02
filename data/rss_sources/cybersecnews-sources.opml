@@ -37,7 +37,6 @@
 			<outline type="rss" text="Malware Traffic Analysis" xmlUrl="http://www.malware-traffic-analysis.net/blog-entries.rss" htmlUrl="https://www.malware-traffic-analysis.net/index.html" iconUrl="https://www.malware-traffic-analysis.net/site-logo-01.gif"/>
 			<outline type="rss" text="Malwarebytes" xmlUrl="https://www.malwarebytes.com/blog/feed/index.xml" htmlUrl="https://www.malwarebytes.com/" iconUrl="https://www.malwarebytes.com/wp-content/uploads/sites/2/2025/01/malwarebytes-favicon-apple-touch-icon.png"/>
 			<outline type="rss" text="Microsoft Security" xmlUrl="https://www.microsoft.com/en-us/security/blog/feed" htmlUrl="https://www.microsoft.com/en-us/security/blog/" iconUrl="https://uhf.microsoft.com/images/microsoft/RE1Mu3b.png"/>
-			<outline type="rss" text="Microsoft Security Response Center" xmlUrl="https://msrc-blog.microsoft.com/feed/" htmlUrl="https://msrc-blog.microsoft.com/" />
 			<outline type="rss" text="Palo Alto Networks" xmlUrl="http://researchcenter.paloaltonetworks.com/feed/" htmlUrl="https://www.paloaltonetworks.com/blog/" iconUrl="https://www.paloaltonetworks.com/blog/wp-content/themes/panwblog2023/assets/images/icons/favicon.ico"/>
 			<outline type="rss" text="Proofpoint Threat Insight" xmlUrl="https://www.proofpoint.com/us/threat-insight-blog.xml" htmlUrl="https://www.proofpoint.com/us/blog" />
 			<outline type="rss" text="Qualys Blog" xmlUrl="https://blog.qualys.com/feed" htmlUrl="https://blog.qualys.com/" />
