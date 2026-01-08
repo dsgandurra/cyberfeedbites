@@ -1,5 +1,5 @@
 # CyberFeedBites – Lightweight Cybersecurity RSS Reader
-# Copyright (C) 2024–2025 Daniele Sgandurra
+# Copyright (C) 2024–2026 Daniele Sgandurra
 #
 # This file is part of CyberFeedBites.
 #
