@@ -28,7 +28,7 @@ from pathlib import Path
 from dataclasses import dataclass
 from typing import Set
 
-from .utils import get_description, clean_articles, format_title_for_print, get_published_date
+from .utils import get_description, clean_articles, format_title_for_print, get_published_date, normalise_text
 from .config import (
     XMLURL_KEY, UPDATED_PARSED_KEY, FEED_URL_KEY, BODY_KEY, OUTLINE_KEY, 
     TEXT_KEY, TITLE_KEY, LINK_KEY, DESCRIPTION_KEY, PUBLISHED_DATE_KEY, 
@@ -195,9 +195,9 @@ def process_feed_entries(feed, feed_url, start_date, end_date, exclude_keywords,
         if not published_date or not (start_date <= published_date <= end_date):
             continue
 
-        title = entry.get(TITLE_KEY, '')
-        category = entry.get(CATEGORY_KEY, '')
-        description = get_description(entry)
+        title = normalise_text(entry.get(TITLE_KEY, ''))
+        category = normalise_text(entry.get(CATEGORY_KEY, ''))
+        description = normalise_text(get_description(entry))
         tags = entry.get('tags', [])
 
         # Lowercase combined text once

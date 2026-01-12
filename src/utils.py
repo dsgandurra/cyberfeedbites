@@ -21,6 +21,7 @@ from bs4 import BeautifulSoup
 from urllib.parse import urlparse
 from datetime import datetime, timezone
 import re
+import unicodedata
 import tldextract
 import os
 from typing import Any, Dict, Optional
@@ -32,6 +33,17 @@ from .config import (
     CONTENT_KEY, MAX_LENGTH_TITLE, MAX_LENGTH_LINK, MAX_LENGTH_FEED_URL, 
     MAX_LENGTH_SKIPPED_REASON, PUBLISHED_PARSED_KEY, UPDATED_PARSED_KEY, MAX_LENGTH_CHANNEL_IMAGE
 )
+
+_WHITESPACE_RE = re.compile(r"\s+", re.UNICODE)
+
+def normalise_text(text: str) -> str:
+    if not text:
+        return ""
+
+    text = unicodedata.normalize("NFKC", text)
+    text = _WHITESPACE_RE.sub(" ", text)
+
+    return text.strip()
 
 def get_published_date(entry, fallback_to_now=False):
     parsed = entry.get(PUBLISHED_PARSED_KEY) or entry.get(UPDATED_PARSED_KEY)
