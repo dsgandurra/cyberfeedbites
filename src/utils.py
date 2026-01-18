@@ -24,8 +24,9 @@ import re
 import unicodedata
 import tldextract
 import os
-from typing import Any, Dict, Optional
+from typing import Any, Dict, Optional, Set
 import yaml
+from .config import UserOption
 
 from .config import (
     FEED_SEPARATOR, SUMMARY_KEY, TITLE_KEY, LINK_KEY, FEED_URL_KEY, CHANNEL_IMAGE_KEY,
@@ -35,6 +36,25 @@ from .config import (
 )
 
 _WHITESPACE_RE = re.compile(r"\s+", re.UNICODE)
+
+def load_ignore_titles(user_options: dict[str, UserOption]) -> Set[str]:
+    opt_ignore_titles = user_options["IGNORE_TITLES"]
+    opt_file = user_options["IGNORE_TITLES_FILE"]
+
+    ignore_set = set()
+
+    if opt_ignore_titles.value:
+        file_path = opt_file.value
+        if file_path and os.path.exists(file_path):
+            with open(file_path, "r", encoding="utf-8") as f:
+                for line in f:
+                    line_clean = normalise_text(line.strip()).lower()
+                    if line_clean:
+                        ignore_set.add(line_clean)
+        else:
+            print(f"[WARN] IGNORE_TITLES is True but file not found: {file_path}")
+    
+    return ignore_set
 
 def normalise_text(text: str) -> str:
     if not text:

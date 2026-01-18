@@ -65,7 +65,7 @@ from .config import (
     SETTINGS_YAML,
     build_user_options
 )
-from .utils import print_feed_details, load_yaml_config
+from .utils import print_feed_details, load_yaml_config, load_ignore_titles
 
 def validate_start(value):
     value = int(value)
@@ -285,6 +285,20 @@ def parse_arguments(user_options, argv=None):
         )
     )
 
+    parser.add_argument(
+        f"--{user_options['IGNORE_TITLES'].cli_name}",
+        action="store_true",
+        default=user_options['IGNORE_TITLES'].value,
+        help=f"Enable ignoring articles with titles listed in file. Default is {user_options['IGNORE_TITLES'].value}."
+    )
+
+    parser.add_argument(
+        f"--{user_options['IGNORE_TITLES_FILE'].cli_name}",
+        type=str,
+        default=user_options['IGNORE_TITLES_FILE'].value,
+        help=f"Path to file containing titles to ignore (one per line). Default is {user_options['IGNORE_TITLES_FILE'].value}."
+    )
+
     args = parser.parse_args(argv)
 
     if args.start < args.end:
@@ -486,6 +500,8 @@ def run_main_logic(user_options, return_raw_json=False):
         start_date_string_print_json = start_date.strftime(TEXT_DATE_FORMAT_JSON)
         end_date_string_print_json = end_date.strftime(TEXT_DATE_FORMAT_JSON)
 
+        ignore_titles_set = load_ignore_titles(user_options)
+
         feed_options = FeedOptions(
             start_date=start_date,
             end_date=end_date,
@@ -494,10 +510,12 @@ def run_main_logic(user_options, return_raw_json=False):
             aggressive_keywords=aggressive_keywords,
             ignore_cache=ignore_cache,
             no_conditional_cache=no_conditional_cache,
-            print_rss_processing_status = print_rss_processing_status
+            print_rss_processing_status = print_rss_processing_status,
+            ignore_titles=user_options["IGNORE_TITLES"].value,
+            ignore_titles_set=ignore_titles_set
         )
 
-        all_entries, skipped_entries, icon_map, opml_text, opml_title, opml_category, errors = process_rss_feed(opml_filename, feed_options)
+        all_entries, skipped_entries, icon_map, opml_text, opml_title, opml_category, errors = process_rss_feed(user_options["OPML_FILENAME"].value, feed_options)
 
         base = opml_category or opml_text
         if not base:

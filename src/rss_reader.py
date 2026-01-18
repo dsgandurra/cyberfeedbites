@@ -48,6 +48,8 @@ class FeedOptions:
     ignore_cache: bool
     no_conditional_cache: bool
     print_rss_processing_status: bool
+    ignore_titles: bool
+    ignore_titles_set: Set[str]
 
 def process_rss_feed(opml_filename: str, options: FeedOptions):
     """Handles the RSS feed processing asynchronously via run_feeds."""
@@ -159,9 +161,34 @@ def matches_exclude_keywords(text: str, exclude_keywords: set[str], exceptions: 
             return keyword
     return None
 
-def process_feed_entries(feed, feed_url, start_date, end_date, exclude_keywords, aggressive_keywords, max_length_description):
+def strip_ellipsis(s: str) -> str:
+    s = normalise_text(s).lower()
+    if s.endswith("..."):
+        return s[:-3].rstrip()
+    return s
+
+
+def is_ignored_title(title: str, ignored_titles: set[str]) -> bool:
+    if not ignored_titles:
+        return False
+
+    title_cmp = strip_ellipsis(title)
+
+    for ignored in ignored_titles:
+        ignored_cmp = strip_ellipsis(ignored)
+
+        if title_cmp == ignored_cmp:
+            return True
+
+        if title_cmp.startswith(ignored_cmp) or ignored_cmp.startswith(title_cmp):
+            return True
+
+    return False
+
+def process_feed_entries(feed, feed_url, start_date, end_date, exclude_keywords, aggressive_keywords, max_length_description, ignore_titles=False, ignored_titles=None):
     exclude_keywords_lower = {kw.lower() for kw in exclude_keywords or []}
     aggressive_keywords_lower = {kw.lower() for kw in aggressive_keywords or []}
+    ignored_titles = ignored_titles or set()
 
     exclude_pattern = (
         re.compile(r'\b(?:' + '|'.join(re.escape(kw) for kw in exclude_keywords_lower) + r')\b')
@@ -196,8 +223,22 @@ def process_feed_entries(feed, feed_url, start_date, end_date, exclude_keywords,
             continue
 
         title = normalise_text(entry.get(TITLE_KEY, ''))
-        category = normalise_text(entry.get(CATEGORY_KEY, ''))
         description = normalise_text(get_description(entry))
+
+        if ignored_titles and is_ignored_title(title, ignored_titles):
+            article_data = {
+                FEED_URL_KEY: feed_url,
+                TITLE_KEY: title,
+                LINK_KEY: entry.get(LINK_KEY, ''),
+                DESCRIPTION_KEY: description,
+                PUBLISHED_DATE_KEY: published_date,
+                CHANNEL_IMAGE_KEY: channel_image,
+                SKIPPED_REASON: "Ignored title"
+            }
+            skipped_articles.append(article_data)
+            continue
+
+        category = normalise_text(entry.get(CATEGORY_KEY, ''))
         tags = entry.get('tags', [])
 
         # Lowercase combined text once
@@ -357,6 +398,8 @@ async def retrieve_and_process_feed(session, feedtitle, feed_url, options: FeedO
             set(k.lower() for k in options.exclude_keywords or []),
             set(k.lower() for k in options.aggressive_keywords or []),
             options.max_length_description,
+            options.ignore_titles,
+            options.ignore_titles_set,
         )
 
         # Annotate with feed metadata

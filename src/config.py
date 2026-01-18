@@ -106,6 +106,8 @@ AGGRESSIVE_KEYWORDS_FILE = None
 HTML_IMG = False
 IGNORE_CACHE = False
 NO_CONDITIONAL_CACHE = True
+IGNORE_TITLES = False
+IGNORE_TITLES_FILE = None
 
 # Keys used in RSS feed entries
 SUMMARY_KEY = "summary"
@@ -193,5 +195,7 @@ def build_user_options():
         "PRINT_RSS_PROCESSING_STATUS": UserOption("PRINT_RSS_PROCESSING_STATUS", PRINT_RSS_PROCESSING_STATUS, "print_rss_processing_status", "print-rss-processing-status"),
         "SINGLE_FEED_CHECK": UserOption("SINGLE_FEED_CHECK", SINGLE_FEED_CHECK, "single_feed_check", "single-feed-check", cli_only=True),
         "SETTINGS_YAML": UserOption("SETTINGS_YAML", SETTINGS_YAML, "settings_yaml", "settings-yaml", cli_only=True),
-        "MAX_CONCURRENT_TASKS": UserOption("MAX_CONCURRENT_TASKS", MAX_CONCURRENT_TASKS, "max_concurrent_tasks", None, yaml_only=True)
+        "MAX_CONCURRENT_TASKS": UserOption("MAX_CONCURRENT_TASKS", MAX_CONCURRENT_TASKS, "max_concurrent_tasks", None, yaml_only=True),
+        "IGNORE_TITLES": UserOption("IGNORE_TITLES", IGNORE_TITLES, "ignore_titles", "ignore-titles" ),
+        "IGNORE_TITLES_FILE": UserOption("IGNORE_TITLES_FILE", IGNORE_TITLES_FILE, "ignore_titles_file","ignore-titles-file"),
     }

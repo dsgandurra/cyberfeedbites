@@ -69,7 +69,9 @@ The required packages are:
 Run CyberFeedBites with optional parameters:
 
   ```bash
-  python -m cyberfeedbites.src.main [-h] [--start START] [--end END] [--opml-filename OPML_FILENAME] [--output-format [OUTPUT_FORMAT]] [--output-html-folder OUTPUT_HTML_FOLDER] [--output-csv-folder OUTPUT_CSV_FOLDER] [--output-json-folder OUTPUT_JSON_FOLDER] [--align-start-to-midnight] [--align-end-to-midnight] [--html-img] [--max-length-description MAX_LENGTH_DESCRIPTION] [--exclude-keywords] [--exclude-keywords-file EXCLUDE_KEYWORDS_FILE] [--aggressive-filtering] [--aggressive-keywords-file AGGRESSIVE_KEYWORDS_FILE] [--print-retrieved] [--print-skipped] [--order-by {date,title_date}] [--ignore-cache] [--no-conditional-cache] [--check-feeds] [--print-rss-processing-status] [--settings-yaml SETTINGS_YAML] [--single-feed-check FEED_URL]
+  python -m cyberfeedbites.src.main [-h] [--start START] [--end END] [--opml-filename OPML_FILENAME] [--output-format [OUTPUT_FORMAT]] [--output-html-folder OUTPUT_HTML_FOLDER] [--output-csv-folder OUTPUT_CSV_FOLDER] [--output-json-folder OUTPUT_JSON_FOLDER] [--align-start-to-midnight] [--align-end-to-midnight] [--html-img] [--max-length-description MAX_LENGTH_DESCRIPTION] [--exclude-keywords] [--exclude-keywords-file EXCLUDE_KEYWORDS_FILE] [--aggressive-filtering]
+[--aggressive-keywords-file AGGRESSIVE_KEYWORDS_FILE] [--print-retrieved] [--print-skipped] [--order-by {date,title_date}] [--ignore-cache] [--no-conditional-cache] [--check-feeds] [--print-rss-processing-status] [--settings-yaml SETTINGS_YAML]
+[--single-feed-check FEED_URL] [--ignore-titles] [--ignore-titles-file IGNORE_TITLES_FILE]
   ```
 
 - `--start`: Number of days ago to start fetching news (default: 1).
@@ -84,6 +86,8 @@ Run CyberFeedBites with optional parameters:
 - `--max-length-description`: Maximum length for RSS feed descriptions (default: 200).
 - `--exclude-keywords`: Enable exclusion of entries containing default keywords such as "sponsored", "advertisement", "clickbait", etc. Combine with `--exclude-keywords-file` to override with a custom list.
 - `--exclude-keywords-file`: Path to a file containing keywords to exclude, one per line. Overrides default keywords.
+- `--ignore-titles`: Enable exclusion of articles whose title exactly matches a list of known titles.
+- `--ignore-titles-file`: Path to a file containing titles to ignore, one per line. Titles are matched after normalisation and may also match truncated titles ending with `...`.
 - `--print-retrieved`: Print retrieved articles summary at the end.
 - `--print-skipped`: Print skipped articles summary at the end.
 - `--order-by`: Order HTML output by `date` (default) or `title_date`.
