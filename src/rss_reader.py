@@ -27,6 +27,8 @@ import hashlib
 from pathlib import Path
 from dataclasses import dataclass
 from typing import Set
+from collections import Counter
+import keyring
 
 from .utils import get_description, clean_articles, format_title_for_print, get_published_date, normalise_text
 from .config import (
@@ -35,7 +37,7 @@ from .config import (
     CHANNEL_IMAGE_KEY, ICON_URL_KEY, IMAGE_KEY, ICON_KEY, FEED_TITLE_KEY,
     LOGO_KEY, HREF_KEY, URL_KEY, CATEGORY_KEY, DEFAULT_REQUEST_HEADERS, 
     HTTP_REQUEST_TIMEOUT, SKIPPED_REASON, MAX_CONCURRENT_TASKS,
-    CACHE_FOLDER, CACHE_MAX_AGE_SECONDS, STALE_DAYS_THRESHOLD
+    CACHE_FOLDER, CACHE_MAX_AGE_SECONDS, STALE_DAYS_THRESHOLD, KEYRING_ADDRESS
 )
 
 @dataclass
@@ -69,6 +71,22 @@ def process_rss_feed(opml_filename: str, options: FeedOptions):
     
     return all_entries, skipped_entries, icon_map, opml_text, opml_title, opml_category, errors
 
+def resolve_vars_opml(url):
+    matches = re.findall(r"\$\{([^}]+)\}", url or "")
+
+    all_ok = True
+
+    for var in matches:
+        value = keyring.get_password(KEYRING_ADDRESS, var)
+
+        if value:
+            url = url.replace(f"${{{var}}}", value)
+        else:
+            print(f"Error retrieving {var} from keyring")
+            all_ok = False
+
+    return url
+
 def read_opml(file_path):
     """Reads OPML file and extracts feed URLs and icons."""
     if not os.path.exists(file_path):
@@ -88,6 +106,7 @@ def read_opml(file_path):
     for outline in root.findall('.//outline[@xmlUrl]'):
         text = outline.attrib.get(TEXT_KEY)
         url = outline.attrib.get(XMLURL_KEY)
+        url = resolve_vars_opml(url)
         icon = outline.attrib.get(ICON_URL_KEY)
         feeds.append((text, url))
         
@@ -216,6 +235,7 @@ def process_feed_entries(feed, feed_url, start_date, end_date, exclude_keywords,
 
     recent_articles = []
     skipped_articles = []
+    skipped_ignored_title_counts = Counter()
 
     for entry in feed.entries:
         published_date = get_published_date(entry, fallback_to_now=False)
@@ -226,6 +246,7 @@ def process_feed_entries(feed, feed_url, start_date, end_date, exclude_keywords,
         description = normalise_text(get_description(entry))
 
         if ignored_titles and is_ignored_title(title, ignored_titles):
+            skipped_ignored_title_counts[title] += 1
             article_data = {
                 FEED_URL_KEY: feed_url,
                 TITLE_KEY: title,
@@ -277,6 +298,12 @@ def process_feed_entries(feed, feed_url, start_date, end_date, exclude_keywords,
 
     recent_articles_cleaned = clean_articles(recent_articles, max_length_description)
     skipped_articles_cleaned = clean_articles(skipped_articles, max_length_description)
+
+    #for title, count in skipped_ignored_title_counts.items():
+    #    if count == 1:
+    #        print(f"Skipped title: {title} (reason: ignored title)")
+    #    else:
+    #        print(f"Skipped title: {title} (reason: ignored title, {count} times)")
 
     return recent_articles_cleaned, skipped_articles_cleaned
 

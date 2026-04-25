@@ -28,3 +28,6 @@ venv/
 
 # Ignore docs folder
 docs/
+
+# Ignore gitleaks
+.gitleaks.toml

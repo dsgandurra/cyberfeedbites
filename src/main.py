@@ -332,9 +332,12 @@ def print_summary(
     print(f"{FEED_SEPARATOR}")
 
     print(f"Time range: {start_date_print} {TIMEZONE_PRINT} to {end_date_print} {TIMEZONE_PRINT}")
-    print(f"OPML file: {opml_filename}")
+    #print(f"OPML file: {opml_filename}")
 
-    print(f"Retrieved articles: {len(entries)}")
+    total_received = len(entries) + len(skipped_entries)
+
+    print(f"Articles received/retrieved/skipped: {total_received}/{len(entries)}/{len(skipped_entries)}")
+
     if print_retrieved_entries:
         grouped_entries = defaultdict(list)
         for entry in entries:
@@ -345,7 +348,6 @@ def print_summary(
             articles = grouped_entries[(feedtitle, feed_url)]
             print_feed_details(feedtitle, feed_url, articles)
 
-    print(f"Skipped articles: {len(skipped_entries)}")
     if print_skipped_entries:
         grouped_skipped_entries = defaultdict(list)
         for skipped in skipped_entries:
