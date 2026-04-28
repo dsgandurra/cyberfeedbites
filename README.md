@@ -55,14 +55,7 @@ CyberFeedBites is ready to use once dependencies are installed. To run it as is,
     pip install -r cyberfeedbites/requirements.txt
     ```
 
-The required packages are:
-
-- `feedparser`: For parsing RSS feeds.
-- `beautifulsoup4`: For HTML parsing and manipulation.
-- `aiohttp`: For asynchronous HTTP requests to speed up feed fetching.
-- `requests`: For robust HTTP fetching with custom headers.
-- `tldextract`: For extracting domain names from URLs
-- `pyyaml`: For reading YAML configuration file
+Dependencies are defined in requirements.txt.
 
 ## Usage
 

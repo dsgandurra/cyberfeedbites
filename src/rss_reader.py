@@ -74,8 +74,6 @@ def process_rss_feed(opml_filename: str, options: FeedOptions):
 def resolve_vars_opml(url):
     matches = re.findall(r"\$\{([^}]+)\}", url or "")
 
-    all_ok = True
-
     for var in matches:
         value = keyring.get_password(KEYRING_ADDRESS, var)
 
@@ -83,7 +81,6 @@ def resolve_vars_opml(url):
             url = url.replace(f"${{{var}}}", value)
         else:
             print(f"Error retrieving {var} from keyring")
-            all_ok = False
 
     return url
 

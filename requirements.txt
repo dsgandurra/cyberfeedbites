@@ -1,7 +1,6 @@
-feedparser
-beautifulsoup4
-requests
-aiohttp
-tldextract
-pyyaml
-keyring
+aiohttp==3.13.2
+beautifulsoup4==4.14.3
+feedparser==6.0.12
+keyring==25.7.0
+PyYAML==6.0.3
+tldextract==5.3.0
