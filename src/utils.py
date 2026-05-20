@@ -76,52 +76,69 @@ def get_published_date(entry, fallback_to_now=False):
         return datetime.now(timezone.utc)
     return None
 
-
 def html_to_plain_text(html_str):
     """Converts HTML to plain text using BeautifulSoup, only if input looks like HTML."""
     try:
+        if not html_str:
+            return ""
+
+        if not isinstance(html_str, str):
+            html_str = str(html_str)
+
         if not re.search(r'<[^>]+>', html_str):
             return html_str
-        soup = BeautifulSoup(html_str, 'html.parser')
+
+        soup = BeautifulSoup(html_str, "html.parser")
         return soup.get_text()
+
     except Exception as e:
         print(f"Error converting HTML to plain text: {e}")
         return ""
 
 def truncate_string(text, max_length):
-    if text is None:
-        print("Error: 'text' is None in truncate_string()")
-
     if not isinstance(text, str):
-        print(f"Error: Expected string but got {type(text).__name__} in truncate_string()")
+        return ""
+
+    if not text:
+        return ""
 
     if len(text) > max_length:
         return text[:max_length].rsplit(' ', 1)[0] + "..."
+
     return text
+
+def extract_text(value):
+    if value is None:
+        return ""
+
+    if isinstance(value, list) and value:
+        value = value[0]
+
+    if isinstance(value, dict):
+        value = value.get('value', '')
+
+    if not isinstance(value, str):
+        value = str(value)
+
+    return html_to_plain_text(value)
 
 def get_description(entry):
     description = entry.get(DESCRIPTION_KEY)
-
     if not description:
         description = entry.get(SUMMARY_KEY)
-
     if not description:
-        content = entry.get(CONTENT_KEY)
-        if isinstance(content, list) and content:
-            description = content[0].get('value', '')
+        description = entry.get(CONTENT_KEY)
 
-    if not description:
+    text = extract_text(description)
+
+    if not text:
         return ""
 
-    return html_to_plain_text(description).strip().replace('\n', ' ')
+    text = normalise_text(text)
+    return text
 
-def truncate_description(plain_text_description, max_length_description):
-    truncated_plain_text_description = ""
-           
-    if plain_text_description:
-        truncated_plain_text_description = truncate_string(plain_text_description, max_length_description)
-        
-    return truncated_plain_text_description
+def truncate_description(text, max_length):
+    return truncate_string(text or "", max_length)
 
 def clean_articles(articles: list[dict], max_length_description: int) -> list[dict]:
     cleaned = []
@@ -158,6 +175,7 @@ def sanitize_for_html(text):
 
 def sanitize_for_csv(text):
     """Escapes text for CSV output by enclosing in quotes if needed."""
+    text = "" if text is None else str(text)
     if any(char in text for char in [',', '"', '\n']):
         text = '"' + text.replace('"', '""') + '"'
     return text
@@ -182,7 +200,7 @@ def print_feed_details(feedtitle, feed_url, recent_articles):
     print(f"{FEED_SEPARATOR}")
 
 def print_article(entry):
-    if(not entry[SKIPPED_REASON]):
+    if not entry.get(SKIPPED_REASON):
         print(f"\t[{entry[TITLE_KEY]}] [{entry[DESCRIPTION_KEY]}] [{entry[LINK_KEY]}] [{entry[PUBLISHED_DATE_KEY]}]")
     else:
         print(f"\t[{entry[TITLE_KEY]}] [{entry[DESCRIPTION_KEY]}] [{entry[LINK_KEY]}] [{entry[PUBLISHED_DATE_KEY]}] [{entry[SKIPPED_REASON]}]")
