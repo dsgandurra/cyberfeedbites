@@ -75,7 +75,7 @@ def resolve_vars_opml(url):
     matches = re.findall(r"\$\{([^}]+)\}", url or "")
 
     for var in matches:
-        value = keyring.get_password(KEYRING_ADDRESS, var)
+        value = keyring.get_password(f"{var}@{KEYRING_ADDRESS}", var)
 
         if value:
             url = url.replace(f"${{{var}}}", value)
