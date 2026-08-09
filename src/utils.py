@@ -61,6 +61,12 @@ def normalise_text(text: str) -> str:
         return ""
 
     text = unicodedata.normalize("NFKC", text)
+
+    text = "".join(
+        c for c in text
+        if unicodedata.category(c) != "Cf"
+    )
+
     text = _WHITESPACE_RE.sub(" ", text)
 
     return text.strip()
